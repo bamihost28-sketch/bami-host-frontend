@@ -538,7 +538,9 @@ export const estatesApi = createApi({
       providesTags: (result, error, reference) => [{ type: 'Payment', id: reference }],
     }),
     payBilling: builder.mutation<
-      { success: boolean; data: { authorizationUrl?: string; reference: string; amount: number } },
+      {
+        authorizationUrl: any; success: boolean; data: { authorizationUrl?: string; reference: string; amount: number } 
+},
       { billingCode?: string; amount?: number; paymentType?: string; itemIds?: string[]; paymentMethod?: string }
     >({
       query: (body) => ({ 
@@ -649,6 +651,17 @@ export const estatesApi = createApi({
       query: (id) => `/api/estates/public/listings/${id}`,
       providesTags: (result, error, id) => [{ type: 'Estate', id }],
     }),
+    // Unified Payment Transactions Endpoint
+    getPaymentTransactions: builder.query<
+      { success: boolean; data: any[]; page?: number; limit?: number; total?: number },
+      { page?: number; limit?: number; type?: string; status?: string; estateId?: string } | void
+    >({
+      query: (params = {}) => ({
+        url: '/api/payments/transactions',
+        params: params || {},
+      }),
+      providesTags: ['Tenant'],
+    }),
     getDashboardOverview: builder.query<TenantDashboardOverviewResponse, void>({
       query: () => '/api/dashboard/overview',
       providesTags: (result, error) => [
@@ -691,10 +704,12 @@ export const {
   useGetTenantBillingQuery,
   useInitiatePaymentMutation,
   useSendTenantReceiptMutation,
-  useResendPaymentReceiptMutation,
-  useLazyDownloadPaymentReceiptQuery,
-  useManualRecordPaymentMutation,
-  // Public
-  useGetPublicListingsQuery,
-  useGetPublicListingByIdQuery,
-} = estatesApi;
+    useResendPaymentReceiptMutation,
+    useLazyDownloadPaymentReceiptQuery,
+    useManualRecordPaymentMutation,
+    // Public
+    useGetPublicListingsQuery,
+    useGetPublicListingByIdQuery,
+    // Unified Payment Transactions
+    useGetPaymentTransactionsQuery,
+  } = estatesApi;

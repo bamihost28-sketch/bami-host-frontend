@@ -757,38 +757,38 @@ export const TENANT_DEMO_DATA = {
     nextPaymentDue: "2025-05-25"
   },
   paymentHistory: [
-    { id: 1, month: "April 2025", amount: 250000, status: "paid", date: "2025-04-23", method: "Transfer" },
-    { id: 2, month: "March 2025", amount: 250000, status: "paid", date: "2025-03-22", method: "Transfer" },
-    { id: 3, month: "February 2025", amount: 250000, status: "paid", date: "2025-02-24", method: "Bank Deposit" },
-    { id: 4, month: "January 2025", amount: 250000, status: "paid", date: "2025-01-23", method: "Transfer" }
+    { id: "1", month: "April 2025", amount: 250000, status: "paid", date: "2025-04-23", method: "Transfer" },
+    { id: "2", month: "March 2025", amount: 250000, status: "paid", date: "2025-03-22", method: "Transfer" },
+    { id: "3", month: "February 2025", amount: 250000, status: "paid", date: "2025-02-24", method: "Bank Deposit" },
+    { id: "4", month: "January 2025", amount: 250000, status: "paid", date: "2025-01-23", method: "Transfer" }
   ],
   serviceCharges: [
-    { id: 1, type: "Service Charge", month: "April 2025", amount: 15000, status: "paid", date: "2025-04-10" },
-    { id: 2, type: "Service Charge", month: "March 2025", amount: 15000, status: "paid", date: "2025-03-10" },
-    { id: 3, type: "Water Bill", month: "April 2025", amount: 5000, status: "pending" },
-    { id: 4, type: "Electricity", month: "April 2025", amount: 12000, status: "pending" }
+    { id: "1", type: "Service Charge", month: "April 2025", amount: 15000, status: "paid", date: "2025-04-10" },
+    { id: "2", type: "Service Charge", month: "March 2025", amount: 15000, status: "paid", date: "2025-03-10" },
+    { id: "3", type: "Water Bill", month: "April 2025", amount: 5000, status: "pending" },
+    { id: "4", type: "Electricity", month: "April 2025", amount: 12000, status: "pending" }
   ],
   maintenanceRequests: [
-    { id: 1, title: "Leaking kitchen faucet", category: "plumbing", status: "in_progress", createdAt: "2025-04-15", assignedTo: "Mr. Adebayo", estimatedCompletion: "2025-04-25" },
-    { id: 2, title: "AC not cooling properly", category: "ac_repair", status: "pending", createdAt: "2025-04-20", assignedTo: null, estimatedCompletion: null },
-    { id: 3, title: "Broken bedroom lock", category: "security", status: "completed", createdAt: "2025-03-10", assignedTo: "Mr. Chidi", estimatedCompletion: "2025-03-12" }
+    { id: "1", title: "Leaking kitchen faucet", category: "plumbing", status: "in_progress", createdAt: "2025-04-15", assignedTo: "Mr. Adebayo", estimatedCompletion: "2025-04-25" },
+    { id: "2", title: "AC not cooling properly", category: "ac_repair", status: "pending", createdAt: "2025-04-20", assignedTo: null, estimatedCompletion: null },
+    { id: "3", title: "Broken bedroom lock", category: "security", status: "completed", createdAt: "2025-03-10", assignedTo: "Mr. Chidi", estimatedCompletion: "2025-03-12" }
   ],
   visitors: [
-    { id: 1, name: "Michael Brown", phone: "+2348012345678", purpose: "Family Visit", expectedArrival: "2025-04-25", accessCode: "VST-2025-0425", status: "approved" },
-    { id: 2, name: "Delivery - DHL", phone: "+2347000000000", purpose: "Package Delivery", expectedArrival: "2025-04-24", accessCode: "VST-2025-0424", status: "pending" }
+    { id: "1", name: "Michael Brown", phone: "+2348012345678", purpose: "Family Visit", expectedArrival: "2025-04-25", accessCode: "VST-2025-0425", status: "approved" },
+    { id: "2", name: "Delivery - DHL", phone: "+2347000000000", purpose: "Package Delivery", expectedArrival: "2025-04-24", accessCode: "VST-2025-0424", status: "pending" }
   ],
   notices: [
-    { id: 1, title: "Scheduled Water Shutdown", type: "important", date: "2025-04-28", content: "Water supply will be disrupted from 9AM to 5PM for maintenance work." },
-    { id: 2, title: "Estate Security Update", type: "info", date: "2025-04-22", content: "New security protocols effective immediately. Please ensure all visitors register at the gate." },
-    { id: 3, title: "Community Meeting", type: "event", date: "2025-05-01", content: "Monthly estate meeting holding at the clubhouse by 10AM." }
+    { id: "1", title: "Scheduled Water Shutdown", type: "important", date: "2025-04-28", content: "Water supply will be disrupted from 9AM to 5PM for maintenance work." },
+    { id: "2", title: "Estate Security Update", type: "info", date: "2025-04-22", content: "New security protocols effective immediately. Please ensure all visitors register at the gate." },
+    { id: "3", title: "Community Meeting", type: "event", date: "2025-05-01", content: "Monthly estate meeting holding at the clubhouse by 10AM." }
   ],
   documents: [
-    { id: 1, name: "Lease Agreement", type: "lease", date: "2024-12-31" },
-    { id: 2, name: "Move-in Checklist", type: "checklist", date: "2024-12-31" },
-    { id: 3, name: "House Rules", type: "policy", date: "2024-12-31" }
+    { id: "1", name: "Lease Agreement", type: "lease", date: "2024-12-31" },
+    { id: "2", name: "Move-in Checklist", type: "checklist", date: "2024-12-31" },
+    { id: "3", name: "House Rules", type: "policy", date: "2024-12-31" }
   ],
   complaints: [
-    { id: 1, title: "Excessive noise from 5B", category: "noise", status: "resolved", createdAt: "2025-03-15", response: "Warning issued to the resident." }
+    { id: "1", title: "Excessive noise from 5B", category: "noise", status: "resolved", createdAt: "2025-03-15", response: "Warning issued to the resident." }
   ]
 };
 

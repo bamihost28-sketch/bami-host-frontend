@@ -4,10 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { AlertCircle, Loader, Calendar, Receipt, Wallet, CreditCard, Plus } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation } from "@/services/estatesApi";
+import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetPaymentTransactionsQuery } from "@/services/estatesApi";
 import { TENANT_DEMO_DATA } from "@/data/demoData";
 import {
   useGetWalletBalanceQuery,
@@ -59,6 +68,7 @@ export const TenantDashboard: React.FC = () => {
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
   const { data: billingData } = useGetMyBillingQuery();
   const [payBilling, { isLoading: isPaying }] = usePayBillingMutation();
+  const { data: transactionsData, isLoading: transactionsLoading } = useGetPaymentTransactionsQuery({ page: 1, limit: 20 });
 
   // Wallet Transaction API Hooks
   const { data: walletResponse, isLoading: walletLoading, refetch: refetchWallet } = useGetWalletBalanceQuery();
@@ -617,7 +627,182 @@ export const TenantDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="transactions" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-slate-900 dark:text-white">Transaction History</CardTitle>
+              <CardDescription>View your wallet transactions and payments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {transactionsLoading ? (
+                <p className="text-center py-8 text-slate-500">Loading transactions...</p>
+              ) : transactionsData?.data && transactionsData.data.length > 0 ? (
+                <div className="space-y-3">
+                  {transactionsData.data.map((item: any) => {
+                    const isPayment = item.recordType === 'payment';
+                    const isWithdrawal = !isPayment && (item.type === 'withdrawal' || item.type === 'payment');
+                    
+                    return (
+                      <div key={item._id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium capitalize">
+                            {isPayment 
+                              ? (item.paymentType?.replace('_', ' ') || 'Payment')
+                              : (item.type || 'Transaction')
+                            }
+                          </p>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {formatDate(item.date || item.createdAt)} • {isPayment ? (item.paymentMethod || 'N/A') : (item.method || 'N/A')}
+                          </p>
+                          {item.description && (
+                            <p className="text-xs text-slate-400 mt-1">{item.description}</p>
+                          )}
+                          {item.tenant && (
+                            <p className="text-xs text-slate-400 mt-1">Tenant: {item.tenant.tenantName}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${isWithdrawal ? 'text-red-600' : 'text-green-600'}`}>
+                            {isWithdrawal ? '-' : '+'}
+                            {formatCurrency(item.amount)}
+                          </p>
+                          <Badge className={
+                            (isPayment ? item.paymentStatus : item.status) === 'completed' ? 'bg-green-100 text-green-800' : 
+                            (isPayment ? item.paymentStatus : item.status) === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-red-100 text-red-800'
+                          }>
+                            {isPayment ? item.paymentStatus : item.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-center py-8 text-slate-500">No transactions found</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Deposit Dialog */}
+      <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deposit Funds</DialogTitle>
+            <DialogDescription>
+              Enter the amount you want to deposit into your wallet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Amount (₦)</label>
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={depositForm.amount}
+                onChange={(e) => setDepositForm({ amount: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDepositDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleDeposit} disabled={isInitializing}>
+              {isInitializing ? "Initializing..." : "Deposit"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdraw Dialog */}
+      <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Withdraw Funds</DialogTitle>
+            <DialogDescription>
+              Enter the amount you want to withdraw from your wallet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Amount (₦)</label>
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={withdrawForm.amount}
+                onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description (Optional)</label>
+              <Input
+                placeholder="Reason for withdrawal"
+                value={withdrawForm.description}
+                onChange={(e) => setWithdrawForm({ ...withdrawForm, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleWithdraw} disabled={isWithdrawing}>
+              {isWithdrawing ? "Processing..." : "Withdraw"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer Dialog */}
+      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transfer Funds</DialogTitle>
+            <DialogDescription>
+              Send money to another user's wallet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Recipient Email</label>
+              <Input
+                placeholder="Enter recipient's email"
+                value={transferForm.recipient}
+                onChange={(e) => setTransferForm({ ...transferForm, recipient: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Amount (₦)</label>
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={transferForm.amount}
+                onChange={(e) => setTransferForm({ ...transferForm, amount: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description (Optional)</label>
+              <Input
+                placeholder="Reason for transfer"
+                value={transferForm.description}
+                onChange={(e) => setTransferForm({ ...transferForm, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTransfer} disabled={isTransferringUser}>
+              {isTransferringUser ? "Processing..." : "Transfer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
