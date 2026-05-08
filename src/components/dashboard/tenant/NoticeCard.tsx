@@ -22,6 +22,9 @@ export const NoticeCard: React.FC<NoticeCardProps> = ({ notices }) => {
         <CardTitle className="text-lg text-slate-900 dark:text-white">Estate Notices & Announcements</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {notices.length === 0 && (
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No notices at this time.</p>
+        )}
         {notices.map((notice) => (
           <div key={notice.id} className="p-4 border rounded-lg">
             <div className="flex items-start justify-between">

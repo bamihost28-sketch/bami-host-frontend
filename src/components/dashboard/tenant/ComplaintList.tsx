@@ -15,6 +15,10 @@ interface ComplaintListProps {
 }
 
 export const ComplaintList: React.FC<ComplaintListProps> = ({ complaints }) => {
+  if (complaints.length === 0) {
+    return <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No complaints submitted yet.</p>;
+  }
+
   return (
     <div className="space-y-4">
       {complaints.map((complaint) => (

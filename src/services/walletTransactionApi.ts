@@ -298,6 +298,16 @@ export const walletTransactionApi = createApi({
       }),
       invalidatesTags: ['Wallet', 'Transaction'],
     }),
+
+    // Add Funds (test mode — bypasses Paystack, credits wallet directly)
+    addFunds: builder.mutation<{ success: boolean; message?: string; data?: { balance: number } }, { amount: number }>({
+      query: (body) => ({
+        url: '/api/wallet/add-funds',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Wallet'],
+    }),
   }),
 });
 
@@ -311,4 +321,5 @@ export const {
   useWithdrawMutation,
   useTransferToUserMutation,
   useTransferToEstateMutation,
+  useAddFundsMutation,
 } = walletTransactionApi;

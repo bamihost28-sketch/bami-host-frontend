@@ -75,34 +75,58 @@ export interface TenantTransactionEntry {
 
 // Tenant billing
 export interface TenantBillingItem {
-  code: string; // e.g. 'rent', 'service_charge', 'caution_fee', 'legal_fee'
+  code: string;
   label: string;
   amount: number;
-  frequency: string; // 'monthly' | 'once'
-  type: string; // 'recurring' | 'one_time'
+  frequency: string;
+  type: string;
 }
 
 export interface TenantBillingResponse {
   success: boolean;
+  viewAs: string;
   data: {
-    recurring: {
-      code: string;
-      label: string;
-      amount: number;
-      dueDate: string;
-      type: string;
-      category: string;
-      frequency: string;
-    }[];
-    oneTime: {
-      code: string;
-      label: string;
-      amount: number;
-      type: string;
-      category: string;
-      frequency: string;
-    }[];
-    optional: any[];
+    tenant: {
+      name: string;
+      unit: string;
+      estate: string;
+      nextDueDate: string;
+      daysUntilDue: number;
+      isOverdue: boolean;
+    };
+    charges: {
+      recurring: {
+        code: string;
+        label: string;
+        storedAmount: number;
+        effectiveAmount: number;
+        isIncreased: boolean;
+        frequency: string;
+        nextDueDate: string | null;
+        daysUntilDue: number | null;
+        isOverdue: boolean;
+      }[];
+      oneTime: {
+        code: string;
+        label: string;
+        amount: number;
+        isPaid: boolean;
+        status: string;
+      }[];
+      utilityBills: {
+        label: string;
+        amount: number;
+        isOverdue: boolean;
+        daysOverdue: number;
+      }[];
+    };
+    summary: {
+      recurringMonthly: number;
+      oneTimeUnpaid: number;
+      utilityUnpaid: number;
+      totalOutstanding: number;
+      overdueAmount: number;
+    };
   };
 }
 
@@ -514,7 +538,7 @@ export const estatesApi = createApi({
       providesTags: (result, error, tenantId) => [{ type: 'Tenant' as const, id: tenantId }],
     }),
     getMyBilling: builder.query<TenantBillingResponse, void>({
-      query: () => '/api/tenants/me/billing',
+      query: () => '/api/billing/summary',
       providesTags: (result, error) => [{ type: 'Tenant', id: 'ME' }],
     }),
     initiateRentPayment: builder.mutation<{ success: boolean; data: { authorizationUrl?: string; reference: string; amount: number } }, { amount: number; paymentType: string }>({
@@ -529,24 +553,26 @@ export const estatesApi = createApi({
       query: ({ amount }) => ({ url: '/api/payments/caution-fee', method: 'POST', body: { amount } }),
       invalidatesTags: (result, error) => [{ type: 'Tenant', id: 'ME' }],
     }),
-    initiateLegalFeePayment: builder.mutation<{ success: boolean; data: { authorizationUrl?: string; reference: string; amount: number } }, { amount: number }>({
+    initiateLegalFeePayment: builder.mutation<{ success: boolean; data: { authorization_url?: string; reference: string; amount: number } }, { amount: number }>({
       query: ({ amount }) => ({ url: '/api/payments/legal-fee', method: 'POST', body: { amount } }),
       invalidatesTags: (result, error) => [{ type: 'Tenant', id: 'ME' }],
     }),
-    verifyPayment: builder.query<{ success: boolean; data: any }, string>({
+    initiateInitialPayment: builder.mutation<{ success: boolean; data: { authorization_url?: string; reference: string; amount: number } }, { amount: number }>({
+      query: ({ amount }) => ({ url: '/api/payments/initial', method: 'POST', body: { amount } }),
+      invalidatesTags: (result, error) => [{ type: 'Tenant', id: 'ME' }],
+    }),
+    verifyPayment: builder.query<{ success: boolean; message?: string; data: { status?: string; amount?: number; reference?: string } }, string>({
       query: (reference) => `/api/payments/verify/${reference}`,
       providesTags: (result, error, reference) => [{ type: 'Payment', id: reference }],
     }),
     payBilling: builder.mutation<
-      {
-        authorizationUrl: any; success: boolean; data: { authorizationUrl?: string; reference: string; amount: number } 
-},
-      { billingCode?: string; amount?: number; paymentType?: string; itemIds?: string[]; paymentMethod?: string }
+      { success: boolean; data: { authorization_url?: string; reference?: string; amount?: number } },
+      { itemIds: string[]; paymentMethod?: "wallet" }
     >({
-      query: (body) => ({ 
-        url: '/api/tenants/me/billing/pay', 
-        method: 'POST', 
-        body 
+      query: (body) => ({
+        url: '/api/tenants/me/billing/pay',
+        method: 'POST',
+        body
       }),
       invalidatesTags: (result, error) => [{ type: 'Tenant', id: 'ME' }],
     }),
@@ -657,7 +683,7 @@ export const estatesApi = createApi({
       { page?: number; limit?: number; type?: string; status?: string; estateId?: string } | void
     >({
       query: (params = {}) => ({
-        url: '/api/payments/transactions',
+        url: '/api/wallet/transactions',
         params: params || {},
       }),
       providesTags: ['Tenant'],
@@ -687,7 +713,9 @@ export const {
   useInitiateServiceChargePaymentMutation,
   useInitiateCautionFeePaymentMutation,
   useInitiateLegalFeePaymentMutation,
+  useInitiateInitialPaymentMutation,
   useVerifyPaymentQuery,
+  useLazyVerifyPaymentQuery,
   usePayBillingMutation,
   useCreateEstateTenantMutation,
   useCreateEstateUnitMutation,

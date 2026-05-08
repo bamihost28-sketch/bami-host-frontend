@@ -22,6 +22,10 @@ export const VisitorList: React.FC<VisitorListProps> = ({ visitors, showPendingA
     ? visitors.filter(v => v.status === "pending")
     : visitors;
 
+  if (filteredVisitors.length === 0) {
+    return <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No visitors found.</p>;
+  }
+
   return (
     <div className="space-y-3">
       {filteredVisitors.map((visitor) => (

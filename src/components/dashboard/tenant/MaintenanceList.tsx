@@ -34,6 +34,10 @@ interface MaintenanceListProps {
 }
 
 export const MaintenanceList: React.FC<MaintenanceListProps> = ({ requests }) => {
+  if (requests.length === 0) {
+    return <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No maintenance requests yet.</p>;
+  }
+
   return (
     <div className="space-y-4">
       {requests.map((request) => {

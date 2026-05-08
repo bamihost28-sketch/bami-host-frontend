@@ -17,12 +17,12 @@ import { AlertCircle, Loader, Calendar, Receipt, Wallet, CreditCard, Plus } from
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetPaymentTransactionsQuery } from "@/services/estatesApi";
-import { TENANT_DEMO_DATA } from "@/data/demoData";
 import {
   useGetWalletBalanceQuery,
   useDepositMutation,
   useWithdrawMutation,
   useTransferToUserMutation,
+  useAddFundsMutation,
 } from "@/services";
 import { usePaystackDeposit } from "@/hooks/useWallet";
 
@@ -31,6 +31,7 @@ import { OverviewCards } from "./tenant/OverviewCards";
 import { WalletBalanceCard } from "./tenant/WalletBalanceCard";
 import { QuickActions } from "./tenant/QuickActions";
 import { NoticeCard } from "./tenant/NoticeCard";
+import { NotificationsTab } from "./tenant/NotificationsTab";
 import { MaintenanceList } from "./tenant/MaintenanceList";
 import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentMethodSelector } from "./tenant/PaymentMethodSelector";
@@ -63,6 +64,7 @@ export const TenantDashboard: React.FC = () => {
   const [selectedBillingItems, setSelectedBillingItems] = useState<string[]>([]);
   const [billingDialogOpen, setBillingDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"wallet" | "paystack">("wallet");
+  const [topUpAmount, setTopUpAmount] = useState("");
 
   // Fetch dashboard overview from API
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
@@ -75,6 +77,7 @@ export const TenantDashboard: React.FC = () => {
   const [deposit, { isLoading: isDepositing }] = useDepositMutation();
   const [withdraw, { isLoading: isWithdrawing }] = useWithdrawMutation();
   const [transferToUser, { isLoading: isTransferringUser }] = useTransferToUserMutation();
+  const [addFunds, { isLoading: isAddingFunds }] = useAddFundsMutation();
   
   // Paystack Deposit Hook
   const { initializeDeposit, isInitializing } = usePaystackDeposit();
@@ -83,16 +86,41 @@ export const TenantDashboard: React.FC = () => {
   const apiUser = overviewData?.data?.user;
   const apiApartment = overviewData?.data?.data?.apartment;
   const apiBilling = overviewData?.data?.data?.billing;
-  const billingItems = billingData?.data;
-  
+
+  // Normalize billing response into a flat shape for the UI
+  const charges = billingData?.data?.charges;
+  const billingSummary = billingData?.data?.summary;
+
+  const recurringItems = (charges?.recurring || []).map(item => ({
+    code: item.code,
+    label: item.label,
+    amount: item.effectiveAmount,
+    frequency: item.frequency,
+  }));
+
+  const oneTimeItems = (charges?.oneTime || [])
+    .filter(item => !item.isPaid)
+    .map(item => ({
+      code: item.code,
+      label: item.label,
+      amount: item.amount,
+      frequency: "once",
+    }));
+
+  const utilityItems = (charges?.utilityBills || []).map((item, i) => ({
+    code: `utility_${i}`,
+    label: item.label,
+    amount: item.amount,
+    frequency: "once",
+    isOverdue: item.isOverdue,
+    daysOverdue: item.daysOverdue,
+  }));
+
   // Get Wallet Data from API
   const walletData = walletResponse?.data;
   const walletBalance = walletData?.balance || 0;
 
-  // Calculate totals from billing
-  const recurringTotal = billingItems?.recurring?.reduce((sum: number, item: any) => sum + item.amount, 0) || 0;
-  const oneTimeTotal = billingItems?.oneTime?.reduce((sum: number, item: any) => sum + item.amount, 0) || 0;
-  const totalDue = recurringTotal + oneTimeTotal;
+  const totalDue = billingSummary?.totalOutstanding || 0;
 
   // Use API data or fallback to demo data
   const tenantInfo = apiApartment ? {
@@ -193,8 +221,7 @@ export const TenantDashboard: React.FC = () => {
 
   const calculateSelectedTotal = () => {
     let total = 0;
-    const allItems = [...(billingItems?.recurring || []), ...(billingItems?.oneTime || [])];
-    allItems.forEach((item: any) => {
+    allBillingItems.forEach((item) => {
       if (selectedBillingItems.includes(item.code)) {
         total += item.amount;
       }
@@ -220,30 +247,25 @@ export const TenantDashboard: React.FC = () => {
       toast("Processing: Payment in progress...");
 
       if (paymentMethod === "wallet") {
-        // For wallet payments, send itemIds array format
-        const result = await payBilling({
+        await payBilling({
           itemIds: selectedBillingItems,
           paymentMethod: "wallet",
         }).unwrap();
 
         toast("Success: Payment completed from your wallet");
-        setBillingDialogOpen(false);
         setSelectedBillingItems([]);
         refetchWallet();
       } else {
-        // For Paystack payments, send the original format
+        // Omit paymentMethod — server defaults to Paystack and returns authorization_url
         const result = await payBilling({
-          billingCode: selectedBillingItems[0],
-          amount: totalAmount,
-          paymentType: selectedBillingItems.join(","),
-          paymentMethod: paymentMethod,
+          itemIds: selectedBillingItems,
         }).unwrap();
 
-        if (result.authorizationUrl) {
-          window.location.href = result.authorizationUrl;
+        const authUrl = result.data?.authorization_url;
+        if (authUrl) {
+          window.location.href = authUrl;
         } else {
           toast("Success: Payment received");
-          setBillingDialogOpen(false);
           setSelectedBillingItems([]);
         }
       }
@@ -251,6 +273,22 @@ export const TenantDashboard: React.FC = () => {
       toast(error?.data?.message || "Error: Payment failed. Please try again");
     } finally {
       setIsProcessingPayment(false);
+    }
+  };
+
+  const handleTopUpWallet = async () => {
+    const amount = parseFloat(topUpAmount);
+    if (!amount || amount <= 0) {
+      toast("Error: Please enter a valid amount");
+      return;
+    }
+    try {
+      await addFunds({ amount }).unwrap();
+      toast(`Success: ₦${amount.toLocaleString()} added to your wallet`);
+      setTopUpAmount("");
+      refetchWallet();
+    } catch (error: any) {
+      toast(`Error: ${error?.data?.message || "Failed to add funds"}`);
     }
   };
 
@@ -340,7 +378,7 @@ export const TenantDashboard: React.FC = () => {
     }
   };
 
-  const allBillingItems = [...(billingItems?.recurring || []), ...(billingItems?.oneTime || [])];
+  const allBillingItems = [...recurringItems, ...oneTimeItems];
 
   return (
     <div className="p-6 space-y-6">
@@ -375,7 +413,7 @@ export const TenantDashboard: React.FC = () => {
                 tenantInfo={tenantInfo}
                 daysUntilRentDue={daysUntilRentDue}
                 totalDue={totalDue}
-                recurringCount={billingItems?.recurring?.length || 0}
+                recurringCount={recurringItems.length}
               />
               
               <WalletBalanceCard 
@@ -397,13 +435,13 @@ export const TenantDashboard: React.FC = () => {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <NoticeCard notices={TENANT_DEMO_DATA.notices.slice(0, 3)} />
+            <NoticeCard notices={[]} />
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg text-slate-900 dark:text-white">Maintenance Requests</CardTitle>
               </CardHeader>
               <CardContent>
-                <MaintenanceList requests={TENANT_DEMO_DATA.maintenanceRequests.slice(0, 3)} />
+                <MaintenanceList requests={[]} />
               </CardContent>
             </Card>
           </div>
@@ -422,33 +460,56 @@ export const TenantDashboard: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Recurring Items */}
-              {billingItems?.recurring && billingItems.recurring.length > 0 && (
+              {recurringItems.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-blue-600" />
                     Monthly Recurring Charges
                   </h3>
-                  <BillingItemList 
-                    items={billingItems.recurring}
+                  <BillingItemList
+                    items={recurringItems}
                     selectedItems={selectedBillingItems}
                     onToggleItem={handleSelectBillingItem}
-                    disabledItem="rent"
+                    disabledCondition={(code) => code === "service_charge" && !selectedBillingItems.includes("rent")}
                   />
                 </div>
               )}
 
-              {/* One-Time Items */}
-              {billingItems?.oneTime && billingItems.oneTime.length > 0 && (
+              {/* One-Time Items (unpaid only) */}
+              {oneTimeItems.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
                     <Receipt className="h-5 w-5 text-green-600" />
                     One-Time Charges
                   </h3>
-                  <BillingItemList 
-                    items={billingItems.oneTime}
+                  <BillingItemList
+                    items={oneTimeItems}
                     selectedItems={selectedBillingItems}
                     onToggleItem={handleSelectBillingItem}
                   />
+                </div>
+              )}
+
+              {/* Utility Bills (display only — no itemId to submit) */}
+              {utilityItems.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                    <Receipt className="h-5 w-5 text-orange-500" />
+                    Utility Bills
+                  </h3>
+                  <div className="space-y-2">
+                    {utilityItems.map(item => (
+                      <div key={item.code} className="flex items-center justify-between p-4 border rounded-lg bg-orange-50 dark:bg-orange-900/10">
+                        <div>
+                          <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
+                          {item.isOverdue && (
+                            <p className="text-xs text-red-600">{item.daysOverdue}d overdue</p>
+                          )}
+                        </div>
+                        <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(item.amount)}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -462,12 +523,39 @@ export const TenantDashboard: React.FC = () => {
                   />
 
                   {paymentMethod === "wallet" && calculateSelectedTotal() > walletBalance && (
-                    <Alert className="border-red-200 bg-red-50">
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                      <AlertDescription className="ml-2 text-red-800">
-                        Insufficient wallet balance. You need ₦{((calculateSelectedTotal() - walletBalance)).toLocaleString()} more.
-                      </AlertDescription>
-                    </Alert>
+                    <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/40 p-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-red-800 dark:text-red-300">Insufficient wallet balance</p>
+                          <p className="text-sm text-red-700 dark:text-red-400">
+                            You need {formatCurrency(calculateSelectedTotal() - walletBalance)} more to complete this payment.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="number"
+                          placeholder={`Min: ₦${Math.ceil(calculateSelectedTotal() - walletBalance).toLocaleString()}`}
+                          value={topUpAmount}
+                          onChange={(e) => setTopUpAmount(e.target.value)}
+                          className="h-9 text-sm"
+                          min={0}
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleTopUpWallet}
+                          disabled={isAddingFunds || !topUpAmount}
+                          className="bg-green-600 hover:bg-green-700 shrink-0"
+                        >
+                          {isAddingFunds ? (
+                            <><Loader className="h-3 w-3 mr-1.5 animate-spin" />Adding...</>
+                          ) : (
+                            <><Plus className="h-3 w-3 mr-1.5" />Top Up</>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   )}
 
                   <PaymentSummary 
@@ -544,10 +632,10 @@ export const TenantDashboard: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-slate-900 dark:text-white">Your Requests</CardTitle>
-              <CardDescription>{TENANT_DEMO_DATA.maintenanceRequests.length} requests</CardDescription>
+              <CardDescription>Your submitted requests</CardDescription>
             </CardHeader>
             <CardContent>
-              <MaintenanceList requests={TENANT_DEMO_DATA.maintenanceRequests} />
+              <MaintenanceList requests={[]} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -571,10 +659,7 @@ export const TenantDashboard: React.FC = () => {
               <CardTitle className="text-slate-900 dark:text-white">Pending Approvals</CardTitle>
             </CardHeader>
             <CardContent>
-              <VisitorList 
-                visitors={TENANT_DEMO_DATA.visitors}
-                showPendingActions={true}
-              />
+              <VisitorList visitors={[]} showPendingActions={true} />
             </CardContent>
           </Card>
 
@@ -583,13 +668,13 @@ export const TenantDashboard: React.FC = () => {
               <CardTitle className="text-slate-900 dark:text-white">Visitor History</CardTitle>
             </CardHeader>
             <CardContent>
-              <VisitorList visitors={TENANT_DEMO_DATA.visitors} />
+              <VisitorList visitors={[]} />
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="notices" className="space-y-6">
-          <NoticeCard notices={TENANT_DEMO_DATA.notices} />
+          <NotificationsTab />
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6">
@@ -598,7 +683,7 @@ export const TenantDashboard: React.FC = () => {
               <CardTitle className="text-slate-900 dark:text-white">Your Documents</CardTitle>
             </CardHeader>
             <CardContent>
-              <DocumentList documents={TENANT_DEMO_DATA.documents} />
+              <DocumentList documents={[]} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -622,7 +707,7 @@ export const TenantDashboard: React.FC = () => {
               <CardTitle className="text-slate-900 dark:text-white">Complaint History</CardTitle>
             </CardHeader>
             <CardContent>
-              <ComplaintList complaints={TENANT_DEMO_DATA.complaints} />
+              <ComplaintList complaints={[]} />
             </CardContent>
           </Card>
         </TabsContent>

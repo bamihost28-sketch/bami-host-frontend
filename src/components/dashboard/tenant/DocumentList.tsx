@@ -13,6 +13,10 @@ interface DocumentListProps {
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({ documents }) => {
+  if (documents.length === 0) {
+    return <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No documents available.</p>;
+  }
+
   return (
     <div className="space-y-3">
       {documents.map((doc) => (

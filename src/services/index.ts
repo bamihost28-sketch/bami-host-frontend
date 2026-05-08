@@ -103,4 +103,5 @@ export {
   useWithdrawMutation,
   useTransferToUserMutation,
   useTransferToEstateMutation,
+  useAddFundsMutation,
 } from './walletTransactionApi';
