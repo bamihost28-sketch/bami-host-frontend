@@ -353,7 +353,7 @@ export const TenantDashboard: React.FC = () => {
           <TabsTrigger value="notices">Notices</TabsTrigger>
           <TabsTrigger value="documents">Docs</TabsTrigger>
           <TabsTrigger value="complaints">Complaints</TabsTrigger>
-          <TabsTrigger value="utilities">Utilities</TabsTrigger>
+          <TabsTrigger value="utilities">Services</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
         </TabsList>
 
@@ -389,8 +389,7 @@ export const TenantDashboard: React.FC = () => {
                 isTransferring={isTransferringUser}
               />
 
-              <QuickActions 
-                onPayRent={handlePayRent}
+              <QuickActions
                 onReportMaintenance={handleReportMaintenance}
                 onGenerateVisitorPass={handleGenerateVisitorPass}
               />
