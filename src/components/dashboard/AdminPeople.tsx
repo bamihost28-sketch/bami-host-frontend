@@ -471,7 +471,7 @@ export const AdminPeople = () => {
       </div>
 
       <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="dashboard-tabs-list">
           {isSuperAdmin && (
             <TabsTrigger value="business-owners">
               <Shield className="h-4 w-4 mr-2" />

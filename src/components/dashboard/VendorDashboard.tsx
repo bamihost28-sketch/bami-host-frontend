@@ -141,7 +141,7 @@ export const VendorDashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex flex-wrap gap-1 dashboard-tabs-list">
+        <TabsList className="dashboard-tabs-list">
           <TabsTrigger value="overview">Work</TabsTrigger>
           <TabsTrigger value="jobs">Jobs</TabsTrigger>
           <TabsTrigger value="invoices">Pay</TabsTrigger>

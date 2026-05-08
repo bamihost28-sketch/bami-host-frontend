@@ -383,7 +383,7 @@ export const TenantDashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex flex-wrap w-full gap-1 dashboard-tabs-list">
+        <TabsList className="dashboard-tabs-list">
           <TabsTrigger value="overview">Home</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="maintenance">Issues</TabsTrigger>
