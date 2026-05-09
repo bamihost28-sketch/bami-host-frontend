@@ -23,8 +23,6 @@ import {
   Lock,
   Crown
 } from "lucide-react";
-import { TransactionsPanel } from "./TransactionsPanel";
-
 export const CRMDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -490,22 +488,6 @@ export const CRMDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Transactions */}
-      <TransactionsPanel
-        formatCurrency={(amount: number) => `₦${amount.toLocaleString()}`}
-        formatDate={(date: string) => new Date(date).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' })}
-        getStatusColor={(status: string) => {
-          switch (status) {
-            case 'completed':
-            case 'paid':
-              return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-            case 'pending':
-              return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-            default:
-              return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200';
-          }
-        }}
-      />
     </div>
   );
 };

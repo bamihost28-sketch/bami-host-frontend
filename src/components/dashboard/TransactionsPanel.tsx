@@ -46,6 +46,7 @@ export const TransactionsPanel = ({ formatCurrency, formatDate, getStatusColor, 
   // Transaction list state
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
@@ -87,12 +88,18 @@ export const TransactionsPanel = ({ formatCurrency, formatDate, getStatusColor, 
         method: "GET",
         headers: { Authorization: `Bearer ${token}` },
       });
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        setFetchError(true);
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch transactions");
+      setFetchError(false);
       setTransactions(data.transactions || data.data || []);
       setTotal(data.total || 0);
-    } catch (err: any) {
-      toast(err.message, "error");
+    } catch {
+      setFetchError(true);
     } finally {
       setLoading(false);
     }
@@ -379,6 +386,8 @@ export const TransactionsPanel = ({ formatCurrency, formatDate, getStatusColor, 
               <div className="flex justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
+            ) : fetchError ? (
+              <p className="text-center text-slate-500 dark:text-slate-400 py-8">Unable to load transactions. Please try again later.</p>
             ) : transactions.length === 0 ? (
               <p className="text-center text-slate-500 dark:text-slate-400 py-8">No transactions found</p>
             ) : (

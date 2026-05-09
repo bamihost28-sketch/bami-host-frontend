@@ -57,6 +57,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { VENDOR_DEMO_DATA } from "@/data/demoData";
 import { useToast } from "@/components/providers/ToastProvider";
+import { useAuth } from "@/contexts/AuthContext";
 
 const vendorData = VENDOR_DEMO_DATA;
 
@@ -95,6 +96,72 @@ const getPriorityColor = (priority: string) => {
     default:
       return "bg-slate-100 text-slate-800";
   }
+};
+
+interface TransactionsPanelProps {
+  formatCurrency: (n: number) => string;
+  formatDate: (d: string) => string;
+  getStatusColor: (s: string) => string;
+}
+
+const TransactionsPanel: React.FC<TransactionsPanelProps> = ({ formatCurrency, formatDate, getStatusColor }) => {
+  const allTransactions = [
+    ...vendorData.payments.map((p) => ({ ...p, source: "payment" as const })),
+    ...vendorData.invoices.map((inv) => ({ id: inv.id, description: inv.job, amount: inv.amount, date: inv.date, status: inv.status, source: "invoice" as const })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const totalReceived = vendorData.payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0);
+  const totalPending = vendorData.invoices.filter((i) => i.status === "pending").reduce((s, i) => s + i.amount, 0);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Transactions</h2>
+        <p className="text-slate-500 dark:text-slate-400">Your payment and invoice history</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">Total Received</p>
+            <p className="text-2xl font-bold text-green-600">{formatCurrency(totalReceived)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">Pending</p>
+            <p className="text-2xl font-bold text-yellow-600">{formatCurrency(totalPending)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-slate-900 dark:text-white">Transaction History</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {allTransactions.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-4">No transactions yet.</p>
+          ) : (
+            allTransactions.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white">{tx.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {formatDate(tx.date)} · {tx.source === "invoice" ? "Invoice" : "Payment"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(tx.amount)}</p>
+                  <Badge className={getStatusColor(tx.status)}>{tx.status}</Badge>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export const VendorDashboard: React.FC = () => {

@@ -34,7 +34,6 @@ import {
   PieChart,
   BarChart3,
   ArrowUpRight,
-  ArrowDownRight,
   Truck,
   Zap,
   Droplets,
@@ -55,6 +54,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { OWNER_DEMO_DATA } from "@/data/demoData";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
+import { TransactionsPanel } from "./TransactionsPanel";
 
 const ownerData = OWNER_DEMO_DATA;
 
@@ -118,12 +118,6 @@ export const OwnerDashboard: React.FC = () => {
   const [addTenantDialogOpen, setAddTenantDialogOpen] = useState(false);
   const [addMaintenanceDialogOpen, setAddMaintenanceDialogOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
-  const [depositDialogOpen, setDepositDialogOpen] = useState(false);
-  const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
-  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
-  const [depositForm, setDepositForm] = useState({ amount: "", method: "bank_transfer" });
-  const [withdrawForm, setWithdrawForm] = useState({ amount: "", description: "" });
-  const [transferForm, setTransferForm] = useState({ amount: "", recipient: "", recipientAccount: "", bank: "", description: "" });
 
   // Calculate totals
   const totalUnits = ownerData.properties.reduce((sum, p) => sum + p.totalUnits, 0);
@@ -156,64 +150,6 @@ export const OwnerDashboard: React.FC = () => {
     setAddMaintenanceDialogOpen(false);
   };
 
-  const handleOpenDeposit = () => {
-    setDepositForm({ amount: "", method: "bank_transfer" });
-    setDepositDialogOpen(true);
-  };
-
-  const handleOpenWithdraw = () => {
-    setWithdrawForm({ amount: "", description: "" });
-    setWithdrawDialogOpen(true);
-  };
-
-  const handleOpenTransfer = () => {
-    setTransferForm({ amount: "", recipient: "", recipientAccount: "", bank: "", description: "" });
-    setTransferDialogOpen(true);
-  };
-
-  const handleDeposit = () => {
-    if (!depositForm.amount || parseFloat(depositForm.amount) <= 0) {
-      toast({ title: "Error", description: "Please enter a valid amount" });
-      return;
-    }
-    toast({ title: "Success", description: `₦${parseFloat(depositForm.amount).toLocaleString()} deposited to wallet` });
-    setDepositDialogOpen(false);
-    setDepositForm({ amount: "", method: "bank_transfer" });
-  };
-
-  const handleWithdraw = () => {
-    if (!withdrawForm.amount || parseFloat(withdrawForm.amount) <= 0) {
-      toast({ title: "Error", description: "Please enter a valid amount" });
-      return;
-    }
-    const amount = parseFloat(withdrawForm.amount);
-    if (amount > ownerData.wallet.balance) {
-      toast({ title: "Error", description: "Insufficient wallet balance" });
-      return;
-    }
-    toast({ title: "Success", description: `₦${amount.toLocaleString()} withdrawn from wallet` });
-    setWithdrawDialogOpen(false);
-    setWithdrawForm({ amount: "", description: "" });
-  };
-
-  const handleTransfer = () => {
-    if (!transferForm.amount || parseFloat(transferForm.amount) <= 0) {
-      toast({ title: "Error", description: "Please enter a valid amount" });
-      return;
-    }
-    if (!transferForm.recipient || !transferForm.recipientAccount) {
-      toast({ title: "Error", description: "Please fill in recipient details" });
-      return;
-    }
-    const amount = parseFloat(transferForm.amount);
-    if (amount > ownerData.wallet.balance) {
-      toast({ title: "Error", description: "Insufficient wallet balance" });
-      return;
-    }
-    toast({ title: "Success", description: `₦${amount.toLocaleString()} transferred to ${transferForm.recipient}` });
-    setTransferDialogOpen(false);
-    setTransferForm({ amount: "", recipient: "", recipientAccount: "", bank: "", description: "" });
-  };
 
   return (
     <div className="p-6 space-y-6">
@@ -756,90 +692,12 @@ export const OwnerDashboard: React.FC = () => {
         </TabsContent>
 
         {/* Transactions */}
-        <TabsContent value="transactions" className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Transactions</h2>
-              <p className="text-slate-500 dark:text-slate-400">Manage your wallet and view transaction history</p>
-            </div>
-          </div>
-
-          {/* Wallet Balance Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Wallet Balance</CardTitle>
-              <CardDescription>Your current wallet balance and quick actions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg p-6 border">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Available Balance</p>
-                    <p className="text-4xl font-bold text-slate-900 dark:text-white">{formatCurrency(ownerData.wallet.balance)}</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button onClick={handleOpenDeposit} className="bg-green-600 hover:bg-green-700">
-                      <ArrowDownRight className="h-4 w-4 mr-2" />
-                      Deposit
-                    </Button>
-                    <Button variant="outline" onClick={handleOpenWithdraw}>
-                      <ArrowUpRight className="h-4 w-4 mr-2" />
-                      Withdraw
-                    </Button>
-                    <Button variant="outline" onClick={handleOpenTransfer}>
-                      <Send className="h-4 w-4 mr-2" />
-                      Transfer
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Transaction History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Transaction History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {ownerData.transactions.map((transaction: any) => (
-                  <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg bg-slate-50 dark:bg-slate-800">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        transaction.type === "deposit" ? "bg-green-100 dark:bg-green-900/30" :
-                        transaction.type === "withdraw" ? "bg-red-100 dark:bg-red-900/30" :
-                        "bg-blue-100 dark:bg-blue-900/30"
-                      }`}>
-                        {transaction.type === "deposit" ? (
-                          <ArrowDownRight className="h-5 w-5 text-green-600" />
-                        ) : transaction.type === "withdraw" ? (
-                          <ArrowUpRight className="h-5 w-5 text-red-600" />
-                        ) : (
-                          <Send className="h-5 w-5 text-blue-600" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{transaction.description}</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                          {formatDate(transaction.date)} • {transaction.reference}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-semibold ${
-                        transaction.type === "deposit" ? "text-green-600" :
-                        "text-red-600"
-                      }`}>
-                        {transaction.type === "deposit" ? "+" : "-"}{formatCurrency(transaction.amount)}
-                      </p>
-                      <Badge className={getStatusColor(transaction.status)}>{transaction.status}</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="transactions">
+          <TransactionsPanel
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+            getStatusColor={getStatusColor}
+          />
         </TabsContent>
       </Tabs>
 
@@ -889,95 +747,6 @@ export const OwnerDashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Deposit Dialog */}
-      <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Deposit to Wallet</DialogTitle>
-            <DialogDescription>Add funds to your wallet balance</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>Amount</Label>
-              <Input type="number" placeholder="Enter amount" value={depositForm.amount} onChange={(e) => setDepositForm({ ...depositForm, amount: e.target.value })} />
-            </div>
-            <div>
-              <Label>Payment Method</Label>
-              <Select value={depositForm.method} onValueChange={(value) => setDepositForm({ ...depositForm, method: value })}>
-                <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="card">Debit/Credit Card</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDepositDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleDeposit}>Deposit</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Withdraw Dialog */}
-      <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Withdraw from Wallet</DialogTitle>
-            <DialogDescription>Withdraw funds to your bank account</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Available Balance</p>
-              <p className="text-2xl font-bold">{formatCurrency(ownerData.wallet.balance)}</p>
-            </div>
-            <div>
-              <Label>Amount</Label>
-              <Input type="number" placeholder="Enter amount" value={withdrawForm.amount} onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: e.target.value })} />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Input placeholder="e.g., Withdrawal to bank account" value={withdrawForm.description} onChange={(e) => setWithdrawForm({ ...withdrawForm, description: e.target.value })} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleWithdraw}>Withdraw</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Transfer Dialog */}
-      <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Transfer Funds</DialogTitle>
-            <DialogDescription>Send money to another user</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Available Balance</p>
-              <p className="text-2xl font-bold">{formatCurrency(ownerData.wallet.balance)}</p>
-            </div>
-            <div>
-              <Label>Recipient Name</Label>
-              <Input placeholder="Enter recipient name" value={transferForm.recipient} onChange={(e) => setTransferForm({ ...transferForm, recipient: e.target.value })} />
-            </div>
-            <div>
-              <Label>Account Number</Label>
-              <Input placeholder="Enter account number" value={transferForm.recipientAccount} onChange={(e) => setTransferForm({ ...transferForm, recipientAccount: e.target.value })} />
-            </div>
-            <div>
-              <Label>Amount</Label>
-              <Input type="number" placeholder="Enter amount" value={transferForm.amount} onChange={(e) => setTransferForm({ ...transferForm, amount: e.target.value })} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTransferDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleTransfer}>Transfer</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
