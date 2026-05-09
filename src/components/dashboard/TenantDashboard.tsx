@@ -13,10 +13,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Loader, Calendar, Receipt, Wallet, CreditCard, Plus } from "lucide-react";
+import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetPaymentTransactionsQuery } from "@/services/estatesApi";
+import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetPaymentTransactionsQuery, useGetIssuesQuery } from "@/services/estatesApi";
 import {
   useGetWalletBalanceQuery,
   useDepositMutation,
@@ -33,12 +33,10 @@ import { QuickActions } from "./tenant/QuickActions";
 import { NoticeCard } from "./tenant/NoticeCard";
 import { NotificationsTab } from "./tenant/NotificationsTab";
 import { MaintenanceList } from "./tenant/MaintenanceList";
+import { ReportIssueDialog } from "./tenant/ReportIssueDialog";
 import { BillingItemList } from "./tenant/BillingItemList";
-import { PaymentMethodSelector } from "./tenant/PaymentMethodSelector";
 import { PaymentSummary } from "./tenant/PaymentSummary";
-import { VisitorList } from "./tenant/VisitorList";
 import { DocumentList } from "./tenant/DocumentList";
-import { ComplaintList } from "./tenant/ComplaintList";
 import { formatCurrency, formatDate } from "./tenant/utils";
 
 export const TenantDashboard: React.FC = () => {
@@ -46,8 +44,6 @@ export const TenantDashboard: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
-  const [visitorDialogOpen, setVisitorDialogOpen] = useState(false);
-  const [complaintDialogOpen, setComplaintDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
@@ -63,7 +59,6 @@ export const TenantDashboard: React.FC = () => {
   const [transferForm, setTransferForm] = useState({ amount: "", recipient: "", recipientAccount: "", bank: "", description: "" });
   const [selectedBillingItems, setSelectedBillingItems] = useState<string[]>([]);
   const [billingDialogOpen, setBillingDialogOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"wallet" | "paystack">("wallet");
   const [topUpAmount, setTopUpAmount] = useState("");
 
   // Fetch dashboard overview from API
@@ -71,6 +66,7 @@ export const TenantDashboard: React.FC = () => {
   const { data: billingData } = useGetMyBillingQuery();
   const [payBilling, { isLoading: isPaying }] = usePayBillingMutation();
   const { data: transactionsData, isLoading: transactionsLoading } = useGetPaymentTransactionsQuery({ page: 1, limit: 20 });
+  const { data: issuesData, isLoading: issuesLoading } = useGetIssuesQuery();
 
   // Wallet Transaction API Hooks
   const { data: walletResponse, isLoading: walletLoading, refetch: refetchWallet } = useGetWalletBalanceQuery();
@@ -128,7 +124,7 @@ export const TenantDashboard: React.FC = () => {
     apartmentNumber: apiApartment.unit,
     estateName: apiApartment.estate,
     leaseStatus: apiApartment.status,
-    leaseEndDate: apiApartment.nextDueDate,
+    leaseStartDate: apiApartment.entryDate,
     monthlyRent: apiApartment.rentAmount,
     rentDueDay: 25,
     outstandingBalance: apiBilling?.totalPending || 0,
@@ -137,12 +133,13 @@ export const TenantDashboard: React.FC = () => {
     email: apiUser?.email || "",
     phone: authUser?.phone || "",
     serviceCharge: apiApartment.serviceChargeAmount,
+    meterNumber: apiApartment.meterNumber,
   } : {
     name: authUser?.name || "Valued Tenant",
     apartmentNumber: "Flat 4B",
     estateName: "Rose Garden Estate",
     leaseStatus: "active",
-    leaseEndDate: "2026-12-31",
+    leaseStartDate: "",
     monthlyRent: 250000,
     rentDueDay: 25,
     outstandingBalance: 0,
@@ -238,7 +235,7 @@ export const TenantDashboard: React.FC = () => {
 
       const totalAmount = calculateSelectedTotal();
 
-      if (paymentMethod === "wallet" && totalAmount > walletBalance) {
+      if (totalAmount > walletBalance) {
         toast(`Error: Insufficient wallet balance. You need ₦${(totalAmount - walletBalance).toLocaleString()} more`);
         return;
       }
@@ -246,29 +243,14 @@ export const TenantDashboard: React.FC = () => {
       setIsProcessingPayment(true);
       toast("Processing: Payment in progress...");
 
-      if (paymentMethod === "wallet") {
-        await payBilling({
-          itemIds: selectedBillingItems,
-          paymentMethod: "wallet",
-        }).unwrap();
+      await payBilling({
+        itemIds: selectedBillingItems,
+        paymentMethod: "wallet",
+      }).unwrap();
 
-        toast("Success: Payment completed from your wallet");
-        setSelectedBillingItems([]);
-        refetchWallet();
-      } else {
-        // Omit paymentMethod — server defaults to Paystack and returns authorization_url
-        const result = await payBilling({
-          itemIds: selectedBillingItems,
-        }).unwrap();
-
-        const authUrl = result.data?.authorization_url;
-        if (authUrl) {
-          window.location.href = authUrl;
-        } else {
-          toast("Success: Payment received");
-          setSelectedBillingItems([]);
-        }
-      }
+      toast("Success: Payment completed from your wallet");
+      setSelectedBillingItems([]);
+      refetchWallet();
     } catch (error: any) {
       toast(error?.data?.message || "Error: Payment failed. Please try again");
     } finally {
@@ -293,8 +275,6 @@ export const TenantDashboard: React.FC = () => {
   };
 
   const handleReportMaintenance = () => setMaintenanceDialogOpen(true);
-  const handleGenerateVisitorPass = () => setVisitorDialogOpen(true);
-
   const handleOpenDeposit = () => {
     setDepositForm({ amount: "" });
     setDepositDialogOpen(true);
@@ -386,11 +366,10 @@ export const TenantDashboard: React.FC = () => {
         <TabsList className="dashboard-tabs-list">
           <TabsTrigger value="overview">Home</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
-          <TabsTrigger value="maintenance">Issues</TabsTrigger>
-          <TabsTrigger value="visitors">Visitors</TabsTrigger>
+          <TabsTrigger value="maintenance">Complaints</TabsTrigger>
           <TabsTrigger value="notices">Notices</TabsTrigger>
           <TabsTrigger value="documents">Docs</TabsTrigger>
-          <TabsTrigger value="complaints">Complaints</TabsTrigger>
+
           <TabsTrigger value="utilities">Services</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
         </TabsList>
@@ -429,7 +408,6 @@ export const TenantDashboard: React.FC = () => {
 
               <QuickActions
                 onReportMaintenance={handleReportMaintenance}
-                onGenerateVisitorPass={handleGenerateVisitorPass}
               />
             </CardContent>
           </Card>
@@ -438,10 +416,10 @@ export const TenantDashboard: React.FC = () => {
             <NoticeCard notices={[]} />
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-slate-900 dark:text-white">Maintenance Requests</CardTitle>
+                <CardTitle className="text-lg text-slate-900 dark:text-white">Recent Issues</CardTitle>
               </CardHeader>
               <CardContent>
-                <MaintenanceList requests={[]} />
+                <MaintenanceList requests={(issuesData?.data || []).slice(0, 3)} />
               </CardContent>
             </Card>
           </div>
@@ -513,16 +491,10 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Payment Summary & Method */}
+              {/* Payment Summary */}
               {selectedBillingItems.length > 0 && (
                 <div className="space-y-4">
-                  <PaymentMethodSelector 
-                    paymentMethod={paymentMethod}
-                    onMethodChange={setPaymentMethod}
-                    walletBalance={walletBalance}
-                  />
-
-                  {paymentMethod === "wallet" && calculateSelectedTotal() > walletBalance && (
+                  {calculateSelectedTotal() > walletBalance && (
                     <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/40 p-4 space-y-3">
                       <div className="flex items-start gap-2">
                         <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
@@ -569,7 +541,7 @@ export const TenantDashboard: React.FC = () => {
                     disabled={
                       selectedBillingItems.length === 0 ||
                       isProcessingPayment ||
-                      (paymentMethod === "wallet" && calculateSelectedTotal() > walletBalance)
+                      calculateSelectedTotal() > walletBalance
                     }
                     className="w-full bg-green-600 hover:bg-green-700 h-12"
                   >
@@ -580,17 +552,8 @@ export const TenantDashboard: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        {paymentMethod === "wallet" ? (
-                          <>
-                            <Wallet className="h-5 w-5 mr-2" />
-                            Pay {formatCurrency(calculateSelectedTotal())} from Wallet
-                          </>
-                        ) : (
-                          <>
-                            <CreditCard className="h-5 w-5 mr-2" />
-                            Pay {formatCurrency(calculateSelectedTotal())} with Paystack
-                          </>
-                        )}
+                        <Wallet className="h-5 w-5 mr-2" />
+                        Pay {formatCurrency(calculateSelectedTotal())} from Wallet
                       </>
                     )}
                   </Button>
@@ -619,56 +582,23 @@ export const TenantDashboard: React.FC = () => {
         <TabsContent value="maintenance" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Submit Maintenance Request</CardTitle>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-slate-900 dark:text-white">Issue Reports</CardTitle>
+                  <CardDescription>Track the progress of your reported issues</CardDescription>
+                </div>
+                <Button onClick={handleReportMaintenance}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Report Issue
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <Button onClick={handleReportMaintenance}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Request
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Your Requests</CardTitle>
-              <CardDescription>Your submitted requests</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <MaintenanceList requests={[]} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="visitors" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Generate Visitor Access</CardTitle>
-              <CardDescription>Create temporary access codes for your visitors</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={handleGenerateVisitorPass}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Visitor Pass
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Pending Approvals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <VisitorList visitors={[]} showPendingActions={true} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Visitor History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <VisitorList visitors={[]} />
+              {issuesLoading ? (
+                <p className="text-sm text-slate-500 text-center py-4">Loading issues...</p>
+              ) : (
+                <MaintenanceList requests={issuesData?.data || []} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -684,30 +614,6 @@ export const TenantDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <DocumentList documents={[]} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="complaints" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Submit Complaint</CardTitle>
-              <CardDescription>Report issues not related to maintenance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => setComplaintDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Complaint
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Complaint History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ComplaintList complaints={[]} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -770,6 +676,11 @@ export const TenantDashboard: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ReportIssueDialog
+        open={maintenanceDialogOpen}
+        onClose={() => setMaintenanceDialogOpen(false)}
+      />
 
       {/* Deposit Dialog */}
       <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>

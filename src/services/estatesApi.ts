@@ -287,6 +287,7 @@ export interface TenantDashboardOverviewResponse {
         entryDate: string;
         nextDueDate: string;
         status: string;
+        meterNumber?: string;
       };
       billing: {
         totalPending: number;
@@ -357,6 +358,30 @@ export interface CreateTenantPayload {
 }
 
 
+export interface IssueMedia {
+  url: string;
+  type: 'image' | 'video';
+}
+
+export interface IssueTimelineEntry {
+  stage: 'review' | 'started' | 'inprogress' | 'completed';
+  note: string;
+  media: IssueMedia[];
+  updatedBy: { name: string; email: string };
+  updatedAt: string;
+}
+
+export interface Issue {
+  _id: string;
+  title: string;
+  description: string;
+  category: 'electrical' | 'plumbing' | 'structural' | 'water' | 'security' | 'cleaning' | 'internet' | 'other';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'review' | 'started' | 'inprogress' | 'completed';
+  timeline: IssueTimelineEntry[];
+  createdAt: string;
+}
+
 export const estatesApi = createApi({
   reducerPath: 'estatesApi',
   baseQuery: fetchBaseQuery({
@@ -364,11 +389,10 @@ export const estatesApi = createApi({
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) headers.set('authorization', `Bearer ${token}`);
-      headers.set('content-type', 'application/json');
       return headers;
     },
   }),
-  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'Tenant', 'TenantList'],
+  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'Tenant', 'TenantList', 'Issue'],
   endpoints: (builder) => ({
     getEstates: builder.query<PaginatedResponse<Estate>, EstateListParams | void>({
       query: (params) => ({
@@ -695,6 +719,20 @@ export const estatesApi = createApi({
         { type: 'TenantList', id: 'LIST' },
       ],
     }),
+
+    // Issues
+    reportIssue: builder.mutation<{ success: boolean; data: Issue }, FormData>({
+      query: (body) => ({ url: '/api/issues', method: 'POST', body }),
+      invalidatesTags: [{ type: 'Issue', id: 'LIST' }],
+    }),
+    getIssues: builder.query<{ success: boolean; data: Issue[] }, void>({
+      query: () => '/api/issues',
+      providesTags: [{ type: 'Issue', id: 'LIST' }],
+    }),
+    getIssue: builder.query<{ success: boolean; data: Issue }, string>({
+      query: (id) => `/api/issues/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Issue', id }],
+    }),
   }),
 });
 
@@ -740,4 +778,8 @@ export const {
     useGetPublicListingByIdQuery,
     // Unified Payment Transactions
     useGetPaymentTransactionsQuery,
+    // Issues
+    useReportIssueMutation,
+    useGetIssuesQuery,
+    useGetIssueQuery,
   } = estatesApi;

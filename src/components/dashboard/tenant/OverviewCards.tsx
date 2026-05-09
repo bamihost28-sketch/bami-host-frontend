@@ -1,14 +1,14 @@
-import { Building, Key, Calendar, DollarSign } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Building, Key, Calendar, DollarSign, Zap } from "lucide-react";
 import { formatCurrency, formatDate } from "./utils";
 
 interface TenantInfo {
   apartmentNumber: string;
   estateName: string;
-  leaseEndDate: string;
+  leaseStartDate: string;
   leaseStatus: string;
   nextPaymentDue: string;
   name: string;
+  meterNumber?: string;
 }
 
 interface OverviewCardsProps {
@@ -25,7 +25,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
   recurringCount,
 }) => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
           <Building className="h-4 w-4" />
@@ -37,9 +37,9 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
           <Key className="h-4 w-4" />
-          <span className="text-sm">Lease Ends</span>
+          <span className="text-sm">Lease Start</span>
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.leaseEndDate)}</p>
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.leaseStartDate)}</p>
         <p className="text-sm text-green-600 dark:text-green-400">{tenantInfo.leaseStatus}</p>
       </div>
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
@@ -57,6 +57,16 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         </div>
         <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(totalDue)}</p>
         <p className="text-sm text-green-600 dark:text-green-400">{recurringCount} recurring</p>
+      </div>
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
+          <Zap className="h-4 w-4" />
+          <span className="text-sm">Meter No.</span>
+        </div>
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          {tenantInfo.meterNumber || "Not assigned"}
+        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Electricity</p>
       </div>
     </div>
   );
