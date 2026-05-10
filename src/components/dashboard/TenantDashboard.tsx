@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus } from "lucide-react";
+import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, CreditCard } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetPaymentTransactionsQuery, useGetIssuesQuery } from "@/services/estatesApi";
@@ -92,6 +93,10 @@ export const TenantDashboard: React.FC = () => {
     label: item.label,
     amount: item.effectiveAmount,
     frequency: item.frequency,
+    isOverdue: item.isOverdue,
+    daysUntilDue: item.daysUntilDue as number | null,
+    isIncreased: item.isIncreased,
+    storedAmount: item.storedAmount,
   }));
 
   const oneTimeItems = (charges?.oneTime || [])
@@ -217,6 +222,10 @@ export const TenantDashboard: React.FC = () => {
   };
 
   const calculateSelectedTotal = () => {
+    // When locked for initial payment, use the pre-calculated 12-month total from the API
+    if (billingSummary?.requiresInitialPayment && billingSummary?.initialPayment?.total) {
+      return billingSummary.initialPayment.total;
+    }
     let total = 0;
     allBillingItems.forEach((item) => {
       if (selectedBillingItems.includes(item.code)) {
@@ -360,6 +369,19 @@ export const TenantDashboard: React.FC = () => {
 
   const allBillingItems = [...recurringItems, ...oneTimeItems];
 
+  const isInitialPaymentLocked = !!billingSummary?.requiresInitialPayment;
+
+  // When initial payment is required, lock all items as selected — none can be individually deselected
+  useEffect(() => {
+    if (isInitialPaymentLocked && charges) {
+      const allCodes = [
+        ...(charges.recurring || []).map(i => i.code),
+        ...(charges.oneTime || []).filter(i => !i.isPaid).map(i => i.code),
+      ];
+      setSelectedBillingItems(allCodes);
+    }
+  }, [isInitialPaymentLocked, charges]);
+
   return (
     <div className="p-6 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -425,54 +447,223 @@ export const TenantDashboard: React.FC = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="billing" className="space-y-6">
+        <TabsContent value="billing" className="space-y-5">
+          {/* Initial Payment Banner — new tenants only */}
+          {billingSummary?.requiresInitialPayment && billingSummary?.initialPayment && (
+            <div className="rounded-xl border-2 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-5">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-200 text-base">Initial Payment Required</h3>
+                    <Badge className="bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-100 text-[10px] px-1.5 py-0">New Tenant</Badge>
+                  </div>
+                  <p className="text-sm text-amber-800 dark:text-amber-300 mb-4">{billingSummary.initialPayment.note}</p>
+
+                  <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden border border-amber-200 dark:border-amber-800 divide-y divide-amber-100 dark:divide-slate-700 mb-4">
+                    {[
+                      { label: "12-Month Rent", amount: billingSummary.initialPayment.rent12Months },
+                      { label: "12-Month Service Charge", amount: billingSummary.initialPayment.serviceCharge12Months },
+                      { label: "Caution Fee", amount: billingSummary.initialPayment.cautionFee },
+                      { label: "Legal Fee", amount: billingSummary.initialPayment.legalFee },
+                    ].filter(r => r.amount > 0).map(row => (
+                      <div key={row.label} className="flex justify-between px-4 py-2.5 text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">{row.label}</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(row.amount)}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between px-4 py-3 bg-amber-50 dark:bg-amber-900/30">
+                      <span className="font-semibold text-slate-900 dark:text-white">Total Initial Payment</span>
+                      <span className="font-bold text-amber-700 dark:text-amber-300 text-lg">{formatCurrency(billingSummary.initialPayment.total)}</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white h-11"
+                    onClick={() => {
+                      const allCodes = [...recurringItems, ...oneTimeItems].map(i => i.code);
+                      setSelectedBillingItems(allCodes);
+                    }}
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Pay Initial Amount — {formatCurrency(billingSummary.initialPayment.total)}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Summary Stats */}
+          {billingSummary && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4">
+                <p className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wide">Monthly Recurring</p>
+                <p className="text-xl font-bold text-blue-900 dark:text-blue-100 mt-1">{formatCurrency(billingSummary.recurringMonthly)}</p>
+                <p className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5">per month</p>
+              </div>
+              <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 p-4">
+                <p className="text-[11px] text-orange-600 dark:text-orange-400 font-semibold uppercase tracking-wide">One-Time Fees</p>
+                <p className="text-xl font-bold text-orange-900 dark:text-orange-100 mt-1">{formatCurrency(billingSummary.oneTimeUnpaid)}</p>
+                <p className="text-[11px] text-orange-500 dark:text-orange-400 mt-0.5">unpaid</p>
+              </div>
+              <div className="rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 p-4">
+                <p className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wide">Utility Bills</p>
+                <p className="text-xl font-bold text-purple-900 dark:text-purple-100 mt-1">{formatCurrency(billingSummary.utilityUnpaid)}</p>
+                <p className="text-[11px] text-purple-500 dark:text-purple-400 mt-0.5">outstanding</p>
+              </div>
+              <div className={`rounded-lg border p-4 ${
+                billingSummary.isOverdue
+                  ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                  : "bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800"
+              }`}>
+                <p className={`text-[11px] font-semibold uppercase tracking-wide ${
+                  billingSummary.isOverdue ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+                }`}>Total Outstanding</p>
+                <p className={`text-xl font-bold mt-1 ${
+                  billingSummary.isOverdue ? "text-red-900 dark:text-red-100" : "text-green-900 dark:text-green-100"
+                }`}>{formatCurrency(billingSummary.totalOutstanding)}</p>
+                {billingSummary.isOverdue ? (
+                  <p className="text-[11px] text-red-500 dark:text-red-400 mt-0.5">Overdue: {formatCurrency(billingSummary.overdueAmount)}</p>
+                ) : billingSummary.daysUntilDue !== null ? (
+                  <p className="text-[11px] text-green-500 dark:text-green-400 mt-0.5">Due in {billingSummary.daysUntilDue}d</p>
+                ) : (
+                  <p className="text-[11px] text-slate-400 mt-0.5">No due date yet</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Billing Items Card */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <CardTitle className="text-lg text-slate-900 dark:text-white">Your Billing Items</CardTitle>
-                  <CardDescription>Select and pay for the services you use</CardDescription>
+                  <CardTitle className="text-lg text-slate-900 dark:text-white">Billing Items</CardTitle>
+                  <CardDescription>
+                    {isInitialPaymentLocked
+                      ? "All items must be paid together as initial payment"
+                      : "Select items to pay"}
+                  </CardDescription>
                 </div>
-                <Badge className="bg-blue-100 text-blue-800">Total Due: {formatCurrency(totalDue)}</Badge>
+                {totalDue > 0 && (
+                  <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                    Total Due: {formatCurrency(totalDue)}
+                  </Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Recurring Items */}
+              {/* Recurring Charges */}
               {recurringItems.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <Calendar className="h-4 w-4 text-blue-600" />
                     Monthly Recurring Charges
                   </h3>
-                  <BillingItemList
-                    items={recurringItems}
-                    selectedItems={selectedBillingItems}
-                    onToggleItem={handleSelectBillingItem}
-                    disabledCondition={(code) => code === "service_charge" && !selectedBillingItems.includes("rent")}
-                  />
+                  <div className="space-y-2">
+                    {recurringItems.map((item) => {
+                      const isChecked = selectedBillingItems.includes(item.code);
+                      const isRentOrServiceCharge = item.code === "rent" || item.code === "service_charge";
+                      const isTooEarlyToPay = isRentOrServiceCharge
+                        && !item.isOverdue
+                        && item.daysUntilDue !== null
+                        && item.daysUntilDue > 60;
+                      const isDisabled = isInitialPaymentLocked || isTooEarlyToPay || (item.code === "service_charge" && !selectedBillingItems.includes("rent"));
+                      return (
+                        <div
+                          key={item.code}
+                          className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
+                            isDisabled && !isInitialPaymentLocked ? "opacity-50 cursor-not-allowed" : isInitialPaymentLocked ? "cursor-default" : "cursor-pointer"
+                          } ${
+                            isChecked
+                              ? "border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20"
+                              : item.isOverdue
+                              ? "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/10"
+                              : "hover:bg-slate-50 dark:hover:bg-slate-800"
+                          }`}
+                          onClick={() => !isDisabled && handleSelectBillingItem(item.code)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={() => !isDisabled && handleSelectBillingItem(item.code)}
+                              disabled={isDisabled}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
+                                {item.isIncreased && (
+                                  <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-[10px] px-1.5 py-0 gap-0.5">
+                                    <TrendingUp className="h-2.5 w-2.5" />
+                                    Increased
+                                  </Badge>
+                                )}
+                                {item.isOverdue && (
+                                  <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 text-[10px] px-1.5 py-0">
+                                    Overdue
+                                  </Badge>
+                                )}
+                                {isTooEarlyToPay && (
+                                  <Badge className="bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 text-[10px] px-1.5 py-0">
+                                    Not yet due
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                  {item.frequency.charAt(0).toUpperCase() + item.frequency.slice(1)}
+                                </p>
+                                {item.code === "service_charge" && (
+                                  <p className="text-xs text-slate-400">(Required with Rent)</p>
+                                )}
+                                {isTooEarlyToPay && item.daysUntilDue !== null ? (
+                                  <p className="text-xs text-slate-400 dark:text-slate-500">
+                                    Payment opens in {item.daysUntilDue - 60}d
+                                  </p>
+                                ) : item.daysUntilDue !== null && !item.isOverdue ? (
+                                  <p className="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-0.5">
+                                    <Calendar className="h-3 w-3" />
+                                    Due in {item.daysUntilDue}d
+                                  </p>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0 ml-3">
+                            <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(item.amount)}</p>
+                            {item.isIncreased && item.storedAmount !== item.amount && (
+                              <p className="text-xs text-slate-400 line-through">{formatCurrency(item.storedAmount)}</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
-              {/* One-Time Items (unpaid only) */}
+              {/* One-Time Charges */}
               {oneTimeItems.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                    <Receipt className="h-5 w-5 text-green-600" />
+                    <Receipt className="h-4 w-4 text-green-600" />
                     One-Time Charges
                   </h3>
                   <BillingItemList
                     items={oneTimeItems}
                     selectedItems={selectedBillingItems}
                     onToggleItem={handleSelectBillingItem}
+                    disabledCondition={isInitialPaymentLocked ? () => true : undefined}
                   />
                 </div>
               )}
 
-              {/* Utility Bills (display only — no itemId to submit) */}
+              {/* Utility Bills */}
               {utilityItems.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                    <Receipt className="h-5 w-5 text-orange-500" />
+                    <Receipt className="h-4 w-4 text-orange-500" />
                     Utility Bills
                   </h3>
                   <div className="space-y-2">
@@ -491,9 +682,9 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Payment Summary */}
+              {/* Payment Summary + Pay Button */}
               {selectedBillingItems.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-4 pt-2 border-t">
                   {calculateSelectedTotal() > walletBalance && (
                     <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-800/40 p-4 space-y-3">
                       <div className="flex items-start gap-2">
@@ -530,11 +721,17 @@ export const TenantDashboard: React.FC = () => {
                     </div>
                   )}
 
-                  <PaymentSummary 
-                    selectedItems={selectedBillingItems}
-                    allItems={allBillingItems}
-                    totalAmount={calculateSelectedTotal()}
-                  />
+                  {isInitialPaymentLocked ? (
+                    <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 text-sm text-amber-800 dark:text-amber-300 text-center">
+                      Full initial payment breakdown shown above — all items required
+                    </div>
+                  ) : (
+                    <PaymentSummary
+                      selectedItems={selectedBillingItems}
+                      allItems={allBillingItems}
+                      totalAmount={calculateSelectedTotal()}
+                    />
+                  )}
 
                   <Button
                     onClick={handlePaySelectedBilling}
@@ -559,9 +756,9 @@ export const TenantDashboard: React.FC = () => {
                   </Button>
 
                   {selectedBillingItems.includes("rent") && selectedBillingItems.includes("service_charge") && (
-                    <Alert className="border-blue-200 bg-blue-50">
+                    <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
                       <AlertCircle className="h-4 w-4 text-blue-600" />
-                      <AlertDescription className="ml-2 text-blue-800">
+                      <AlertDescription className="ml-2 text-blue-800 dark:text-blue-300">
                         Service Charge is automatically included with your rent payment as per your lease agreement.
                       </AlertDescription>
                     </Alert>
@@ -569,10 +766,16 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
-              {selectedBillingItems.length === 0 && (
+              {selectedBillingItems.length === 0 && recurringItems.length === 0 && oneTimeItems.length === 0 && (
                 <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                   <Receipt className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>Select items above to proceed with payment</p>
+                  <p>No billing items available</p>
+                </div>
+              )}
+
+              {selectedBillingItems.length === 0 && (recurringItems.length > 0 || oneTimeItems.length > 0) && (
+                <div className="text-center py-5 text-slate-400 dark:text-slate-500 border-t">
+                  <p className="text-sm">Select items above to proceed with payment</p>
                 </div>
               )}
             </CardContent>
