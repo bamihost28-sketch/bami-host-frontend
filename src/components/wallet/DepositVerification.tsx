@@ -37,9 +37,9 @@ export const DepositVerification: React.FC = () => {
         setStatus('success');
         setMessage('Payment verified successfully!');
 
-        // Redirect to wallet after 3 seconds
+        // Redirect to dashboard after 3 seconds
         const timer = setTimeout(() => {
-          navigate('/wallet');
+          navigate('/dashboard');
         }, 3000);
 
         return () => clearTimeout(timer);
@@ -99,7 +99,7 @@ export const DepositVerification: React.FC = () => {
                   </div>
                 )}
                 <p className="text-xs text-gray-500">
-                  Redirecting to wallet in 3 seconds...
+                  Redirecting to dashboard in 3 seconds...
                 </p>
               </>
             )}
@@ -122,14 +122,14 @@ export const DepositVerification: React.FC = () => {
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => navigate('/wallet')}
+                onClick={() => navigate('/dashboard')}
               >
-                Go to Wallet
+                Go to Dashboard
               </Button>
               {status === 'error' && (
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700"
-                  onClick={() => navigate('/wallet')}
+                  onClick={() => navigate('/dashboard')}
                 >
                   Try Again
                 </Button>
