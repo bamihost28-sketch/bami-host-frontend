@@ -591,7 +591,7 @@ export const estatesApi = createApi({
     }),
     payBilling: builder.mutation<
       { success: boolean; data: { authorization_url?: string; reference?: string; amount?: number } },
-      { itemIds: string[]; paymentMethod?: "wallet" }
+      { itemIds: string[]; paymentMethod?: "wallet"; durationMonths?: 6 | 12 }
     >({
       query: (body) => ({
         url: '/api/tenants/me/billing/pay',

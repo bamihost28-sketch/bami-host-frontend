@@ -61,6 +61,7 @@ export const TenantDashboard: React.FC = () => {
   const [selectedBillingItems, setSelectedBillingItems] = useState<string[]>([]);
   const [billingDialogOpen, setBillingDialogOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState("");
+  const [rentPaymentMonths, setRentPaymentMonths] = useState<6 | 12>(12);
 
   // Fetch dashboard overview from API
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
@@ -229,7 +230,12 @@ export const TenantDashboard: React.FC = () => {
     let total = 0;
     allBillingItems.forEach((item) => {
       if (selectedBillingItems.includes(item.code)) {
-        total += item.amount;
+        const months =
+          !billingSummary?.requiresInitialPayment &&
+          (item.code === "rent" || item.code === "service_charge")
+            ? rentPaymentMonths
+            : 1;
+        total += item.amount * months;
       }
     });
     return total;
@@ -255,6 +261,7 @@ export const TenantDashboard: React.FC = () => {
       await payBilling({
         itemIds: selectedBillingItems,
         paymentMethod: "wallet",
+        ...(selectedBillingItems.includes("rent") && { durationMonths: rentPaymentMonths }),
       }).unwrap();
 
       toast("Success: Payment completed from your wallet");
@@ -370,6 +377,13 @@ export const TenantDashboard: React.FC = () => {
   const allBillingItems = [...recurringItems, ...oneTimeItems];
 
   const isInitialPaymentLocked = !!billingSummary?.requiresInitialPayment;
+
+  // Items with rent/service_charge amounts scaled by selected duration (for PaymentSummary display)
+  const billingItemsForPayment = allBillingItems.map(item =>
+    !isInitialPaymentLocked && (item.code === "rent" || item.code === "service_charge")
+      ? { ...item, amount: item.amount * rentPaymentMonths }
+      : item
+  );
 
   // When initial payment is required, lock all items as selected — none can be individually deselected
   useEffect(() => {
@@ -643,6 +657,43 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
+              {/* Payment Duration Picker — shown when rent is selected (non-initial payment only) */}
+              {!isInitialPaymentLocked && selectedBillingItems.includes("rent") && (
+                <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 p-4">
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    Payment Duration
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([6, 12] as const).map(months => {
+                      const rentAmt = recurringItems.find(i => i.code === "rent")?.amount || 0;
+                      const scAmt = selectedBillingItems.includes("service_charge")
+                        ? (recurringItems.find(i => i.code === "service_charge")?.amount || 0)
+                        : 0;
+                      const optionTotal = (rentAmt + scAmt) * months;
+                      const isSelected = rentPaymentMonths === months;
+                      return (
+                        <button
+                          key={months}
+                          type="button"
+                          onClick={() => setRentPaymentMonths(months)}
+                          className={`rounded-lg p-3 text-left transition-all ${
+                            isSelected
+                              ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600 ring-offset-1 dark:ring-offset-slate-900"
+                              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
+                          }`}
+                        >
+                          <p className="font-semibold text-sm">{months} Months</p>
+                          <p className={`text-xs mt-0.5 ${isSelected ? "text-blue-100" : "text-slate-400 dark:text-slate-500"}`}>
+                            {formatCurrency(optionTotal)}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* One-Time Charges */}
               {oneTimeItems.length > 0 && (
                 <div>
@@ -728,7 +779,7 @@ export const TenantDashboard: React.FC = () => {
                   ) : (
                     <PaymentSummary
                       selectedItems={selectedBillingItems}
-                      allItems={allBillingItems}
+                      allItems={billingItemsForPayment}
                       totalAmount={calculateSelectedTotal()}
                     />
                   )}
