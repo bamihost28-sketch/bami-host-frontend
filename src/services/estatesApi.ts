@@ -301,6 +301,28 @@ export interface TenantDashboardOverviewResponse {
         recentPayments: any[];
         totalPaid: number;
       };
+      yearlyPayment: {
+        currentYear: {
+          year: number;
+          isFirstTime: boolean;
+          rent: number;
+          serviceCharge: number;
+          other?: number;
+          totalPaid: number;
+        };
+        nextYear: {
+          year: number;
+          isFirstTime: boolean;
+          renewalStartDate: string;
+          monthlyRent: number;
+          monthlyServiceCharge: number;
+          projectedRent: number;
+          projectedServiceCharge: number;
+          projectedTotal: number;
+          projectedOther?: number;
+          otherBreakdown?: { label: string; amount: number }[];
+        };
+      };
       wallet: {
         balance: number;
         totalEarnings: number;

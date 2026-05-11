@@ -84,6 +84,7 @@ export const TenantDashboard: React.FC = () => {
   const apiUser = overviewData?.data?.user;
   const apiApartment = overviewData?.data?.data?.apartment;
   const apiBilling = overviewData?.data?.data?.billing;
+  const apiYearlyPayment = overviewData?.data?.data?.yearlyPayment;
 
   // Normalize billing response into a flat shape for the UI
   const charges = billingData?.data?.charges;
@@ -424,11 +425,12 @@ export const TenantDashboard: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <OverviewCards 
+              <OverviewCards
                 tenantInfo={tenantInfo}
                 daysUntilRentDue={daysUntilRentDue}
                 totalDue={totalDue}
                 recurringCount={recurringItems.length}
+                yearlyPayment={apiYearlyPayment}
               />
               
               <WalletBalanceCard 
@@ -459,6 +461,98 @@ export const TenantDashboard: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Annual Payment Summary */}
+          {apiYearlyPayment && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  Annual Payment Summary
+                </CardTitle>
+                <CardDescription>Your payments this year and projections for renewal</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Current Year */}
+                  <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-slate-900 dark:text-white">
+                        {apiYearlyPayment.currentYear.year} — This Year
+                      </p>
+                      {apiYearlyPayment.currentYear.isFirstTime && (
+                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-[10px]">
+                          First Payment
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="space-y-2 text-sm mb-3">
+                      <div className="flex justify-between">
+                        <span className="text-slate-600 dark:text-slate-400">Rent</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.rent)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600 dark:text-slate-400">Service Charge</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.serviceCharge)}</span>
+                      </div>
+                      {apiYearlyPayment.currentYear.other !== undefined && apiYearlyPayment.currentYear.other > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
+                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.other)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-t border-green-200 dark:border-green-800 pt-2 flex justify-between">
+                      <span className="font-semibold text-slate-900 dark:text-white">Total Paid</span>
+                      <span className="font-bold text-green-700 dark:text-green-400 text-lg">{formatCurrency(apiYearlyPayment.currentYear.totalPaid)}</span>
+                    </div>
+                  </div>
+
+                  {/* Next Year */}
+                  <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-semibold text-slate-900 dark:text-white">
+                        {apiYearlyPayment.nextYear.year} — Renewal
+                      </p>
+                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 text-[10px]">
+                        Projected
+                      </Badge>
+                    </div>
+                    <div className="space-y-2 text-sm mb-3">
+                      <div className="flex justify-between">
+                        <span className="text-slate-600 dark:text-slate-400">Rent</span>
+                        <div className="text-right">
+                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.nextYear.projectedRent)}</span>
+                          <span className="block text-xs text-slate-400 dark:text-slate-500">{formatCurrency(apiYearlyPayment.nextYear.monthlyRent)}/mo</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600 dark:text-slate-400">Service Charge</span>
+                        <div className="text-right">
+                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.nextYear.projectedServiceCharge)}</span>
+                          <span className="block text-xs text-slate-400 dark:text-slate-500">{formatCurrency(apiYearlyPayment.nextYear.monthlyServiceCharge)}/mo</span>
+                        </div>
+                      </div>
+                      {apiYearlyPayment.nextYear.projectedOther !== undefined && apiYearlyPayment.nextYear.projectedOther > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
+                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.nextYear.projectedOther)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 pt-1 border-t border-blue-100 dark:border-blue-800/50">
+                        <span>Renewal starts</span>
+                        <span>{formatDate(apiYearlyPayment.nextYear.renewalStartDate)}</span>
+                      </div>
+                    </div>
+                    <div className="border-t border-blue-200 dark:border-blue-800 pt-2 flex justify-between">
+                      <span className="font-semibold text-slate-900 dark:text-white">Projected Total</span>
+                      <span className="font-bold text-blue-700 dark:text-blue-400 text-lg">{formatCurrency(apiYearlyPayment.nextYear.projectedTotal)}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-5">
