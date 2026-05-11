@@ -38,6 +38,7 @@ import { ReportIssueDialog } from "./tenant/ReportIssueDialog";
 import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
 import { DocumentList } from "./tenant/DocumentList";
+import { ReceiptsTab } from "./tenant/ReceiptsTab";
 import { formatCurrency, formatDate } from "./tenant/utils";
 
 export const TenantDashboard: React.FC = () => {
@@ -958,10 +959,14 @@ export const TenantDashboard: React.FC = () => {
         <TabsContent value="documents" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-slate-900 dark:text-white">Your Documents</CardTitle>
+              <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-blue-600" />
+                Payment Receipts
+              </CardTitle>
+              <CardDescription>All your payment receipts — click a receipt to expand the full breakdown</CardDescription>
             </CardHeader>
             <CardContent>
-              <DocumentList documents={[]} />
+              <ReceiptsTab />
             </CardContent>
           </Card>
         </TabsContent>

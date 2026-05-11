@@ -744,6 +744,53 @@ export const estatesApi = createApi({
       ],
     }),
 
+    // Payment Receipts
+    getPaymentReceipts: builder.query<
+      {
+        success: boolean;
+        count: number;
+        receipts: {
+          receiptId: string;
+          reference: string;
+          paymentDate: string;
+          paymentMethod: string;
+          paymentType: string;
+          description?: string;
+          tenantName: string;
+          phone: string;
+          meterNo: string;
+          bedroomType: string;
+          flatType: string;
+          moveInDate: string;
+          expiryDate: string;
+          amountPaid: number;
+          breakdown: { rent?: number; serviceCharge?: number; cautionFee?: number; legalFee?: number };
+          rent: number;
+          serviceCharge: number;
+          cautionFee: number;
+          legalFee: number;
+          rentOutstanding: number;
+          serviceChargeOutstanding: number;
+          outstandingBalance: number;
+          currentTotalTenancyRate: number;
+          nextTotalTenancyRate: number;
+          tenancyDuration: string;
+          tenantTotalStay: string;
+          yearDuration: string;
+          currentYear: number;
+          nextYear: number;
+          nextIncreaseDate: string;
+          nextRentIncrease: number;
+          nextServiceChargeIncrease: number;
+          totalTenancyRateIncrease: number;
+        }[];
+      },
+      void
+    >({
+      query: () => '/api/payments/receipts',
+      providesTags: [{ type: 'Tenant', id: 'ME' }],
+    }),
+
     // Issues
     reportIssue: builder.mutation<{ success: boolean; data: Issue }, FormData>({
       query: (body) => ({ url: '/api/issues', method: 'POST', body }),
@@ -806,4 +853,6 @@ export const {
     useReportIssueMutation,
     useGetIssuesQuery,
     useGetIssueQuery,
+    // Receipts
+    useGetPaymentReceiptsQuery,
   } = estatesApi;
