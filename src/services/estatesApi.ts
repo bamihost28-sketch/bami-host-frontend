@@ -126,6 +126,8 @@ export interface TenantBillingResponse {
       utilityUnpaid: number;
       totalOutstanding: number;
       overdueAmount: number;
+      isOverdue: boolean;
+      daysUntilDue: number | null;
     };
   };
 }
