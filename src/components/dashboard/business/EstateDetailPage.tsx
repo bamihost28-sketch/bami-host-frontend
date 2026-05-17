@@ -604,7 +604,7 @@ export const EstateDetailPage = () => {
                 <TableBody>
                   {vacantUnits.data.map((u) => (
                     <TableRow key={u.unitId}>
-                      <TableCell className="font-bold text-slate-900">{u.label}</TableCell>
+                      <TableCell className="font-bold text-slate-900 dark:text-slate-100">{u.label}</TableCell>
                       <TableCell>₦{u.monthlyPrice.toLocaleString()}</TableCell>
                       <TableCell>{u.meterNumber || '—'}</TableCell>
                       <TableCell className="text-right">

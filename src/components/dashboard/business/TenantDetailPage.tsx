@@ -29,19 +29,7 @@ export const TenantDetailPage = () => {
     notes: h.note || ''
   }));
 
-  // Map transactions from API response
-  const transactions = (((detail?.data as any)?.transactions) || []).map((t: any) => ({
-    id: t._id || t.id || String(Math.random()),
-    date: t.createdAt || t.date,
-    amount: t.amount || 0,
-    type: t.type || 'Unknown',
-    status: t.status,
-    description: t.description || t.note || '',
-    reference: t.reference || t.trxref || t._id || t.id
-  }));
-
   const historyLoading = isLoading && history.length === 0;
-  const txLoading = isLoading && transactions.length === 0;
 
   // Show full page skeleton while main data is loading
   if (isLoading && !tenant) {
@@ -66,7 +54,7 @@ export const TenantDetailPage = () => {
       <AdditionalInfoRow tenant={tenant} overview={overview} />
 
       {/* Property Media Card */}
-      <PropertyMediaCard tenantId={tenantId} history={history} />
+      <PropertyMediaCard unitId={tenant?.unitId} history={history} />
 
       {/* Tenancy History Card */}
       <TenancyHistoryCard history={history} isLoading={historyLoading} />
@@ -74,8 +62,6 @@ export const TenantDetailPage = () => {
       {/* Transactions Card */}
       <TransactionsCard
         tenantId={tenantId}
-        transactions={transactions}
-        isLoading={txLoading}
         overview={overview}
         tenant={tenant}
         billingData={billingData}

@@ -31,9 +31,33 @@ export interface PaginatedResponse<T> {
   total?: number;
 }
 
+export interface UnitMediaItem {
+  url: string;
+  publicId: string;
+  caption?: string;
+  thumbnail?: string;
+}
+
+export interface UnitMedia {
+  images: UnitMediaItem[];
+  videos: UnitMediaItem[];
+}
+
+export interface UnitDetail {
+  _id?: string;
+  id?: string;
+  label: string;
+  monthlyPrice: number;
+  meterNumber?: string;
+  status?: string;
+  description?: string;
+  media?: UnitMedia;
+}
+
 export interface Tenant {
   id?: string;
   _id?: string;
+  unitId?: string;
   unitLabel?: string;
   tenantName?: string;  // Combined name for display (computed from firstName + otherNames + surname)
   firstName?: string;
@@ -130,6 +154,54 @@ export interface TenantBillingResponse {
       daysUntilDue: number | null;
     };
   };
+}
+
+// Admin payments
+export interface AdminPaymentRecord {
+  id: string;
+  reference: string;
+  amount: number;
+  type: string;
+  status: string;
+  paymentMethod: string;
+  date: string;
+  tenantName: string;
+  unit: string;
+  estate: string;
+  description?: string;
+}
+
+export interface AdminPaymentsSummary {
+  totalAmount: number;
+  completedAmount: number;
+  pendingAmount: number;
+  failedCount: number;
+  totalCount: number;
+}
+
+export interface AdminPaymentsResponse {
+  success: boolean;
+  data: AdminPaymentRecord[];
+  summary: AdminPaymentsSummary;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminPaymentsParams {
+  page?: number;
+  limit?: number;
+  estateId?: string;
+  tenantId?: string;
+  type?: string;
+  status?: string;
+  paymentMethod?: string;
+  from?: string;
+  to?: string;
+  search?: string;
 }
 
 // Payments
@@ -416,7 +488,7 @@ export const estatesApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'Tenant', 'TenantList', 'Issue'],
+  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'Tenant', 'TenantList', 'Issue', 'Payment', 'DashboardOverview'],
   endpoints: (builder) => ({
     getEstates: builder.query<PaginatedResponse<Estate>, EstateListParams | void>({
       query: (params) => ({
@@ -791,6 +863,65 @@ export const estatesApi = createApi({
       providesTags: [{ type: 'Tenant', id: 'ME' }],
     }),
 
+    // Unit detail (includes media)
+    getUnit: builder.query<{ success: boolean; data: UnitDetail }, string>({
+      query: (unitId) => `/api/estates/unit/${unitId}`,
+      providesTags: (result, error, unitId) => [{ type: 'EstateUnits', id: unitId }],
+    }),
+
+    // Unit media — Flow A: direct multipart upload
+    uploadUnitImages: builder.mutation<{ success: boolean; data: UnitDetail }, { unitId: string; files: File[] }>({
+      query: ({ unitId, files }) => {
+        const form = new FormData();
+        files.forEach((f) => form.append('images', f));
+        return { url: `/api/units/unit/${unitId}/media/images`, method: 'POST', body: form };
+      },
+      invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: unitId }],
+    }),
+    uploadUnitVideo: builder.mutation<{ success: boolean; data: UnitDetail }, { unitId: string; file: File }>({
+      query: ({ unitId, file }) => {
+        const form = new FormData();
+        form.append('video', file);
+        return { url: `/api/units/unit/${unitId}/media/videos`, method: 'POST', body: form };
+      },
+      invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: unitId }],
+    }),
+
+    // Unit media — Flow B: patch with Cloudinary URLs
+    patchUnitMedia: builder.mutation<
+      { success: boolean; data: UnitDetail },
+      { unitId: string; images?: { url: string; publicId: string; caption?: string }[]; videos?: { url: string; publicId: string; thumbnail?: string }[]; replace?: boolean }
+    >({
+      query: ({ unitId, ...body }) => ({
+        url: `/api/units/unit/${unitId}/media`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: unitId }],
+    }),
+
+    // Unit media — Delete
+    deleteUnitMedia: builder.mutation<
+      { success: boolean },
+      { unitId: string; imageIds?: string[]; videoIds?: string[] }
+    >({
+      query: ({ unitId, imageIds, videoIds }) => ({
+        url: `/api/units/unit/${unitId}/media`,
+        method: 'DELETE',
+        body: { imageIds, videoIds },
+      }),
+      invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: unitId }],
+    }),
+
+    // Admin transaction history
+    getAdminPayments: builder.query<AdminPaymentsResponse, AdminPaymentsParams | void>({
+      query: (params = {}) => ({
+        url: '/api/payments',
+        params: params || {},
+      }),
+      providesTags: [{ type: 'Payment', id: 'LIST' }],
+    }),
+
     // Issues
     reportIssue: builder.mutation<{ success: boolean; data: Issue }, FormData>({
       query: (body) => ({ url: '/api/issues', method: 'POST', body }),
@@ -855,4 +986,12 @@ export const {
     useGetIssueQuery,
     // Receipts
     useGetPaymentReceiptsQuery,
+    // Admin payments
+    useGetAdminPaymentsQuery,
+    // Unit media
+    useGetUnitQuery,
+    useUploadUnitImagesMutation,
+    useUploadUnitVideoMutation,
+    usePatchUnitMediaMutation,
+    useDeleteUnitMediaMutation,
   } = estatesApi;
