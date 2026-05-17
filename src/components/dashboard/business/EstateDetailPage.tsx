@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Trash2, Loader2, ArrowLeft } from 'lucide-react';
+import { Trash2, Loader2, ArrowLeft, Home, Plus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -363,30 +363,25 @@ export const EstateDetailPage = () => {
       </Card>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle>Tenants</CardTitle>
               <CardDescription>All tenants in this estate</CardDescription>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <Input
                 placeholder="Search tenants..."
                 value={tenantSearch}
-                onChange={(e) => {
-                  setTenantSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="w-48"
+                onChange={(e) => { setTenantSearch(e.target.value); setPage(1); }}
+                className="w-44 h-9"
               />
-              <Button variant="outline" onClick={() => navigate(`/dashboard/estate/${estateId}/add-unit`)}>
-                Add Unit
-              </Button>
-
-
               <Dialog open={addOpen} onOpenChange={setAddOpen}>
                 <DialogTrigger asChild>
-                  <Button>Add Tenant</Button>
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1.5" />
+                    Add Tenant
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -425,10 +420,10 @@ export const EstateDetailPage = () => {
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new">new</SelectItem>
-                          <SelectItem value="existing">existing</SelectItem>
-                          <SelectItem value="renewal">renewal</SelectItem>
-                          <SelectItem value="transfer">transfer</SelectItem>
+                          <SelectItem value="new">New</SelectItem>
+                          <SelectItem value="existing">Existing</SelectItem>
+                          <SelectItem value="renewal">Renewal</SelectItem>
+                          <SelectItem value="transfer">Transfer</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -450,11 +445,9 @@ export const EstateDetailPage = () => {
                     </div>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={() => setAddOpen(false)}>
-                      Cancel
-                    </Button>
+                    <Button variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
                     <Button onClick={submitTenant} disabled={creating}>
-                      {creating ? 'Saving...' : 'Save'}
+                      {creating ? 'Saving…' : 'Save'}
                     </Button>
                   </div>
                 </DialogContent>
@@ -462,107 +455,178 @@ export const EstateDetailPage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 pb-0">
           {tenantsLoading ? (
-            <TableSkeleton
-              rows={5}
-              columns={7}
-              headers={["Unit", "Tenant", "Total Tenancy", "Meter", "Status", "Next Due", "WhatsApp"]}
-            />
+            <div className="px-6 pb-6">
+              <TableSkeleton
+                rows={5}
+                columns={6}
+                headers={["Tenant", "Unit", "Monthly Fees", "Status", "Next Due", "Actions"]}
+              />
+            </div>
           ) : tenantsError ? (
-            <div className="text-sm text-destructive">Failed to load tenants.</div>
+            <div className="px-6 pb-6 text-sm text-destructive">Failed to load tenants.</div>
           ) : tenantsData && ((Array.isArray(tenantsData.data) ? tenantsData.data.length : Object.values(tenantsData.data).flat().length) > 0) ? (
-            <div className="rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Unit</TableHead>
-                    <TableHead>Tenant</TableHead>
-                    <TableHead>Total Tenancy</TableHead>
-                    <TableHead>Meter</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Next Due</TableHead>
-                    <TableHead>WhatsApp</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tenantsData && (Array.isArray(tenantsData.data) ? tenantsData.data : Object.values(tenantsData.data).flat()).map((t:any) => (
-                    <TableRow key={(t.id || t._id) as string}>
-                      <TableCell>{t.unitLabel || '—'}</TableCell>
-                      <TableCell className="font-medium">
-                        <button className="underline text-primary" onClick={() => navigate(`/dashboard/tenant/${(t.id || t._id) as string}`)}>
-                          {t.tenantName || `${t.firstName || ''} ${t.otherNames || ''} ${t.surname || ''}`.trim() || '—'}
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          const total = (t.totalMonthlyFees || 0);
-                          return total > 0 ? `₦${total.toLocaleString()}` : '—';
-                        })()}
-                      </TableCell>
-                      <TableCell>{t.electricMeterNumber || '—'}</TableCell>
-                      <TableCell>{t.status || '—'}</TableCell>
-                      <TableCell>{t.nextDueDate ? formatDate(t.nextDueDate as string) : '—'}</TableCell>
-                      <TableCell>
-                        <div className="text-xs text-muted-foreground">
-                          {t.whatsapp || t.whatsappNumber || t.tenantPhone || '—'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/dashboard/tenant/${(t.id || t._id) as string}`)}
-                          >
-                            View
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            disabled={clearingUnit || !estateId}
-                            onClick={async () => {
-                              if (!estateId) return;
-                              const unitId = ((t as any).unit && (t as any).unit._id)
-                                || (t as any).unitId
-                                || undefined;
-                              if (!unitId) {
-                                toast({ title: 'No unitId found for this tenant', variant: 'destructive' });
-                                return;
-                              }
-                              try {
-                                await clearUnitTenant({
-                                  estateId: estateId as string,
-                                  unitId,
-                                }).unwrap();
-                                toast({ title: 'Unit vacated, tenant cleared' });
-                              } catch (e) {
-                                toast({ title: 'Failed to vacate unit', variant: 'destructive' });
-                              }
-                            }}
-                          >
-                            {clearingUnit ? 'Vacating...' : 'Vacate Unit'}
-                          </Button>
-                        </div>
-                      </TableCell>
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="pl-6">Tenant</TableHead>
+                      <TableHead>Unit</TableHead>
+                      <TableHead>Monthly Fees</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Next Due</TableHead>
+                      <TableHead className="pr-6 text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {(Array.isArray(tenantsData.data) ? tenantsData.data : Object.values(tenantsData.data).flat()).map((t: any) => {
+                      const id = (t.id || t._id) as string;
+                      const name = t.tenantName || `${t.firstName || ''} ${t.otherNames || ''} ${t.surname || ''}`.trim() || '—';
+                      const initials = name !== '—' ? name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase() : '?';
+                      const phone = t.whatsapp || t.whatsappNumber || t.tenantPhone;
+                      const status = (t.status || '').toLowerCase();
+                      const total = t.totalMonthlyFees || 0;
+                      const unitId = (t.unit && t.unit._id) || t.unitId;
+
+                      const statusBadge = status === 'occupied'
+                        ? <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0 font-medium">Occupied</Badge>
+                        : status === 'maintenance'
+                        ? <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-0 font-medium">Maintenance</Badge>
+                        : <Badge variant="secondary">{status || '—'}</Badge>;
+
+                      const dueDate = t.nextDueDate ? new Date(t.nextDueDate) : null;
+                      const isOverdue = dueDate && dueDate < new Date();
+
+                      return (
+                        <TableRow key={id} className="group">
+                          <TableCell className="pl-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                                {initials}
+                              </div>
+                              <div className="min-w-0">
+                                <button
+                                  className="font-medium text-sm text-foreground hover:text-primary transition-colors truncate block max-w-[160px]"
+                                  onClick={() => navigate(`/dashboard/tenant/${id}`)}
+                                >
+                                  {name}
+                                </button>
+                                {phone && (
+                                  <a
+                                    href={`tel:${phone}`}
+                                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {phone}
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-medium">{t.unitLabel || '—'}</div>
+                            {t.electricMeterNumber && (
+                              <div className="text-xs text-muted-foreground font-mono">{t.electricMeterNumber}</div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm font-semibold">
+                              {total > 0 ? `₦${total.toLocaleString()}` : '—'}
+                            </span>
+                          </TableCell>
+                          <TableCell>{statusBadge}</TableCell>
+                          <TableCell>
+                            {dueDate ? (
+                              <div className={isOverdue ? 'text-destructive' : 'text-foreground'}>
+                                <div className="text-sm font-medium">{formatDate(t.nextDueDate)}</div>
+                                {isOverdue && <div className="text-xs font-medium">Overdue</div>}
+                              </div>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell className="pr-6">
+                            <div className="flex justify-end items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8"
+                                onClick={() => navigate(`/dashboard/tenant/${id}`)}
+                              >
+                                View
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    disabled={clearingUnit || !estateId || !unitId}
+                                  >
+                                    Vacate
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Vacate this unit?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will remove <strong>{name}</strong> from <strong>{t.unitLabel || 'this unit'}</strong> and mark it as vacant. The tenant record will be cleared but not deleted.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      onClick={async () => {
+                                        if (!estateId || !unitId) return;
+                                        try {
+                                          await clearUnitTenant({ estateId: estateId as string, unitId }).unwrap();
+                                          toast({ title: 'Unit vacated', description: `${name} has been removed from ${t.unitLabel || 'the unit'}.` });
+                                        } catch {
+                                          toast({ title: 'Failed to vacate unit', variant: 'destructive' });
+                                        }
+                                      }}
+                                    >
+                                      {clearingUnit ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Vacate'}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex justify-between items-center px-6 py-3 border-t">
+                <div className="text-xs text-muted-foreground">
+                  Page {tenantsData && 'page' in tenantsData ? tenantsData.page : page} of {tenantsData && 'total' in tenantsData && tenantsData.limit ? Math.ceil(tenantsData.total / tenantsData.limit) : '-'}
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
+                  <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={tenantsData && 'total' in tenantsData ? page * (tenantsData.limit ?? limit) >= tenantsData.total : false}>Next</Button>
+                </div>
+              </div>
+            </>
           ) : (
-            <div className="text-sm text-muted-foreground">No tenants found.</div>
+            <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <Home className="w-7 h-7 text-muted-foreground" />
+              </div>
+              <h3 className="text-sm font-semibold text-foreground mb-1">No tenants yet</h3>
+              <p className="text-sm text-muted-foreground max-w-xs mb-5">
+                {tenantSearch ? `No tenants match "${tenantSearch}".` : 'Add a tenant to get started tracking occupancy and payments.'}
+              </p>
+              {!tenantSearch && (
+                <Button size="sm" onClick={() => setAddOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add your first tenant
+                </Button>
+              )}
+            </div>
           )}
-          <div className="flex justify-between items-center mt-4">
-            <div className="text-xs text-muted-foreground">
-              Page {tenantsData && 'page' in tenantsData ? tenantsData.page : page} of {tenantsData && 'total' in tenantsData && tenantsData.limit ? Math.ceil(tenantsData.total / tenantsData.limit) : '-'}
-            </div>
-            <div className="space-x-2">
-              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Previous</Button>
-              <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={tenantsData && 'total' in tenantsData ? page * (tenantsData.limit ?? limit) >= tenantsData.total : false}>Next</Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
@@ -575,10 +639,10 @@ export const EstateDetailPage = () => {
               <CardDescription>Available spaces ready for new tenants</CardDescription>
             </div>
             <Button
-              variant="outline"
               size="sm"
               onClick={() => navigate(`/dashboard/estate/${estateId}/add-unit`)}
             >
+              <Plus className="w-4 h-4 mr-1.5" />
               Add New Unit
             </Button>
           </div>
@@ -668,13 +732,18 @@ export const EstateDetailPage = () => {
               </Table>
             </div>
           ) : (
-            <div className="py-8 text-center border rounded-lg bg-slate-50/50">
-              <p className="text-sm text-muted-foreground font-medium">No vacant units available.</p>
+            <div className="flex flex-col items-center justify-center py-14 px-6 text-center rounded-xl border-2 border-dashed border-border bg-muted/20">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <Home className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground mb-1">No vacant units yet</h3>
+              <p className="text-sm text-muted-foreground max-w-xs mb-5">
+                Add units to this estate so you can start assigning tenants and tracking occupancy.
+              </p>
               <Button
-                variant="link"
-                className="text-primary font-bold mt-2"
                 onClick={() => navigate(`/dashboard/estate/${estateId}/add-unit`)}
               >
+                <Plus className="w-4 h-4 mr-2" />
                 Add your first unit
               </Button>
             </div>

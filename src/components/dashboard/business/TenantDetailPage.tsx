@@ -7,6 +7,7 @@ import { FinancialSummaryCards } from './tenant-detail/FinancialSummaryCards';
 import { AdditionalInfoRow } from './tenant-detail/AdditionalInfoRow';
 import { PricingInfoRow } from './tenant-detail/PricingInfoRow';
 import { PropertyMediaCard } from './tenant-detail/PropertyMediaCard';
+import { ConditionReportsCard } from './tenant-detail/ConditionReportsCard';
 import { TenancyHistoryCard } from './tenant-detail/TenancyHistoryCard';
 import { TransactionsCard } from './tenant-detail/TransactionsCard';
 
@@ -20,6 +21,7 @@ export const TenantDetailPage = () => {
 
   const tenant = detail?.data?.tenant;
   const overview = detail?.data?.overview;
+  const unitId = (tenant as any)?.unit?._id ?? (tenant as any)?.unit?.id ?? tenant?.unitId;
 
   // Map history from API response structure to frontend format
   const history = (((detail?.data as any)?.history) || []).map((h: any) => ({
@@ -53,8 +55,11 @@ export const TenantDetailPage = () => {
       {/* Additional Information Row */}
       <AdditionalInfoRow tenant={tenant} overview={overview} />
 
-      {/* Property Media Card */}
-      <PropertyMediaCard unitId={tenant?.unitId} history={history} />
+      {/* Property Media Card — listing media (marketing) */}
+      <PropertyMediaCard unitId={unitId} history={history} />
+
+      {/* Condition Reports — physical inspection snapshots */}
+      <ConditionReportsCard unitId={unitId} tenantId={tenantId} />
 
       {/* Tenancy History Card */}
       <TenancyHistoryCard history={history} isLoading={historyLoading} />

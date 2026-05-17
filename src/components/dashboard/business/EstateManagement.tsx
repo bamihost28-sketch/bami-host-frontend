@@ -11,9 +11,10 @@ import { toast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Wand2 } from "lucide-react";
 import { EstateManagementSkeleton } from "@/components/ui/skeletons";
 import { EstateOverviewCards } from "./EstateOverviewCards";
+import { EstateSetupWizard } from "./EstateSetupWizard";
 
 
 interface Estate { id: string; name: string; description?: string }
@@ -35,6 +36,7 @@ export const EstateManagement = () => {
   const [newEstateUnits, setNewEstateUnits] = useState("");
   const [isCreatingEstate, setIsCreatingEstate] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [createEstate] = useCreateEstateMutation();
   const [deleteEstate] = useDeleteEstateMutation();
 
@@ -103,9 +105,13 @@ export const EstateManagement = () => {
           <p className="text-muted-foreground">Manage estates, units and tenants</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setWizardOpen(true)}>
+            <Wand2 className="h-4 w-4 mr-2" />
+            Set Up New Estate
+          </Button>
           <Dialog open={createEstateOpen} onOpenChange={setCreateEstateOpen}>
             <DialogTrigger asChild>
-              <Button>Create Estate</Button>
+              <Button variant="outline">Quick Create</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -300,6 +306,8 @@ export const EstateManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      <EstateSetupWizard open={wizardOpen} onOpenChange={setWizardOpen} />
     </div>
   );
 };

@@ -9,3 +9,4 @@ export { PropertyMediaCard } from './PropertyMediaCard';
 export { TenancyHistoryCard } from './TenancyHistoryCard';
 export { TransactionsCard } from './TransactionsCard';
 export { PaymentCollectionDialog } from './PaymentCollectionDialog';
+export { ConditionReportsCard } from './ConditionReportsCard';

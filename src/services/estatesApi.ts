@@ -46,11 +46,54 @@ export interface UnitMedia {
 export interface UnitDetail {
   _id?: string;
   id?: string;
+  unitId?: string;
   label: string;
   monthlyPrice: number;
+  currentEffectivePrice?: number;
+  isRentIncreased?: boolean;
+  serviceChargeMonthly?: number;
+  currentEffectiveService?: number;
+  isServiceIncreased?: boolean;
+  currentEffectiveCaution?: number;
+  currentEffectiveLegal?: number;
+  cautionFee?: number;
+  legalFee?: number;
+  securityDeposit?: number;
   meterNumber?: string;
   status?: string;
   description?: string;
+  category?: string;
+  listingType?: string;
+  availableDate?: string | null;
+  bedrooms?: number;
+  bathrooms?: number;
+  area?: number;
+  amenities?: {
+    wifi?: boolean;
+    pool?: boolean;
+    gym?: boolean;
+    parking?: boolean;
+    ac?: boolean;
+    security?: boolean;
+    petFriendly?: boolean;
+    balcony?: boolean;
+    laundry?: boolean;
+    [key: string]: boolean | undefined;
+  };
+  streetAddress?: string;
+  images?: UnitMediaItem[];
+  videos?: UnitMediaItem[];
+  estate?: { id: string; name: string };
+  occupiedBy?: {
+    _id: string;
+    tenantName?: string;
+    tenantEmail?: string;
+    tenantType?: string;
+    entryDate?: string;
+  };
+  occupiedSince?: string;
+  createdAt?: string;
+  updatedAt?: string;
   media?: UnitMedia;
 }
 
@@ -154,6 +197,25 @@ export interface TenantBillingResponse {
       daysUntilDue: number | null;
     };
   };
+}
+
+// Condition reports
+export type ConditionReportType = 'move_in' | 'move_out' | 'routine' | 'maintenance' | 'pre_listing';
+export type ConditionRating = 'excellent' | 'good' | 'fair' | 'poor';
+
+export interface ConditionReport {
+  _id: string;
+  id?: string;
+  type: ConditionReportType;
+  overallCondition: ConditionRating;
+  notes?: string;
+  tenantId?: string;
+  date: string;
+  createdAt?: string;
+  images: { url: string; publicId: string; caption?: string }[];
+  videos: { url: string; publicId: string; thumbnail?: string }[];
+  recordedBy?: string | { _id?: string; name?: string; email?: string };
+  tenant?: { _id: string; unitLabel?: string; tenantName?: string };
 }
 
 // Admin payments
@@ -874,7 +936,7 @@ export const estatesApi = createApi({
       query: ({ unitId, files }) => {
         const form = new FormData();
         files.forEach((f) => form.append('images', f));
-        return { url: `/api/units/unit/${unitId}/media/images`, method: 'POST', body: form };
+        return { url: `/api/estates/unit/${unitId}/media/images`, method: 'POST', body: form };
       },
       invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: unitId }],
     }),
@@ -882,7 +944,7 @@ export const estatesApi = createApi({
       query: ({ unitId, file }) => {
         const form = new FormData();
         form.append('video', file);
-        return { url: `/api/units/unit/${unitId}/media/videos`, method: 'POST', body: form };
+        return { url: `/api/estates/unit/${unitId}/media/videos`, method: 'POST', body: form };
       },
       invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: unitId }],
     }),
@@ -893,7 +955,7 @@ export const estatesApi = createApi({
       { unitId: string; images?: { url: string; publicId: string; caption?: string }[]; videos?: { url: string; publicId: string; thumbnail?: string }[]; replace?: boolean }
     >({
       query: ({ unitId, ...body }) => ({
-        url: `/api/units/unit/${unitId}/media`,
+        url: `/api/estates/unit/${unitId}/media`,
         method: 'PATCH',
         body,
       }),
@@ -906,11 +968,65 @@ export const estatesApi = createApi({
       { unitId: string; imageIds?: string[]; videoIds?: string[] }
     >({
       query: ({ unitId, imageIds, videoIds }) => ({
-        url: `/api/units/unit/${unitId}/media`,
+        url: `/api/estates/unit/${unitId}/media`,
         method: 'DELETE',
         body: { imageIds, videoIds },
       }),
       invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: unitId }],
+    }),
+
+    // Condition reports
+    getUnitConditionReports: builder.query<
+      { success: boolean; data: ConditionReport[] },
+      { unitId: string; type?: ConditionReportType }
+    >({
+      query: ({ unitId, type }) => ({
+        url: `/api/estates/unit/${unitId}/condition`,
+        params: type ? { type } : {},
+      }),
+      transformResponse: (raw: { success: boolean; conditionReports?: ConditionReport[]; data?: ConditionReport[] }) => ({
+        success: raw.success,
+        data: raw.conditionReports ?? raw.data ?? [],
+      }),
+      providesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: `${unitId}-conditions` }],
+    }),
+    addUnitConditionReport: builder.mutation<
+      { success: boolean; data: ConditionReport },
+      { unitId: string; formData: FormData }
+    >({
+      query: ({ unitId, formData }) => ({
+        url: `/api/estates/unit/${unitId}/condition`,
+        method: 'POST',
+        body: formData,
+      }),
+      invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: `${unitId}-conditions` }],
+    }),
+    addUnitConditionReportJson: builder.mutation<
+      { success: boolean; data: ConditionReport },
+      {
+        unitId: string;
+        type: ConditionReportType;
+        overallCondition: ConditionRating;
+        notes?: string;
+        tenantId?: string;
+        date?: string;
+        images?: { url: string; publicId: string; caption?: string }[];
+        videos?: { url: string; publicId: string }[];
+      }
+    >({
+      query: ({ unitId, ...body }) => ({
+        url: `/api/estates/unit/${unitId}/condition/json`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: `${unitId}-conditions` }],
+    }),
+    deleteUnitConditionReport: builder.mutation<{ success: boolean }, { unitId: string; reportId: string }>({
+      query: ({ unitId, reportId }) => ({
+        url: `/api/estates/unit/${unitId}/condition/${reportId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, { unitId }) => [{ type: 'EstateUnits', id: `${unitId}-conditions` }],
     }),
 
     // Admin transaction history
@@ -990,6 +1106,11 @@ export const {
     useGetAdminPaymentsQuery,
     // Unit media
     useGetUnitQuery,
+    // Condition reports
+    useGetUnitConditionReportsQuery,
+    useAddUnitConditionReportMutation,
+    useAddUnitConditionReportJsonMutation,
+    useDeleteUnitConditionReportMutation,
     useUploadUnitImagesMutation,
     useUploadUnitVideoMutation,
     usePatchUnitMediaMutation,
