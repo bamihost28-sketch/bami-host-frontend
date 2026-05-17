@@ -84,7 +84,6 @@ export const AddPropertyPage = () => {
   const [serviceCharge, setServiceCharge] = useState("");
   const [cautionFee, setCautionFee] = useState("");
   const [legalFee, setLegalFee] = useState("");
-  const [securityDeposit, setSecurityDeposit] = useState("");
   const [availableDate, setAvailableDate] = useState("");
 
   // Details
@@ -149,7 +148,6 @@ export const AddPropertyPage = () => {
           serviceChargeMonthly: Number(serviceCharge) || undefined,
           cautionFee: Number(cautionFee) || undefined,
           legalFee: Number(legalFee) || undefined,
-          securityDeposit: Number(securityDeposit) || undefined,
           category,
           listingType,
           description: description.trim() || undefined,
@@ -272,7 +270,6 @@ export const AddPropertyPage = () => {
               <NairaInput label="Service Charge / month" placeholder="e.g. 10000" value={serviceCharge} onChange={setServiceCharge} />
               <NairaInput label="Caution Fee (one-time)" placeholder="e.g. 75000" value={cautionFee} onChange={setCautionFee} />
               <NairaInput label="Legal Fee (one-time)" placeholder="e.g. 25000" value={legalFee} onChange={setLegalFee} />
-              <NairaInput label="Security Deposit" placeholder="e.g. 75000" value={securityDeposit} onChange={setSecurityDeposit} />
               <div className="space-y-1.5">
                 <Label className="text-sm font-semibold">Available Date</Label>
                 <Input

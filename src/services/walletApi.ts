@@ -44,6 +44,41 @@ export interface GlobalWalletResponse {
   data: GlobalWalletData;
 }
 
+// Transaction list types
+export type WalletTxType = 'rent' | 'deposit' | 'service_charge' | 'caution_fee' | 'legal_fee' | 'withdrawal' | 'other';
+export type WalletTxStatus = 'paid' | 'completed' | 'pending' | 'failed';
+
+export interface WalletTransactionListItem {
+  _id: string;
+  type: WalletTxType;
+  status: WalletTxStatus;
+  amount: number;
+  description?: string;
+  reference?: string;
+  createdAt: string;
+  user?: { name: string; email: string };
+  estate?: { name: string };
+}
+
+export interface WalletTransactionListResponse {
+  success: boolean;
+  data: WalletTransactionListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages?: number;
+}
+
+export interface TransactionListParams {
+  type?: WalletTxType;
+  status?: WalletTxStatus;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+
 // Admin credit types
 export interface AdminLookupData {
   userId: string;
@@ -127,6 +162,15 @@ export const walletApi = createApi({
       providesTags: ['WalletTransactions'],
     }),
 
+    // Paginated transaction list with filters (role-aware on backend)
+    getWalletTransactionList: builder.query<WalletTransactionListResponse, TransactionListParams>({
+      query: (params) => ({
+        url: '/api/wallet/transactions/list',
+        params,
+      }),
+      providesTags: ['WalletTransactions'],
+    }),
+
     // Admin: look up user by email before crediting
     adminLookupUser: builder.query<{ success: boolean; data: AdminLookupData }, string>({
       query: (email) => `/api/wallet/admin/lookup?email=${encodeURIComponent(email)}`,
@@ -155,6 +199,7 @@ export const {
   useInitializePaystackDepositMutation,
   useVerifyPaystackDepositMutation,
   useGetWalletTransactionsQuery,
+  useGetWalletTransactionListQuery,
   useLazyAdminLookupUserQuery,
   useAdminCreditWalletMutation,
 } = walletApi;

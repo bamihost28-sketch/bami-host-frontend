@@ -8,8 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetGlobalWalletSummaryQuery, useLazyAdminLookupUserQuery, useAdminCreditWalletMutation, type AdminLookupData, type AdminCreditData } from "@/services/walletApi";
+import {
+  useGetGlobalWalletSummaryQuery,
+  useGetWalletTransactionListQuery,
+  useLazyAdminLookupUserQuery,
+  useAdminCreditWalletMutation,
+  type AdminLookupData,
+  type AdminCreditData,
+  type WalletTxType,
+  type WalletTxStatus,
+} from "@/services/walletApi";
 import { WalletCard } from "./WalletCard";
 import { toast } from "@/components/ui/use-toast";
 import {
@@ -23,11 +34,11 @@ import {
   CheckCircle2,
   Search,
   BadgeDollarSign,
-  User,
   Phone,
   Mail,
   ChevronLeft,
   Shield,
+  X,
 } from "lucide-react";
 
 const ADMIN_ROLES = ['admin', 'super_admin', 'super_manager', 'business_owner'] as const;
@@ -35,6 +46,214 @@ const ADMIN_ROLES = ['admin', 'super_admin', 'super_manager', 'business_owner'] 
 type CreditStep = 'lookup' | 'confirm' | 'success';
 
 const fmt = (n: number) => `₦${n.toLocaleString()}`;
+
+const TX_TYPE_LABELS: Record<string, string> = {
+  rent: 'Rent',
+  deposit: 'Deposit',
+  service_charge: 'Service Charge',
+  caution_fee: 'Caution Fee',
+  legal_fee: 'Legal Fee',
+  withdrawal: 'Withdrawal',
+  other: 'Other',
+};
+
+const TX_STATUS_CLASSES: Record<string, string> = {
+  paid: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+  completed: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+  failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+};
+
+const TX_LIMIT = 20;
+
+// ── Transaction List ────────────────────────────────────────────────────────
+const TransactionList = () => {
+  const [search, setSearch] = useState('');
+  const [type, setType] = useState<string>('all');
+  const [status, setStatus] = useState<string>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [page, setPage] = useState(1);
+
+  const params = {
+    page,
+    limit: TX_LIMIT,
+    ...(search.trim() && { search: search.trim() }),
+    ...(type !== 'all' && { type: type as WalletTxType }),
+    ...(status !== 'all' && { status: status as WalletTxStatus }),
+    ...(startDate && { startDate }),
+    ...(endDate && { endDate }),
+  };
+
+  const { data, isLoading, isFetching } = useGetWalletTransactionListQuery(params);
+
+  const totalPages = data ? Math.ceil((data.total ?? 0) / TX_LIMIT) : 0;
+  const hasFilters = search || type !== 'all' || status !== 'all' || startDate || endDate;
+
+  const clearFilters = () => {
+    setSearch('');
+    setType('all');
+    setStatus('all');
+    setStartDate('');
+    setEndDate('');
+    setPage(1);
+  };
+
+  const onFilterChange = () => setPage(1);
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2 items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search description or reference…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); onFilterChange(); }}
+            className="pl-9"
+          />
+        </div>
+        <Select value={type} onValueChange={(v) => { setType(v); onFilterChange(); }}>
+          <SelectTrigger className="w-[155px]">
+            <SelectValue placeholder="All types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All types</SelectItem>
+            <SelectItem value="rent">Rent</SelectItem>
+            <SelectItem value="deposit">Deposit</SelectItem>
+            <SelectItem value="service_charge">Service Charge</SelectItem>
+            <SelectItem value="caution_fee">Caution Fee</SelectItem>
+            <SelectItem value="legal_fee">Legal Fee</SelectItem>
+            <SelectItem value="withdrawal">Withdrawal</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={status} onValueChange={(v) => { setStatus(v); onFilterChange(); }}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          type="date"
+          className="w-[145px]"
+          value={startDate}
+          onChange={(e) => { setStartDate(e.target.value); onFilterChange(); }}
+        />
+        <Input
+          type="date"
+          className="w-[145px]"
+          value={endDate}
+          onChange={(e) => { setEndDate(e.target.value); onFilterChange(); }}
+        />
+        {hasFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+            <X className="h-3.5 w-3.5" />
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {/* Table */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-14">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : !data?.data?.length ? (
+        <div className="text-center py-14">
+          <AlertCircle className="mx-auto h-10 w-10 text-muted-foreground" />
+          <p className="mt-3 text-muted-foreground text-sm">No transactions found</p>
+          {hasFilters && (
+            <Button variant="link" size="sm" onClick={clearFilters} className="mt-1">
+              Clear filters
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className={`rounded-md border overflow-hidden transition-opacity ${isFetching ? 'opacity-60' : ''}`}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="whitespace-nowrap">Date</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Reference</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.data.map((tx) => (
+                <TableRow key={tx._id}>
+                  <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
+                    {new Date(tx.createdAt).toLocaleDateString('en-NG', {
+                      day: '2-digit', month: 'short', year: 'numeric',
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs whitespace-nowrap">
+                      {TX_TYPE_LABELS[tx.type] ?? tx.type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate text-sm">
+                    {tx.description || <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground max-w-[130px] truncate">
+                    {tx.reference || '—'}
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${TX_STATUS_CLASSES[tx.status] ?? 'bg-muted text-muted-foreground'}`}>
+                      {tx.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold whitespace-nowrap">
+                    {tx.type === 'withdrawal' ? (
+                      <span className="text-red-600 dark:text-red-400">-{fmt(tx.amount)}</span>
+                    ) : (
+                      <span className="text-emerald-600 dark:text-emerald-400">+{fmt(tx.amount)}</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>Page {page} of {totalPages} — {data?.total ?? 0} transactions</span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1 || isFetching}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages || isFetching}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ── Admin Credit Dialog ─────────────────────────────────────────────────────
 const AdminCreditDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
@@ -448,12 +667,7 @@ export const WalletDashboard = () => {
             </TabsList>
 
             <TabsContent value="recent-transactions" className="space-y-4">
-              <div className="text-center py-12">
-                <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">Recent Transactions</h3>
-                <p className="text-muted-foreground">Transaction history coming soon — API integration in progress</p>
-                <Button className="mt-4">Refresh Data</Button>
-              </div>
+              <TransactionList />
             </TabsContent>
 
             <TabsContent value="allocations" className="space-y-4">
