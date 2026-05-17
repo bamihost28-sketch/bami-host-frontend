@@ -105,10 +105,6 @@ export const EstateManagement = () => {
           <p className="text-muted-foreground">Manage estates, units and tenants</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setWizardOpen(true)}>
-            <Wand2 className="h-4 w-4 mr-2" />
-            Set Up New Estate
-          </Button>
           <Dialog open={createEstateOpen} onOpenChange={setCreateEstateOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Quick Create</Button>

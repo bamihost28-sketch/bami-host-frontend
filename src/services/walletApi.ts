@@ -44,6 +44,24 @@ export interface GlobalWalletResponse {
   data: GlobalWalletData;
 }
 
+// Admin credit types
+export interface AdminLookupData {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  walletBalance: number;
+  currency: string;
+}
+
+export interface AdminCreditData {
+  transactionId: string;
+  recipient: { id: string; name: string; email: string };
+  amountCredited: number;
+  newBalance: number;
+}
+
 // RTK Query API
 export const walletApi = createApi({
   reducerPath: 'walletApi',
@@ -108,6 +126,24 @@ export const walletApi = createApi({
       query: () => '/api/wallet/transactions',
       providesTags: ['WalletTransactions'],
     }),
+
+    // Admin: look up user by email before crediting
+    adminLookupUser: builder.query<{ success: boolean; data: AdminLookupData }, string>({
+      query: (email) => `/api/wallet/admin/lookup?email=${encodeURIComponent(email)}`,
+    }),
+
+    // Admin: credit a user's wallet
+    adminCreditWallet: builder.mutation<
+      { success: boolean; message: string; data: AdminCreditData },
+      { email: string; amount: number; reason?: string }
+    >({
+      query: (body) => ({
+        url: '/api/wallet/admin/credit',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['GlobalWallet', 'WalletTransactions'],
+    }),
   }),
 });
 
@@ -119,4 +155,6 @@ export const {
   useInitializePaystackDepositMutation,
   useVerifyPaystackDepositMutation,
   useGetWalletTransactionsQuery,
+  useLazyAdminLookupUserQuery,
+  useAdminCreditWalletMutation,
 } = walletApi;
