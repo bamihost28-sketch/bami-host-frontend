@@ -415,14 +415,37 @@ export interface TenantDashboardOverviewResponse {
       apartment: {
         id: string;
         tenantName: string;
+        tenantEmail?: string;
+        tenantPhone?: string;
+        profileImageUrl?: string | null;
         unit: string;
         unitType: string;
+        bedrooms?: number;
+        bathrooms?: number;
+        area?: number;
+        description?: string;
+        streetAddress?: string | null;
+        amenities?: {
+          wifi?: boolean;
+          pool?: boolean;
+          gym?: boolean;
+          parking?: boolean;
+          ac?: boolean;
+          security?: boolean;
+          petFriendly?: boolean;
+          balcony?: boolean;
+          laundry?: boolean;
+        };
+        features?: string[];
+        images?: string[];
         estate: string;
+        estateAddress?: string | null;
         rentAmount: number;
         serviceChargeAmount: number;
         entryDate: string;
         nextDueDate: string;
         status: string;
+        tenantType?: string;
         meterNumber?: string;
       };
       billing: {
@@ -442,7 +465,11 @@ export interface TenantDashboardOverviewResponse {
           rent: number;
           serviceCharge: number;
           other?: number;
-          totalPaid: number;
+          otherBreakdown?: { code: string; label: string; amount: number }[];
+          total: number;
+          paid: { rent: number; serviceCharge: number; total: number };
+          outstanding: number;
+          totalPaid?: number;
         };
         nextYear: {
           year: number;
@@ -454,7 +481,7 @@ export interface TenantDashboardOverviewResponse {
           projectedServiceCharge: number;
           projectedTotal: number;
           projectedOther?: number;
-          otherBreakdown?: { label: string; amount: number }[];
+          otherBreakdown?: { code: string; label: string; amount: number }[];
         };
       };
       wallet: {

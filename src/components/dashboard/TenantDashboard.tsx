@@ -86,6 +86,8 @@ export const TenantDashboard: React.FC = () => {
   const apiApartment = overviewData?.data?.data?.apartment;
   const apiBilling = overviewData?.data?.data?.billing;
   const apiYearlyPayment = overviewData?.data?.data?.yearlyPayment;
+  const apiWallet = overviewData?.data?.data?.wallet;
+  const apiPayments = overviewData?.data?.data?.payments;
 
   // Normalize billing response into a flat shape for the UI
   const charges = billingData?.data?.charges;
@@ -120,9 +122,10 @@ export const TenantDashboard: React.FC = () => {
     daysOverdue: item.daysOverdue,
   }));
 
-  // Get Wallet Data from API
+  // Get Wallet Data from API — prefer live query, fall back to overview balance instantly
   const walletData = walletResponse?.data;
-  const walletBalance = walletData?.balance || 0;
+  const walletBalance = walletData?.balance ?? apiWallet?.balance ?? 0;
+  const isWalletLoading = walletLoading && apiWallet === undefined;
 
   const totalDue = billingSummary?.totalOutstanding || 0;
 
@@ -431,12 +434,13 @@ export const TenantDashboard: React.FC = () => {
                 daysUntilRentDue={daysUntilRentDue}
                 totalDue={totalDue}
                 recurringCount={recurringItems.length}
-                yearlyPayment={apiYearlyPayment}
               />
               
-              <WalletBalanceCard 
+              <WalletBalanceCard
                 balance={walletBalance}
-                isLoading={walletLoading}
+                isLoading={isWalletLoading}
+                totalEarnings={apiWallet?.totalEarnings}
+                totalSpent={apiWallet?.totalSpent}
                 onDeposit={handleOpenDeposit}
                 onWithdraw={handleOpenWithdraw}
                 onTransfer={handleOpenTransfer}
@@ -451,17 +455,134 @@ export const TenantDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <NoticeCard notices={[]} />
+          {/* Apartment Details */}
+          {apiApartment && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg text-slate-900 dark:text-white">Recent Issues</CardTitle>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between flex-wrap gap-2">
+                  <div>
+                    <CardTitle className="text-lg text-slate-900 dark:text-white">{apiApartment.unit}</CardTitle>
+                    <CardDescription>{apiApartment.estate}{apiApartment.estateAddress ? ` · ${apiApartment.estateAddress}` : ""}</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 capitalize">
+                      {apiApartment.status}
+                    </Badge>
+                    {apiApartment.tenantType && (
+                      <Badge variant="outline" className="capitalize">{apiApartment.tenantType}</Badge>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <MaintenanceList requests={(issuesData?.data || []).slice(0, 3)} />
+              <CardContent className="space-y-5">
+                {/* Specs row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {apiApartment.bedrooms !== undefined && (
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 border p-3 text-center">
+                      <p className="text-xl font-bold text-slate-900 dark:text-white">{apiApartment.bedrooms}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Bedroom{apiApartment.bedrooms !== 1 ? "s" : ""}</p>
+                    </div>
+                  )}
+                  {apiApartment.bathrooms !== undefined && (
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 border p-3 text-center">
+                      <p className="text-xl font-bold text-slate-900 dark:text-white">{apiApartment.bathrooms}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Bathroom{apiApartment.bathrooms !== 1 ? "s" : ""}</p>
+                    </div>
+                  )}
+                  {apiApartment.area !== undefined && (
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 border p-3 text-center">
+                      <p className="text-xl font-bold text-slate-900 dark:text-white">{apiApartment.area}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">m²</p>
+                    </div>
+                  )}
+                  {apiApartment.unitType && apiApartment.unitType !== "N/A" && (
+                    <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 border p-3 text-center">
+                      <p className="text-xl font-bold text-slate-900 dark:text-white truncate">{apiApartment.unitType}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Type</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pricing */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 p-3">
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Monthly Rent</p>
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">{formatCurrency(apiApartment.rentAmount)}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">per month</p>
+                  </div>
+                  <div className="rounded-lg border border-purple-100 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/10 p-3">
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">Service Charge</p>
+                    <p className="text-lg font-bold text-slate-900 dark:text-white">{formatCurrency(apiApartment.serviceChargeAmount)}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">per month</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {apiApartment.description && (
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {apiApartment.description}
+                  </p>
+                )}
+
+                {/* Amenities */}
+                {apiApartment.amenities && Object.values(apiApartment.amenities).some(Boolean) && (
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Amenities</p>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(apiApartment.amenities)
+                        .filter(([, v]) => v)
+                        .map(([key]) => {
+                          const labels: Record<string, string> = {
+                            wifi: "Wi-Fi", pool: "Pool", gym: "Gym", parking: "Parking",
+                            ac: "A/C", security: "Security", petFriendly: "Pet Friendly",
+                            balcony: "Balcony", laundry: "Laundry",
+                          };
+                          return (
+                            <Badge key={key} variant="secondary" className="text-xs">
+                              {labels[key] ?? key}
+                            </Badge>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Meta info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t text-sm">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500 dark:text-slate-400">Entry Date</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200">{formatDate(apiApartment.entryDate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500 dark:text-slate-400">Next Due</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200">{formatDate(apiApartment.nextDueDate)}</span>
+                    </div>
+                    {apiApartment.meterNumber && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">Meter No.</span>
+                        <span className="font-mono text-sm text-slate-800 dark:text-slate-200">{apiApartment.meterNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {apiApartment.tenantEmail && (
+                      <div className="flex justify-between gap-2">
+                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Email</span>
+                        <span className="font-medium text-slate-800 dark:text-slate-200 truncate">{apiApartment.tenantEmail}</span>
+                      </div>
+                    )}
+                    {apiApartment.tenantPhone && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 dark:text-slate-400">Phone</span>
+                        <span className="font-medium text-slate-800 dark:text-slate-200">{apiApartment.tenantPhone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </div>
+          )}
 
           {/* Annual Payment Summary */}
           {apiYearlyPayment && (
@@ -489,23 +610,40 @@ export const TenantDashboard: React.FC = () => {
                     </div>
                     <div className="space-y-2 text-sm mb-3">
                       <div className="flex justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Rent</span>
+                        <span className="text-slate-600 dark:text-slate-400">Projected Rent</span>
                         <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.rent)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Service Charge</span>
+                        <span className="text-slate-600 dark:text-slate-400">Projected Service Charge</span>
                         <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.serviceCharge)}</span>
                       </div>
-                      {apiYearlyPayment.currentYear.other !== undefined && apiYearlyPayment.currentYear.other > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
-                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.other)}</span>
+                      {(apiYearlyPayment.currentYear.other ?? 0) > 0 && (
+                        apiYearlyPayment.currentYear.otherBreakdown?.length ? (
+                          apiYearlyPayment.currentYear.otherBreakdown.map((item) => (
+                            <div key={item.code} className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">{item.label}</span>
+                              <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(item.amount)}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
+                            <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.other!)}</span>
+                          </div>
+                        )
+                      )}
+                      {apiYearlyPayment.currentYear.outstanding !== undefined && (
+                        <div className="flex justify-between text-sm pt-1 border-t border-green-200 dark:border-green-800/50">
+                          <span className="text-slate-500 dark:text-slate-400">Outstanding</span>
+                          <span className="font-medium text-amber-700 dark:text-amber-400">{formatCurrency(apiYearlyPayment.currentYear.outstanding)}</span>
                         </div>
                       )}
                     </div>
                     <div className="border-t border-green-200 dark:border-green-800 pt-2 flex justify-between">
                       <span className="font-semibold text-slate-900 dark:text-white">Total Paid</span>
-                      <span className="font-bold text-green-700 dark:text-green-400 text-lg">{formatCurrency(apiYearlyPayment.currentYear.totalPaid)}</span>
+                      <span className="font-bold text-green-700 dark:text-green-400 text-lg">
+                        {formatCurrency(apiYearlyPayment.currentYear.paid?.total ?? apiYearlyPayment.currentYear.totalPaid ?? 0)}
+                      </span>
                     </div>
                   </div>
 
