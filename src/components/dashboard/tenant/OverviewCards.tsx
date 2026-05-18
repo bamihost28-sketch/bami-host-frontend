@@ -1,5 +1,5 @@
-import { Building, Key, Calendar, DollarSign, Zap } from "lucide-react";
-import { formatCurrency, formatDate } from "./utils";
+import { Building, Key, Calendar, Zap } from "lucide-react";
+import { formatDate } from "./utils";
 
 interface TenantInfo {
   apartmentNumber: string;
@@ -14,18 +14,14 @@ interface TenantInfo {
 interface OverviewCardsProps {
   tenantInfo: TenantInfo;
   daysUntilRentDue: number;
-  totalDue: number;
-  recurringCount: number;
 }
 
 export const OverviewCards: React.FC<OverviewCardsProps> = ({
   tenantInfo,
   daysUntilRentDue,
-  totalDue,
-  recurringCount,
 }) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
           <Building className="h-4 w-4" />
@@ -49,14 +45,6 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         </div>
         <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.nextPaymentDue)}</p>
         <p className="text-sm text-slate-600 dark:text-slate-400">{daysUntilRentDue} days</p>
-      </div>
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
-          <DollarSign className="h-4 w-4" />
-          <span className="text-sm">Total Due</span>
-        </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(totalDue)}</p>
-        <p className="text-sm text-green-600 dark:text-green-400">{recurringCount} recurring</p>
       </div>
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">

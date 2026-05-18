@@ -432,8 +432,6 @@ export const TenantDashboard: React.FC = () => {
               <OverviewCards
                 tenantInfo={tenantInfo}
                 daysUntilRentDue={daysUntilRentDue}
-                totalDue={totalDue}
-                recurringCount={recurringItems.length}
               />
               
               <WalletBalanceCard
