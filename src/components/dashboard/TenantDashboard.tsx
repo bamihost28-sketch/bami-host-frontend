@@ -17,7 +17,7 @@ import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, Credi
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetPaymentTransactionsQuery, useGetIssuesQuery } from "@/services/estatesApi";
+import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetAdminPaymentsQuery, useGetIssuesQuery } from "@/services/estatesApi";
 import {
   useGetWalletBalanceQuery,
   useDepositMutation,
@@ -68,7 +68,10 @@ export const TenantDashboard: React.FC = () => {
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
   const { data: billingData } = useGetMyBillingQuery();
   const [payBilling, { isLoading: isPaying }] = usePayBillingMutation();
-  const { data: transactionsData, isLoading: transactionsLoading } = useGetPaymentTransactionsQuery({ page: 1, limit: 20 });
+  const tenantId = overviewData?.data?.data?.apartment?.id;
+  const { data: transactionsData, isLoading: transactionsLoading } = useGetAdminPaymentsQuery(
+    tenantId ? { tenantId, page: 1, limit: 20 } : undefined
+  );
   const { data: issuesData, isLoading: issuesLoading } = useGetIssuesQuery();
 
   // Wallet Transaction API Hooks
@@ -1106,52 +1109,40 @@ export const TenantDashboard: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-slate-900 dark:text-white">Transaction History</CardTitle>
-              <CardDescription>View your wallet transactions and payments</CardDescription>
+              <CardDescription>Your payment records</CardDescription>
             </CardHeader>
             <CardContent>
               {transactionsLoading ? (
                 <p className="text-center py-8 text-slate-500">Loading transactions...</p>
               ) : transactionsData?.data && transactionsData.data.length > 0 ? (
                 <div className="space-y-3">
-                  {transactionsData.data.map((item: any) => {
-                    const isPayment = item.recordType === 'payment';
-                    const isWithdrawal = !isPayment && (item.type === 'withdrawal' || item.type === 'payment');
-                    
-                    return (
-                      <div key={item._id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium capitalize">
-                            {isPayment 
-                              ? (item.paymentType?.replace('_', ' ') || 'Payment')
-                              : (item.type || 'Transaction')
-                            }
-                          </p>
-                          <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {formatDate(item.date || item.createdAt)} • {isPayment ? (item.paymentMethod || 'N/A') : (item.method || 'N/A')}
-                          </p>
-                          {item.description && (
-                            <p className="text-xs text-slate-400 mt-1">{item.description}</p>
-                          )}
-                          {item.tenant && (
-                            <p className="text-xs text-slate-400 mt-1">Tenant: {item.tenant.tenantName}</p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-semibold ${isWithdrawal ? 'text-red-600' : 'text-green-600'}`}>
-                            {isWithdrawal ? '-' : '+'}
-                            {formatCurrency(item.amount)}
-                          </p>
-                          <Badge className={
-                            (isPayment ? item.paymentStatus : item.status) === 'completed' ? 'bg-green-100 text-green-800' : 
-                            (isPayment ? item.paymentStatus : item.status) === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-red-100 text-red-800'
-                          }>
-                            {isPayment ? item.paymentStatus : item.status}
-                          </Badge>
-                        </div>
+                  {transactionsData.data.map((item) => (
+                    <div key={item.paymentId} className="flex items-start justify-between p-4 border rounded-lg gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium capitalize">
+                          {item.paymentType?.replace(/_/g, ' ') || 'Payment'}
+                        </p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          {formatDate(item.paymentDate || item.createdAt)} · {item.paymentMethod?.replace(/_/g, ' ') || 'N/A'}
+                        </p>
+                        {item.description && (
+                          <p className="text-xs text-slate-400 mt-1 truncate">{item.description}</p>
+                        )}
                       </div>
-                    );
-                  })}
+                      <div className="text-right shrink-0">
+                        <p className="font-semibold text-green-600 dark:text-green-400">
+                          {formatCurrency(item.amount)}
+                        </p>
+                        <Badge className={
+                          item.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                          item.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                          'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                        }>
+                          {item.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <p className="text-center py-8 text-slate-500">No transactions found</p>

@@ -220,16 +220,17 @@ export interface ConditionReport {
 
 // Admin payments
 export interface AdminPaymentRecord {
-  id: string;
+  paymentId: string;
   reference: string;
   amount: number;
-  type: string;
+  paymentType: string;
   status: string;
   paymentMethod: string;
-  date: string;
-  tenantName: string;
-  unit: string;
-  estate: string;
+  paymentDate: string;
+  createdAt: string;
+  tenant: { id: string; name: string; unit: string; email?: string };
+  estate: { id: string; name: string };
+  recordedBy?: { id: string; name: string };
   description?: string;
 }
 
@@ -246,10 +247,10 @@ export interface AdminPaymentsResponse {
   data: AdminPaymentRecord[];
   summary: AdminPaymentsSummary;
   pagination: {
-    page: number;
-    limit: number;
-    total: number;
+    currentPage: number;
     totalPages: number;
+    totalItems: number;
+    limit: number;
   };
 }
 

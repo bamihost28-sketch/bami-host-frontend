@@ -80,7 +80,7 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
   const transactions = data?.data ?? [];
   const summary = data?.summary;
   const totalPages = data?.pagination?.totalPages ?? 1;
-  const total = data?.pagination?.total ?? 0;
+  const total = data?.pagination?.totalItems ?? 0;
 
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
@@ -268,15 +268,15 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
               </TableHeader>
               <TableBody>
                 {transactions.map((t) => (
-                  <TableRow key={t.id} className={isFetching ? 'opacity-60' : ''}>
-                    <TableCell className="whitespace-nowrap">{formatDate(t.date)}</TableCell>
+                  <TableRow key={t.paymentId} className={isFetching ? 'opacity-60' : ''}>
+                    <TableCell className="whitespace-nowrap">{formatDate(t.paymentDate || t.createdAt)}</TableCell>
                     <TableCell>
-                      <p className="font-medium leading-tight">{t.tenantName || '—'}</p>
-                      {(t.unit || t.estate) && (
-                        <p className="text-xs text-muted-foreground">{[t.unit, t.estate].filter(Boolean).join(' · ')}</p>
+                      <p className="font-medium leading-tight">{t.tenant?.name || '—'}</p>
+                      {(t.tenant?.unit || t.estate?.name) && (
+                        <p className="text-xs text-muted-foreground">{[t.tenant?.unit, t.estate?.name].filter(Boolean).join(' · ')}</p>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium capitalize">{t.type?.replace(/_/g, ' ') || '—'}</TableCell>
+                    <TableCell className="font-medium capitalize">{t.paymentType?.replace(/_/g, ' ') || '—'}</TableCell>
                     <TableCell className="capitalize text-sm">{t.paymentMethod?.replace(/_/g, ' ') || '—'}</TableCell>
                     <TableCell>
                       {t.status ? (
@@ -305,7 +305,7 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => handleDownload(t.reference || t.id)}
+                              onClick={() => handleDownload(t.reference || t.paymentId)}
                               disabled={isDownloading}
                               title="Download PDF"
                             >
@@ -315,7 +315,7 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => handleEmail(t.reference || t.id)}
+                              onClick={() => handleEmail(t.reference || t.paymentId)}
                               disabled={isEmailing}
                               title="Resend Email"
                             >
