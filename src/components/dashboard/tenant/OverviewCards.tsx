@@ -41,7 +41,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
           <Calendar className="h-4 w-4" />
-          <span className="text-sm">Next Due</span>
+          <span className="text-sm">Lease End</span>
         </div>
         <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.nextPaymentDue)}</p>
         <p className="text-sm text-slate-600 dark:text-slate-400">{daysUntilRentDue} days</p>
