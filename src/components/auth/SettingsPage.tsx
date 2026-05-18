@@ -242,9 +242,11 @@ export const SettingsPage = () => {
                   </div>
                 </div>
                 <div className="mt-3 space-y-2">
-                  <Badge variant="outline" className="text-xs">
-                    {user?.role?.charAt(0).toUpperCase()}{user?.role?.slice(1)} Account
-                  </Badge>
+                  {user?.role && (
+                    <Badge variant="secondary" className="text-xs capitalize">
+                      {user.role.replace(/_/g, ' ')} Account
+                    </Badge>
+                  )}
                   {user?.role === 'super_admin' && (
                     <Button
                       variant="outline"

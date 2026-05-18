@@ -418,14 +418,9 @@ export const TenantDashboard: React.FC = () => {
         <TabsContent value="overview" className="space-y-6">
           <Card>
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl text-slate-900 dark:text-white">Welcome back, {firstName}!</CardTitle>
-                  <CardDescription className="text-slate-600 dark:text-slate-400">Here's your home overview</CardDescription>
-                </div>
-                <Badge className={`${tenantInfo.leaseStatus === "active" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"} border`}>
-                  {tenantInfo.leaseStatus === "active" ? "Active Lease" : "Lease Expiring"}
-                </Badge>
+              <div>
+                <CardTitle className="text-2xl text-slate-900 dark:text-white">Welcome back, {firstName}!</CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400">Here's your home overview</CardDescription>
               </div>
             </CardHeader>
             <CardContent>
