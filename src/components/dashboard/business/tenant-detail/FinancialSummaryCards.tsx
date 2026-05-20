@@ -9,6 +9,8 @@ interface FinancialSummaryCardsProps {
 
 export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSummaryCardsProps) => {
   const totalMonthlyCommitment = (overview?.rent || 0) + (overview?.serviceCharge || 0);
+  const year1 = (overview as any)?.yearlyBreakdown?.year1;
+  const year2 = (overview as any)?.yearlyBreakdown?.year2;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -153,24 +155,63 @@ export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSum
         </CardContent>
       </Card>
 
-      <Card className="bg-gradient-to-br from-teal-600 to-teal-700 dark:from-teal-700 dark:to-teal-900 border-0 shadow-lg">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-teal-100 uppercase tracking-wider">Total Lease Amount</p>
-              <p className="text-2xl font-black text-white mt-1">
-                ₦{typeof overview?.totalLeaseAmount === 'number' ? overview.totalLeaseAmount.toLocaleString() : '0'}
-              </p>
-              <p className="text-[9px] text-teal-100 mt-0.5">Full commitment</p>
+      {year1 && (
+        <Card className="bg-gradient-to-br from-teal-600 to-teal-700 dark:from-teal-700 dark:to-teal-900 border-0 shadow-lg">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-start justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs font-medium text-teal-100 uppercase tracking-wider">{year1.label ?? 'Year 1'}</p>
+                  <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">Year 1</span>
+                </div>
+                <p className="text-2xl font-black text-white">₦{(year1.total ?? 0).toLocaleString()}</p>
+                <p className="text-[9px] text-teal-100 mt-1">
+                  ₦{(year1.annualRent ?? 0).toLocaleString()} rent · ₦{(year1.annualServiceCharge ?? 0).toLocaleString()} service
+                  {year1.oneTimeFees > 0 && ` · ₦${year1.oneTimeFees.toLocaleString()} fees`}
+                </p>
+                <p className="text-[9px] text-teal-200 mt-0.5">
+                  {formatDate(year1.billingStart)} – {formatDate(year1.billingEnd)}
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 backdrop-blur-sm ml-2">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          </CardContent>
+        </Card>
+      )}
+
+      {year2 && (
+        <Card className="bg-gradient-to-br from-slate-700 to-slate-800 dark:from-slate-800 dark:to-slate-950 border-0 shadow-lg">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-start justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-xs font-medium text-slate-300 uppercase tracking-wider">{year2.label ?? 'Year 2'}</p>
+                  <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">Year 2</span>
+                  {year2.rentIncreased && (
+                    <span className="text-[9px] bg-rose-500/70 text-white px-1.5 py-0.5 rounded-full">Rent ↑</span>
+                  )}
+                </div>
+                <p className="text-2xl font-black text-white">₦{(year2.total ?? 0).toLocaleString()}</p>
+                <p className="text-[9px] text-slate-300 mt-1">
+                  ₦{(year2.annualRent ?? 0).toLocaleString()} rent · ₦{(year2.annualServiceCharge ?? 0).toLocaleString()} service
+                </p>
+                <p className="text-[9px] text-slate-400 mt-0.5">
+                  {formatDate(year2.billingStart)} – {formatDate(year2.billingEnd)}
+                </p>
+              </div>
+              <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0 backdrop-blur-sm ml-2">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
