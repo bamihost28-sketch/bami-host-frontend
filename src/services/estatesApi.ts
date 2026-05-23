@@ -497,6 +497,79 @@ export interface TenantDashboardOverviewResponse {
 }
 
 // Units
+export type EnquiryStatus = 'new' | 'read' | 'replied' | 'archived';
+
+export interface EnquiryPayload {
+  name: string;
+  email: string;
+  message: string;
+  estateId?: string;
+  unitId?: string;
+}
+
+export interface EnquirySubmitResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    enquiryId: string;
+    name: string;
+    email: string;
+    estateName: string;
+    submittedAt: string;
+  };
+}
+
+export interface Enquiry {
+  _id: string;
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: EnquiryStatus;
+  estateId?: string;
+  unitId?: string;
+  estate?: { id: string; name: string };
+  unit?: { id: string; label: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RentalApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'waitlisted';
+
+export interface RentalApplicationPayload {
+  estateId: string;
+  unitId?: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  employmentStatus: 'employed' | 'self_employed' | 'unemployed' | 'student' | 'retired' | 'other';
+  dateOfBirth?: string;
+  nationality?: string;
+  currentAddress?: string;
+  stateOfOrigin?: string;
+  employer?: string;
+  jobTitle?: string;
+  monthlyIncome?: number;
+  nextOfKinName?: string;
+  nextOfKinPhone?: string;
+  nextOfKinRelationship?: string;
+  preferredMoveInDate?: string;
+  numberOfOccupants?: number;
+  hasPets?: boolean;
+  additionalNotes?: string;
+}
+
+export interface RentalApplication extends RentalApplicationPayload {
+  _id: string;
+  id: string;
+  status: RentalApplicationStatus;
+  statusNote?: string;
+  createdAt: string;
+  updatedAt: string;
+  estate?: { id: string; name: string };
+  unit?: { id: string; label: string };
+}
+
 export interface EstateUnitFeature { name: string; value: string }
 export interface EstateUnit {
   id?: string;
@@ -527,7 +600,9 @@ export interface EstateUnit {
     laundry?: boolean;
   };
   meterNumber?: string;
-  images?: string[];
+  status?: string;
+  images?: { url: string; _id: string; publicId?: string | null; caption?: string }[];
+  estate?: { _id: string; id: string; name: string };
   features?: EstateUnitFeature[];
 }
 
@@ -578,7 +653,7 @@ export const estatesApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'Tenant', 'TenantList', 'Issue', 'Payment', 'DashboardOverview'],
+  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'Tenant', 'TenantList', 'Issue', 'Payment', 'DashboardOverview', 'RentalApplication', 'Enquiry'],
   endpoints: (builder) => ({
     getEstates: builder.query<PaginatedResponse<Estate>, EstateListParams | void>({
       query: (params) => ({
@@ -1066,6 +1141,69 @@ export const estatesApi = createApi({
       providesTags: [{ type: 'Payment', id: 'LIST' }],
     }),
 
+    // Property enquiry (public)
+    submitEnquiry: builder.mutation<EnquirySubmitResponse, EnquiryPayload>({
+      query: (body) => ({ url: '/api/enquiries', method: 'POST', body }),
+      invalidatesTags: [{ type: 'Enquiry', id: 'LIST' }],
+    }),
+    getEnquiries: builder.query<
+      { success: boolean; data: Enquiry[]; pagination?: { currentPage: number; totalPages: number; totalItems: number } },
+      { estateId?: string; unitId?: string; status?: string; search?: string; page?: number; limit?: number } | void
+    >({
+      query: (params = {}) => ({ url: '/api/enquiries', params: params || {} }),
+      providesTags: [{ type: 'Enquiry', id: 'LIST' }],
+    }),
+    getEnquiry: builder.query<{ success: boolean; data: Enquiry }, string>({
+      query: (id) => `/api/enquiries/${id}`,
+      providesTags: (result, error, id) => [{ type: 'Enquiry', id }],
+    }),
+    updateEnquiryStatus: builder.mutation<
+      { success: boolean; data: Enquiry },
+      { id: string; status: EnquiryStatus }
+    >({
+      query: ({ id, status }) => ({ url: `/api/enquiries/${id}/status`, method: 'PATCH', body: { status } }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Enquiry', id },
+        { type: 'Enquiry', id: 'LIST' },
+      ],
+    }),
+    deleteEnquiry: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/api/enquiries/${id}`, method: 'DELETE' }),
+      invalidatesTags: [{ type: 'Enquiry', id: 'LIST' }],
+    }),
+
+    // Rental applications (public submit)
+    submitRentalApplication: builder.mutation<{ success: boolean; data: RentalApplication }, RentalApplicationPayload>({
+      query: (body) => ({ url: '/api/rental-applications', method: 'POST', body }),
+      invalidatesTags: [{ type: 'RentalApplication', id: 'LIST' }],
+    }),
+    // Rental applications (admin/owner)
+    getRentalApplications: builder.query<
+      { success: boolean; data: RentalApplication[]; pagination?: { currentPage: number; totalPages: number; totalItems: number } },
+      { estateId?: string; unitId?: string; status?: string; search?: string; page?: number; limit?: number } | void
+    >({
+      query: (params = {}) => ({ url: '/api/rental-applications', params: params || {} }),
+      providesTags: [{ type: 'RentalApplication', id: 'LIST' }],
+    }),
+    getRentalApplication: builder.query<{ success: boolean; data: RentalApplication }, string>({
+      query: (id) => `/api/rental-applications/${id}`,
+      providesTags: (result, error, id) => [{ type: 'RentalApplication', id }],
+    }),
+    updateRentalApplicationStatus: builder.mutation<
+      { success: boolean; data: RentalApplication },
+      { id: string; status: RentalApplicationStatus; statusNote?: string }
+    >({
+      query: ({ id, ...body }) => ({ url: `/api/rental-applications/${id}/status`, method: 'PATCH', body }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'RentalApplication', id },
+        { type: 'RentalApplication', id: 'LIST' },
+      ],
+    }),
+    deleteRentalApplication: builder.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/api/rental-applications/${id}`, method: 'DELETE' }),
+      invalidatesTags: [{ type: 'RentalApplication', id: 'LIST' }],
+    }),
+
     // Issues
     reportIssue: builder.mutation<{ success: boolean; data: Issue }, FormData>({
       query: (body) => ({ url: '/api/issues', method: 'POST', body }),
@@ -1143,4 +1281,16 @@ export const {
     useUploadUnitVideoMutation,
     usePatchUnitMediaMutation,
     useDeleteUnitMediaMutation,
+    // Enquiries
+    useSubmitEnquiryMutation,
+    useGetEnquiriesQuery,
+    useGetEnquiryQuery,
+    useUpdateEnquiryStatusMutation,
+    useDeleteEnquiryMutation,
+    // Rental applications
+    useSubmitRentalApplicationMutation,
+    useGetRentalApplicationsQuery,
+    useGetRentalApplicationQuery,
+    useUpdateRentalApplicationStatusMutation,
+    useDeleteRentalApplicationMutation,
   } = estatesApi;

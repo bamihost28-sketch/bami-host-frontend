@@ -2,17 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TableSkeleton } from '@/components/ui/skeletons';
 
-const formatDate = (value?: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  const day = date.getDate();
-  const month = date.toLocaleString('en-US', { month: 'long' }).toLowerCase();
-  const year = date.getFullYear();
-  return `${day} ${month}, ${year}`;
-};
+import { formatDate } from '@/utils/propertyUtils';
 
 interface TenancyHistoryCardProps {
   history: any[];

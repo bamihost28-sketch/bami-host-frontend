@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
-    Search, MapPin, SlidersHorizontal,
-    ChevronDown, LayoutGrid, List,
-    ArrowRight, Home, Building2,
-    LandPlot, Sparkles, Filter,
-    Loader2
+    Search, MapPin, LayoutGrid, List,
+    ArrowRight, Building2,
+    Sparkles, Filter,
+    Loader2, CalendarDays
 } from "lucide-react";
+import { formatDate, formatCurrency } from "@/utils/propertyUtils";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -152,28 +152,38 @@ const EstateList = () => {
                                 {/* Image Container */}
                                 <div className={`relative overflow-hidden ${viewMode === "list" ? "md:w-2/5 h-64 md:h-auto" : "h-72"}`}>
                                     <img
-                                        src={property.images && property.images.length > 0 ? property.images[0] : "/images/estate/estate_exterior_modern_1768390624272.png"}
+                                        src={property.images && property.images.length > 0 ? property.images[0].url : "/images/estate/estate_exterior_modern_1768390624272.png"}
                                         alt={property.label}
                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <Badge className="absolute top-6 left-6 bg-blue-600 text-white font-black px-4 py-2 border-none rounded-xl shadow-lg">
-                                        {property.category || "Premium"}
-                                    </Badge>
+                                    <div className="absolute top-6 left-6 flex gap-2 flex-wrap">
+                                        <Badge className="bg-blue-600 text-white font-black px-4 py-2 border-none rounded-xl shadow-lg">
+                                            {property.category || "Property"}
+                                        </Badge>
+                                        {property.listingType && (
+                                            <Badge className="bg-white/90 text-slate-700 font-black px-3 py-2 border-none rounded-xl shadow-sm backdrop-blur">
+                                                {property.listingType}
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Content */}
                                 <div className={`p-8 flex flex-col justify-between ${viewMode === "list" ? "md:w-3/5" : ""}`}>
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-2 text-blue-600">
-                                            <MapPin className="w-4 h-4" />
+                                            <MapPin className="w-4 h-4 shrink-0" />
                                             <span className="text-xs font-bold uppercase tracking-wider truncate max-w-[200px]">
-                                                {property.streetAddress || "Lagos, Nigeria"}
+                                                {property.streetAddress || property.estate?.name || "Lagos, Nigeria"}
                                             </span>
                                         </div>
                                         <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors truncate">
                                             {property.label}
                                         </h3>
+                                        {property.estate?.name && (
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider -mt-2">{property.estate.name}</p>
+                                        )}
 
                                         {/* Stats */}
                                         <div className="flex items-center gap-6 py-2">
@@ -190,16 +200,26 @@ const EstateList = () => {
                                                 <span className="text-sm font-bold text-slate-700">{property.area ? `${property.area.toLocaleString()} sqft` : "N/A"}</span>
                                             </div>
                                         </div>
+
+                                        {property.availableDate && (
+                                            <div className="flex items-center gap-1.5 text-green-600 text-xs font-bold">
+                                                <CalendarDays className="w-3.5 h-3.5" />
+                                                Available {formatDate(property.availableDate)}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="mt-8 space-y-6">
                                         <Separator className="bg-slate-50" />
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pricing</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monthly</span>
                                                 <span className="text-2xl font-black text-blue-600 tracking-tighter italic">
-                                                    {property.monthlyPrice ? `₦${property.monthlyPrice.toLocaleString()}` : "Contact Sales"}
+                                                    {property.monthlyPrice ? formatCurrency(property.monthlyPrice) : "Contact Sales"}
                                                 </span>
+                                                {property.serviceChargeMonthly ? (
+                                                    <span className="text-[10px] text-slate-400 font-bold">+ {formatCurrency(property.serviceChargeMonthly)} service</span>
+                                                ) : null}
                                             </div>
                                             <Link to={`/marketplace/estate/${property.id || property._id}`}>
                                                 <Button className="bg-slate-900 hover:bg-slate-800 text-white font-black px-6 py-6 rounded-2xl gap-2 transition-all transform active:scale-95 shadow-xl shadow-slate-200">

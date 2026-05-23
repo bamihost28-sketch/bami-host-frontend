@@ -1,7 +1,9 @@
-import { MapPin, ArrowRight, Loader2 } from "lucide-react";
+import { MapPin, ArrowRight, Loader2, CalendarDays, Bed, Bath } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { useGetPublicListingsQuery } from "@/services/estatesApi";
+import { formatDate, formatCurrency } from "@/utils/propertyUtils";
 
 export const EstateProperties = () => {
     const { data: response, isLoading } = useGetPublicListingsQuery({ limit: 3 });
@@ -34,30 +36,73 @@ export const EstateProperties = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {properties.map((property, i) => (
-                            <div key={property.id || property._id} className="group cursor-pointer">
-                                <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-6">
+                        {properties.map((property) => (
+                            <div key={property.id || property._id} className="group cursor-pointer bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500">
+                                <div className="relative aspect-[4/3] overflow-hidden">
                                     <img
-                                        src={property.images && property.images.length > 0 ? property.images[0] : "/images/estate/estate_exterior_modern_1768390624272.png"}
+                                        src={property.images && property.images.length > 0 ? property.images[0].url : "/images/estate/estate_exterior_modern_1768390624272.png"}
                                         alt={property.label}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
-                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-black uppercase text-blue-600 shadow-sm border border-blue-100">Hot Feature</div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
+                                    <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
+                                        <Badge className="bg-blue-600 text-white font-black border-none text-[10px] px-3 py-1 rounded-lg shadow">
+                                            {property.category || "Property"}
+                                        </Badge>
+                                        {property.listingType && (
+                                            <Badge className="bg-white/90 text-slate-700 font-black border-none text-[10px] px-3 py-1 rounded-lg backdrop-blur">
+                                                {property.listingType}
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2 truncate">{property.label}</h3>
-                                <div className="flex items-center gap-2 text-slate-500 text-sm mb-6">
-                                    <MapPin className="w-4 h-4 text-blue-500" />
-                                    <span>{property.streetAddress || "Lagos, Nigeria"}</span>
-                                    <span className="text-slate-300 mx-1">•</span>
-                                    <span className="font-bold text-blue-600">
-                                        {property.monthlyPrice ? `₦${property.monthlyPrice.toLocaleString()}` : "Contact Sales"}
-                                    </span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Button variant="outline" className="border-blue-100 text-blue-600 font-bold hover:bg-blue-50 py-5">Schedule Tour</Button>
-                                    <Link to={`/marketplace/estate/${property.id || property._id}`}>
-                                        <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-5">View Details</Button>
-                                    </Link>
+
+                                <div className="p-6 space-y-4">
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{property.label}</h3>
+                                        {property.estate?.name && (
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5">{property.estate.name}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2 text-slate-500 text-sm">
+                                        <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
+                                        <span className="truncate">{property.streetAddress || "Lagos, Nigeria"}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 text-sm font-bold text-slate-600">
+                                        {(property.bedrooms ?? 0) > 0 && (
+                                            <span className="flex items-center gap-1"><Bed className="w-4 h-4 text-slate-400" />{property.bedrooms}</span>
+                                        )}
+                                        {(property.bathrooms ?? 0) > 0 && (
+                                            <span className="flex items-center gap-1"><Bath className="w-4 h-4 text-slate-400" />{property.bathrooms}</span>
+                                        )}
+                                        {property.area ? (
+                                            <span className="text-slate-400">{property.area.toLocaleString()} sqft</span>
+                                        ) : null}
+                                    </div>
+
+                                    {property.availableDate && (
+                                        <div className="flex items-center gap-1.5 text-green-600 text-xs font-bold">
+                                            <CalendarDays className="w-3.5 h-3.5" />
+                                            Available {formatDate(property.availableDate)}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                                        <div>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase block">Monthly</span>
+                                            <span className="font-bold text-blue-600">
+                                                {property.monthlyPrice ? formatCurrency(property.monthlyPrice) : "Contact Sales"}
+                                            </span>
+                                            {property.serviceChargeMonthly ? (
+                                                <span className="text-[10px] text-slate-400 font-bold block">+ {formatCurrency(property.serviceChargeMonthly)} service</span>
+                                            ) : null}
+                                        </div>
+                                        <Link to={`/marketplace/estate/${property.id || property._id}`}>
+                                            <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold py-5">View Details</Button>
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         ))}

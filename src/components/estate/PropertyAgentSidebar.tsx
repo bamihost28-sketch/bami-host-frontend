@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, ShieldCheck } from "lucide-react";
+import { Star, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-import { useToast } from "@/components/providers/ToastProvider";
+import { toast } from "@/components/ui/use-toast";
+import { useSubmitEnquiryMutation } from "@/services/estatesApi";
 
 interface PropertyAgentSidebarProps {
     agent: {
@@ -15,23 +15,41 @@ interface PropertyAgentSidebarProps {
         reviews: number;
         rating: number;
     };
+    estateId?: string;
+    unitId?: string;
 }
 
-export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agent }) => {
-    const { success } = useToast();
+export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agent, estateId, unitId }) => {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [message, setMessage] = useState("I am interested in this property and would like more details.");
+    const [sent, setSent] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [submitEnquiry, { isLoading }] = useSubmitEnquiryMutation();
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        success("Message sent successfully! Jonathan will get back to you soon.");
-    };
-
-    const handleAction = (action: string) => {
-        success(`${action} requested! We've notified the agent.`);
+        try {
+            const res = await submitEnquiry({
+                name,
+                email,
+                message,
+                ...(estateId ? { estateId } : {}),
+                ...(unitId ? { unitId } : {}),
+            }).unwrap();
+            if (res.success) {
+                setSent(true);
+            } else {
+                toast({ title: "Failed to send", description: res.message ?? "Please try again shortly.", variant: "destructive" });
+            }
+        } catch {
+            toast({ title: "Failed to send", description: "Please try again shortly.", variant: "destructive" });
+        }
     };
 
     return (
         <div className="space-y-6">
-            <Card className="rounded-3xl border-slate-100 shadow-sm overflow-hidden">
+            <Card className="rounded-3xl border-slate-100 shadow-sm overflow-hidden bg-white">
                 <CardContent className="p-6 space-y-6">
                     {/* Agent Profile */}
                     <div className="flex items-center gap-4">
@@ -53,41 +71,59 @@ export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agen
                         </div>
                     </div>
 
-                    {/* Contact Form */}
-                    <form className="space-y-4" onSubmit={handleSubmit}>
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Name</label>
-                            <Input required placeholder="Your full name" className="bg-slate-50 border-none rounded-xl h-11 focus-visible:ring-blue-600 focus-visible:ring-1" />
+                    {sent ? (
+                        <div className="flex flex-col items-center gap-3 py-6 text-center">
+                            <CheckCircle2 className="h-10 w-10 text-green-500" />
+                            <p className="font-bold text-slate-900">Message sent!</p>
+                            <p className="text-xs text-slate-500">We'll get back to you within 1 hour.</p>
+                            <Button variant="ghost" size="sm" onClick={() => setSent(false)}>Send another</Button>
                         </div>
+                    ) : (
+                        <form className="space-y-4" onSubmit={handleSubmit}>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Name</label>
+                                <Input
+                                    required
+                                    placeholder="Your full name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="bg-slate-50 border border-slate-200 rounded-xl h-11 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-600 focus-visible:ring-1"
+                                />
+                            </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Email</label>
-                            <Input required type="email" placeholder="email@example.com" className="bg-slate-50 border-none rounded-xl h-11 focus-visible:ring-blue-600 focus-visible:ring-1" />
-                        </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Email</label>
+                                <Input
+                                    required
+                                    type="email"
+                                    placeholder="email@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="bg-slate-50 border border-slate-200 rounded-xl h-11 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-600 focus-visible:ring-1"
+                                />
+                            </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Message</label>
-                            <Textarea
-                                required
-                                placeholder="I am interested in this property and would like more details."
-                                className="bg-slate-50 border-none rounded-xl min-h-[100px] resize-none focus-visible:ring-blue-600 focus-visible:ring-1"
-                            />
-                        </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Message</label>
+                                <Textarea
+                                    required
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    className="bg-slate-50 border border-slate-200 rounded-xl min-h-[100px] resize-none text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-600 focus-visible:ring-1"
+                                />
+                            </div>
 
-                        <div className="space-y-3 pt-2">
-                            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-xl transition-transform hover:scale-[1.02]">
-                                Schedule a Tour
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={() => handleAction("Information")}
-                                variant="outline"
-                                className="w-full border-slate-200 text-slate-900 bg-white font-bold h-12 rounded-xl hover:bg-slate-50 transition-transform hover:scale-[1.02]"
-                            >
-                                Ask a Question
-                            </Button>
-                        </div>
-                    </form>
+                            <div className="space-y-3 pt-2">
+                                <Button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-xl transition-transform hover:scale-[1.02]"
+                                >
+                                    {isLoading ? "Sending…" : "Send Enquiry"}
+                                </Button>
+                            </div>
+                        </form>
+                    )}
 
                     <p className="text-[11px] text-center text-slate-400 font-medium">
                         Response time: Usually within 1 hour

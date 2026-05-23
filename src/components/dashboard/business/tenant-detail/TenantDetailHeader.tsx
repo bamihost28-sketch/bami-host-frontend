@@ -7,29 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { useUpdateTenantMutation, useUpdateEstateUnitMutation } from '@/services/estatesApi';
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  const day = date.getDate();
-  const month = date.toLocaleString('en-US', { month: 'long' }).toLowerCase();
-  const year = date.getFullYear();
-  return `${day} ${month}, ${year}`;
-};
-
-// Helper function to convert date to DD/MM/YYYY format for API
-const formatDateToDDMMYYYY = (dateString: string): string => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return dateString;
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
+import { formatDate, formatDateToDDMMYYYY } from '@/utils/propertyUtils';
 
 interface TenantDetailHeaderProps {
   tenantId?: string;

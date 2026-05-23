@@ -3,31 +3,110 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CRM_CONTACTS, BUSINESSES } from '@/data/mockData';
 import { ProtectedFeature, ProtectedComponent } from "@/components/auth/ProtectedComponent";
 import { PermissionAwareHeader, FeatureAccessIndicator } from "./PermissionAwareHeader";
 import { usePermissions } from "@/hooks/usePermissions";
-import { 
-  Users, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  DollarSign, 
-  Shield, 
-  Building, 
+import {
+  useGetRentalApplicationsQuery,
+  useUpdateRentalApplicationStatusMutation,
+  useDeleteRentalApplicationMutation,
+  useGetEnquiriesQuery,
+  useUpdateEnquiryStatusMutation,
+  useDeleteEnquiryMutation,
+  type RentalApplicationStatus,
+  type EnquiryStatus,
+} from "@/services/estatesApi";
+import { toast } from "@/components/ui/use-toast";
+import {
+  Users,
+  Phone,
+  Mail,
+  MapPin,
+  DollarSign,
+  Shield,
+  Building,
   UserCheck,
   TrendingUp,
   Search,
   Lock,
-  Crown
+  Crown,
+  FileText,
+  Loader2,
+  Trash2,
+  MessageSquare,
 } from "lucide-react";
+const APP_STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  under_review: 'bg-blue-100 text-blue-800',
+  approved: 'bg-green-100 text-green-800',
+  rejected: 'bg-red-100 text-red-800',
+  waitlisted: 'bg-purple-100 text-purple-800',
+};
+
 export const CRMDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBusiness, setSelectedBusiness] = useState("all");
+  const [appSearch, setAppSearch] = useState("");
+  const [appStatus, setAppStatus] = useState("");
   const { hasPermission } = usePermissions();
+
+  const [enqSearch, setEnqSearch] = useState("");
+  const [enqStatus, setEnqStatus] = useState("");
+
+  const { data: appsData, isLoading: appsLoading } = useGetRentalApplicationsQuery(
+    { ...(appSearch ? { search: appSearch } : {}), ...(appStatus ? { status: appStatus } : {}) }
+  );
+  const [updateStatus] = useUpdateRentalApplicationStatusMutation();
+  const [deleteApp] = useDeleteRentalApplicationMutation();
+  const applications = appsData?.data ?? [];
+
+  const { data: enqData, isLoading: enqLoading } = useGetEnquiriesQuery(
+    { ...(enqSearch ? { search: enqSearch } : {}), ...(enqStatus ? { status: enqStatus } : {}) }
+  );
+  const [updateEnqStatus] = useUpdateEnquiryStatusMutation();
+  const [deleteEnq] = useDeleteEnquiryMutation();
+  const enquiries = enqData?.data ?? [];
+
+  const handleStatusChange = async (id: string, status: RentalApplicationStatus) => {
+    try {
+      await updateStatus({ id, status }).unwrap();
+      toast({ title: 'Status updated' });
+    } catch {
+      toast({ title: 'Failed to update status', variant: 'destructive' });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteApp(id).unwrap();
+      toast({ title: 'Application deleted' });
+    } catch {
+      toast({ title: 'Failed to delete', variant: 'destructive' });
+    }
+  };
+
+  const handleEnqStatusChange = async (id: string, status: EnquiryStatus) => {
+    try {
+      await updateEnqStatus({ id, status }).unwrap();
+      toast({ title: 'Status updated' });
+    } catch {
+      toast({ title: 'Failed to update status', variant: 'destructive' });
+    }
+  };
+
+  const handleEnqDelete = async (id: string) => {
+    try {
+      await deleteEnq(id).unwrap();
+      toast({ title: 'Enquiry deleted' });
+    } catch {
+      toast({ title: 'Failed to delete', variant: 'destructive' });
+    }
+  };
 
   const contacts = CRM_CONTACTS;
   const businesses = BUSINESSES;
@@ -290,6 +369,28 @@ export const CRMDashboard = () => {
                 </div>
               </TabsTrigger>
               <TabsTrigger value="categories">Categories</TabsTrigger>
+              <TabsTrigger value="applications">
+                <div className="flex items-center gap-1">
+                  <FileText className="w-3 h-3" />
+                  Applications
+                  {applications.length > 0 && (
+                    <span className="ml-1 bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                      {applications.length}
+                    </span>
+                  )}
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="enquiries">
+                <div className="flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3" />
+                  Enquiries
+                  {enquiries.filter(e => e.status === 'new').length > 0 && (
+                    <span className="ml-1 bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                      {enquiries.filter(e => e.status === 'new').length}
+                    </span>
+                  )}
+                </div>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="all-contacts" className="space-y-4">
@@ -483,6 +584,222 @@ export const CRMDashboard = () => {
                   );
                 })}
               </div>
+            </TabsContent>
+
+            <TabsContent value="enquiries" className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name or email…"
+                    value={enqSearch}
+                    onChange={(e) => setEnqSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={enqStatus || 'all'} onValueChange={(v) => setEnqStatus(v === 'all' ? '' : v)}>
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="read">Read</SelectItem>
+                    <SelectItem value="replied">Replied</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {enqLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : enquiries.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                  <p>No enquiries yet.</p>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Sender</TableHead>
+                        <TableHead>Property</TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {enquiries.map((enq) => (
+                        <TableRow key={enq.id ?? enq._id} className={enq.status === 'new' ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}>
+                          <TableCell>
+                            <p className="font-medium">{enq.name}</p>
+                            <p className="text-xs text-muted-foreground">{enq.email}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm">{enq.estate?.name ?? '—'}</p>
+                            {enq.unit?.label && <p className="text-xs text-muted-foreground">{enq.unit.label}</p>}
+                          </TableCell>
+                          <TableCell className="max-w-[200px]">
+                            <p className="text-sm text-muted-foreground truncate">{enq.message}</p>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-xs ${
+                              enq.status === 'new' ? 'bg-orange-100 text-orange-800' :
+                              enq.status === 'read' ? 'bg-blue-100 text-blue-800' :
+                              enq.status === 'replied' ? 'bg-green-100 text-green-800' :
+                              'bg-slate-100 text-slate-700'
+                            }`}>
+                              {enq.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                            {enq.createdAt ? new Date(enq.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Select
+                                value={enq.status}
+                                onValueChange={(v) => handleEnqStatusChange(enq.id ?? enq._id, v as EnquiryStatus)}
+                              >
+                                <SelectTrigger className="h-7 text-xs w-28">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="new">New</SelectItem>
+                                  <SelectItem value="read">Read</SelectItem>
+                                  <SelectItem value="replied">Replied</SelectItem>
+                                  <SelectItem value="archived">Archived</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700"
+                                onClick={() => handleEnqDelete(enq.id ?? enq._id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="applications" className="space-y-4">
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, email or phone…"
+                    value={appSearch}
+                    onChange={(e) => setAppSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={appStatus || 'all'} onValueChange={(v) => setAppStatus(v === 'all' ? '' : v)}>
+                  <SelectTrigger className="w-full sm:w-44">
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="under_review">Under Review</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="waitlisted">Waitlisted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Table */}
+              {appsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : applications.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileText className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                  <p>No rental applications yet.</p>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Applicant</TableHead>
+                        <TableHead>Property</TableHead>
+                        <TableHead>Employment</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Applied</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {applications.map((app) => (
+                        <TableRow key={app.id ?? app._id}>
+                          <TableCell>
+                            <p className="font-medium">{app.fullName}</p>
+                            <p className="text-xs text-muted-foreground">{app.email}</p>
+                            <p className="text-xs text-muted-foreground">{app.phone}</p>
+                          </TableCell>
+                          <TableCell>
+                            <p className="text-sm">{app.estate?.name ?? '—'}</p>
+                            {app.unit?.label && <p className="text-xs text-muted-foreground">{app.unit.label}</p>}
+                          </TableCell>
+                          <TableCell className="capitalize text-sm">
+                            {app.employmentStatus?.replace(/_/g, ' ')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-xs ${APP_STATUS_COLORS[app.status] ?? 'bg-slate-100 text-slate-700'}`}>
+                              {app.status?.replace(/_/g, ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                            {app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Select
+                                value={app.status}
+                                onValueChange={(v) => handleStatusChange(app.id ?? app._id, v as RentalApplicationStatus)}
+                              >
+                                <SelectTrigger className="h-7 text-xs w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="under_review">Under Review</SelectItem>
+                                  <SelectItem value="approved">Approved</SelectItem>
+                                  <SelectItem value="rejected">Rejected</SelectItem>
+                                  <SelectItem value="waitlisted">Waitlisted</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 text-red-500 hover:text-red-700"
+                                onClick={() => handleDelete(app.id ?? app._id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

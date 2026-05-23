@@ -1,7 +1,26 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(sed -n '3,15p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/AdditionalInfoRow.tsx)",
+      "Bash(sed -n '11,40p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/TenantDetailHeader.tsx)",
+      "Bash(sed -n '5,15p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/TenancyHistoryCard.tsx)",
+      "Bash(sed -n '219,230p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/FinancialSummaryCards.tsx)",
+      "Bash(sed -n '54,62p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/ConditionReportsCard.tsx)",
+      "Bash(sed -n '3,13p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/AdditionalInfoRow.tsx)",
+      "Bash(sed -n '11,45p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/TenantDetailHeader.tsx)",
+      "Bash(sed -n '19,42p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/TransactionsCard.tsx)",
+      "Bash(sed -n '31,62p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/ConditionReportsCard.tsx)",
+      "Bash(sed -n '64,72p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/VendorDashboard.tsx)",
+      "Bash(sed -n '67,74p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/ManagerDashboard.tsx)",
+      "Bash(sed -n '61,80p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/OwnerDashboard.tsx)",
+      "Bash(sed -n '38,52p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/EstateDetailPage.tsx)",
+      "Bash(sed -n '20,40p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/AddPropertyPage.tsx)",
+      "Bash(sed -n '70,90p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/VendorDashboard.tsx)",
+      "Bash(sed -n '73,93p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/ManagerDashboard.tsx)",
+      "Bash(sed -n '77,100p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/OwnerDashboard.tsx)",
+      "Bash(sed -n '88,105p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/VendorDashboard.tsx)",
+      "Bash(sed -n '92,108p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/ManagerDashboard.tsx)"
     ]
   }
 }

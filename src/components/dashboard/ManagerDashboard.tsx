@@ -61,46 +61,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MANAGER_DEMO_DATA } from "@/data/demoData";
 import { useToast } from "@/components/providers/ToastProvider";
+import { formatCurrencyIntl as formatCurrency, formatDateNg as formatDate, getStatusColor, getPriorityColor } from "@/utils/propertyUtils";
 
 const managerData = MANAGER_DEMO_DATA;
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(amount);
-};
-
-const formatDate = (date: string) => new Date(date).toLocaleDateString("en-NG", { year: "numeric", month: "short", day: "numeric" });
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "paid":
-    case "active":
-    case "completed":
-    case "approved":
-      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-    case "pending":
-    case "in_progress":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-    case "overdue":
-      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-    case "expiring_soon":
-      return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
-    default:
-      return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200";
-  }
-};
-
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case "high":
-      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-    case "medium":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-    case "low":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-    default:
-      return "bg-slate-100 text-slate-800";
-  }
-};
 
 export const ManagerDashboard: React.FC = () => {
   const { user } = useAuth();

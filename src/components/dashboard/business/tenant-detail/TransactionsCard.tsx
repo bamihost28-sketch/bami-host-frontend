@@ -15,28 +15,7 @@ import {
 } from '@/services/estatesApi';
 import { TableSkeleton } from '@/components/ui/skeletons';
 import { PaymentCollectionDialog } from './PaymentCollectionDialog';
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  const day = date.getDate();
-  const month = date.toLocaleString('en-US', { month: 'long' }).toLowerCase();
-  const year = date.getFullYear();
-  return `${day} ${month}, ${year}`;
-};
-
-const formatCurrency = (n: number) =>
-  '₦' + n.toLocaleString('en-NG', { minimumFractionDigits: 0 });
-
-const STATUS_COLORS: Record<string, string> = {
-  completed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  success: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  initiated: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  refunded: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-};
+import { formatDate, formatCurrency, STATUS_COLORS } from '@/utils/propertyUtils';
 
 interface TransactionsCardProps {
   tenantId?: string;

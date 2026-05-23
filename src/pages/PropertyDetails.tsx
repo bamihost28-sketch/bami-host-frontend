@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
     ChevronRight,
@@ -16,15 +17,21 @@ import {
     Compass,
     Home,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    CalendarDays,
+    Tag,
+    BadgeCheck,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PropertyGallery } from "@/components/estate/PropertyGallery";
 import { PropertyAgentSidebar } from "@/components/estate/PropertyAgentSidebar";
+import { RentalApplicationDialog } from "@/components/estate/RentalApplicationDialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useGetPublicListingByIdQuery } from "@/services/estatesApi";
+import { formatDate, formatCurrency } from "@/utils/propertyUtils";
 
 const AMENITY_MAP = {
     wifi: { icon: <Wifi className="h-5 w-5" />, label: "High-speed Wi-Fi" },
@@ -38,11 +45,21 @@ const AMENITY_MAP = {
     laundry: { icon: <Home className="h-5 w-5" />, label: "In-unit Laundry" },
 };
 
+const STATUS_BADGE: Record<string, string> = {
+    vacant: "bg-green-100 text-green-700",
+    occupied: "bg-orange-100 text-orange-700",
+    maintenance: "bg-yellow-100 text-yellow-700",
+};
+
 const PropertyDetails = () => {
     const { id } = useParams<{ id: string }>();
     const { data: response, isLoading, error } = useGetPublicListingByIdQuery(id || "");
     const property = response?.data;
     const { info } = useToast();
+    const [applyOpen, setApplyOpen] = useState(false);
+
+    const estateId = property?.estate?.id ?? property?.estate?._id ?? id ?? '';
+    const unitId = property?.id ?? property?._id ?? '';
 
     const handleShowAll = () => {
         info(`Viewing all ${property?.images?.length || 0} photos of this premium property!`);
@@ -84,17 +101,26 @@ const PropertyDetails = () => {
         );
     }
 
-    // Transform amenities object to array
     const propertyAmenities = property.amenities
         ? Object.entries(property.amenities)
             .filter(([_, value]) => value === true)
-            .map(([key, _]) => AMENITY_MAP[key as keyof typeof AMENITY_MAP])
+            .map(([key]) => AMENITY_MAP[key as keyof typeof AMENITY_MAP])
             .filter(Boolean)
         : [];
 
     const displayImages = property.images && property.images.length > 0
-        ? property.images
+        ? property.images.map((img) => img.url)
         : ["/images/estate/estate_exterior_modern_1768390624272.png"];
+
+    const hasArea = property.area && property.area > 0;
+    const statusKey = (property.status ?? "vacant").toLowerCase();
+
+    const pricingRows = [
+        { label: "Monthly Rent", value: property.monthlyPrice ? formatCurrency(property.monthlyPrice) : null },
+        { label: "Service Charge / mo", value: property.serviceChargeMonthly ? formatCurrency(property.serviceChargeMonthly) : null },
+        { label: "Caution Fee", value: property.cautionFee ? formatCurrency(property.cautionFee) : null },
+        { label: "Legal Fee", value: property.legalFee ? formatCurrency(property.legalFee) : null },
+    ].filter((r) => r.value !== null);
 
     return (
         <div className="min-h-screen bg-white text-slate-900 font-sans">
@@ -106,6 +132,12 @@ const PropertyDetails = () => {
                     <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
                     <ChevronRight className="h-4 w-4" />
                     <Link to="/marketplace/estate" className="hover:text-blue-600 transition-colors">Marketplace</Link>
+                    {property.estate?.name && (
+                        <>
+                            <ChevronRight className="h-4 w-4" />
+                            <span className="text-slate-500">{property.estate.name}</span>
+                        </>
+                    )}
                     <ChevronRight className="h-4 w-4" />
                     <span className="text-slate-900 truncate max-w-[200px]">{property.label}</span>
                 </nav>
@@ -121,26 +153,57 @@ const PropertyDetails = () => {
                         {/* Header Info */}
                         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                             <div className="space-y-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {property.category && (
+                                        <Badge className="bg-blue-50 text-blue-700 border-0 font-bold text-xs px-3 py-1 rounded-full">
+                                            <Tag className="h-3 w-3 mr-1" />
+                                            {property.category}
+                                        </Badge>
+                                    )}
+                                    {property.listingType && (
+                                        <Badge className="bg-slate-100 text-slate-600 border-0 font-bold text-xs px-3 py-1 rounded-full">
+                                            {property.listingType}
+                                        </Badge>
+                                    )}
+                                    {property.status && (
+                                        <Badge className={`border-0 font-bold text-xs px-3 py-1 rounded-full capitalize ${STATUS_BADGE[statusKey] ?? "bg-slate-100 text-slate-600"}`}>
+                                            <BadgeCheck className="h-3 w-3 mr-1" />
+                                            {property.status}
+                                        </Badge>
+                                    )}
+                                </div>
                                 <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
                                     {property.label}
                                 </h1>
-                                <div className="flex items-center gap-2 text-slate-500 font-medium">
-                                    <MapPin className="h-4 w-4 text-blue-600" />
-                                    <span>{property.streetAddress || "Lagos, Nigeria"}</span>
+                                <div className="flex flex-wrap items-center gap-4 text-slate-500 font-medium">
+                                    {property.streetAddress && (
+                                        <span className="flex items-center gap-1.5">
+                                            <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
+                                            {property.streetAddress}
+                                        </span>
+                                    )}
+                                    {property.availableDate && (
+                                        <span className="flex items-center gap-1.5 text-green-600 font-bold text-sm">
+                                            <CalendarDays className="h-4 w-4 shrink-0" />
+                                            Available {formatDate(property.availableDate)}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
-                            <div className="text-left md:text-right">
+                            <div className="text-left md:text-right shrink-0">
                                 <p className="text-3xl font-black text-blue-600">
-                                    {property.monthlyPrice ? `₦${property.monthlyPrice.toLocaleString()}/mo` : "Contact Sales"}
+                                    {property.monthlyPrice ? `${formatCurrency(property.monthlyPrice)}/mo` : "Contact Sales"}
                                 </p>
-                                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">
-                                    {property.listingType || "Available Now"}
-                                </p>
+                                {property.serviceChargeMonthly ? (
+                                    <p className="text-sm font-bold text-slate-400">
+                                        + {formatCurrency(property.serviceChargeMonthly)} service charge
+                                    </p>
+                                ) : null}
                             </div>
                         </div>
 
                         {/* Quick Features */}
-                        <div className="flex flex-wrap items-center gap-4 md:gap-8">
+                        <div className="flex flex-wrap items-center gap-4 md:gap-6">
                             <div className="flex items-center gap-4 bg-slate-700 px-6 py-4 rounded-2xl border border-slate-600">
                                 <div className="p-2.5 bg-slate-800 rounded-xl">
                                     <Bed className="h-5 w-5 text-blue-400" />
@@ -168,7 +231,7 @@ const PropertyDetails = () => {
                                 <div>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Living Area</p>
                                     <p className="text-base font-bold text-slate-100">
-                                        {property.area ? `${property.area.toLocaleString()} sqft` : "N/A"}
+                                        {hasArea ? `${property.area!.toLocaleString()} sqft` : "N/A"}
                                     </p>
                                 </div>
                             </div>
@@ -192,6 +255,35 @@ const PropertyDetails = () => {
 
                         <div className="border-t border-slate-100" />
 
+                        {/* Pricing Breakdown */}
+                        {pricingRows.length > 0 && (
+                            <>
+                                <section className="space-y-6">
+                                    <h3 className="text-2xl font-black text-slate-900">Pricing breakdown</h3>
+                                    <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                                        {pricingRows.map((row, idx) => (
+                                            <div key={idx} className={`flex items-center justify-between px-6 py-4 ${idx % 2 === 0 ? "bg-slate-50" : "bg-white"}`}>
+                                                <span className="text-sm font-bold text-slate-500">{row.label}</span>
+                                                <span className="text-sm font-black text-slate-900">{row.value}</span>
+                                            </div>
+                                        ))}
+                                        <div className="flex items-center justify-between px-6 py-4 bg-blue-600">
+                                            <span className="text-sm font-bold text-blue-100">First Year Total</span>
+                                            <span className="text-base font-black text-white">
+                                                {formatCurrency(
+                                                    (property.monthlyPrice ?? 0) * 12 +
+                                                    (property.serviceChargeMonthly ?? 0) * 12 +
+                                                    (property.cautionFee ?? 0) +
+                                                    (property.legalFee ?? 0)
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </section>
+                                <div className="border-t border-slate-100" />
+                            </>
+                        )}
+
                         {/* Amenities */}
                         <section className="space-y-8">
                             <h3 className="text-2xl font-black text-slate-900">What this place offers</h3>
@@ -199,8 +291,8 @@ const PropertyDetails = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-12">
                                     {propertyAmenities.map((amenity, idx) => (
                                         <div key={idx} className="flex items-center gap-3 text-slate-600 font-bold text-sm">
-                                            <span className="text-blue-600">{amenity.icon}</span>
-                                            {amenity.label}
+                                            <span className="text-blue-600">{amenity!.icon}</span>
+                                            {amenity!.label}
                                         </div>
                                     ))}
                                 </div>
@@ -222,7 +314,6 @@ const PropertyDetails = () => {
                                 />
                                 <div className="absolute inset-0 bg-blue-900/10 pointer-events-none" />
 
-                                {/* Neighborhood Guide Overlay */}
                                 <div className="absolute bottom-6 left-6 right-6">
                                     <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
                                         <div className="flex items-center gap-4">
@@ -231,7 +322,9 @@ const PropertyDetails = () => {
                                             </div>
                                             <div>
                                                 <h5 className="font-black text-slate-900">Neighborhood Guide</h5>
-                                                <p className="text-xs font-bold text-slate-500">Walk score: 92/100 (Walker's Paradise)</p>
+                                                <p className="text-xs font-bold text-slate-500">
+                                                    {property.streetAddress || property.estate?.name || "Lagos, Nigeria"}
+                                                </p>
                                             </div>
                                         </div>
                                         <Button onClick={handleExploreArea} variant="ghost" className="text-blue-600 font-black hover:bg-blue-50">
@@ -245,19 +338,38 @@ const PropertyDetails = () => {
 
                     {/* Sidebar */}
                     <aside className="lg:col-span-1">
-                        <div className="sticky top-24">
-                            <PropertyAgentSidebar agent={{
-                                name: "Jonathan Miller",
-                                image: "https://i.pravatar.cc/150?u=jonathan",
-                                reviews: 42,
-                                rating: 5,
-                            }} />
+                        <div className="sticky top-24 space-y-4">
+                            <Button
+                                onClick={() => setApplyOpen(true)}
+                                className="w-full h-14 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg"
+                            >
+                                Apply Now
+                            </Button>
+
+                            <PropertyAgentSidebar
+                                agent={{
+                                    name: "Jonathan Miller",
+                                    image: "https://i.pravatar.cc/150?u=jonathan",
+                                    reviews: 42,
+                                    rating: 5,
+                                }}
+                                estateId={estateId}
+                                unitId={unitId}
+                            />
                         </div>
                     </aside>
                 </div>
             </main>
 
             <Footer variant="light" />
+
+            <RentalApplicationDialog
+                open={applyOpen}
+                onOpenChange={setApplyOpen}
+                estateId={estateId}
+                unitId={unitId}
+                propertyLabel={property?.label}
+            />
         </div>
     );
 };

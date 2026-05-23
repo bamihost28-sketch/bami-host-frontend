@@ -37,24 +37,7 @@ interface PropertyMediaCardProps {
   history: any[];
 }
 
-const AMENITY_LABELS: Record<string, string> = {
-  wifi: 'Wi-Fi',
-  pool: 'Pool',
-  gym: 'Gym',
-  parking: 'Parking',
-  ac: 'A/C',
-  security: 'Security',
-  petFriendly: 'Pet Friendly',
-  balcony: 'Balcony',
-  laundry: 'Laundry',
-};
-
-const formatDate = (iso?: string | null) => {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-};
+import { AMENITY_LABELS, formatDateShort as formatDate } from '@/utils/propertyUtils';
 
 export const PropertyMediaCard = ({ unitId, history }: PropertyMediaCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);

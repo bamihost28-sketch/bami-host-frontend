@@ -1,16 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  const day = date.getDate();
-  const month = date.toLocaleString('en-US', { month: 'long' }).toLowerCase();
-  const year = date.getFullYear();
-  return `${day} ${month}, ${year}`;
-};
+import { formatDate } from '@/utils/propertyUtils';
 
 interface AdditionalInfoRowProps {
   tenant: any;

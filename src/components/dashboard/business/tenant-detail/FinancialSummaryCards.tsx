@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { formatDate } from '@/utils/propertyUtils';
 
 interface FinancialSummaryCardsProps {
   overview: any;
@@ -216,14 +217,3 @@ export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSum
   );
 };
 
-const formatDate = (value?: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  const day = date.getDate();
-  const month = date.toLocaleString('en-US', { month: 'long' }).toLowerCase();
-  const year = date.getFullYear();
-  return `${day} ${month}, ${year}`;
-};

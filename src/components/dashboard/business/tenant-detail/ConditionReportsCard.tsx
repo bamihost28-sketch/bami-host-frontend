@@ -11,9 +11,8 @@ import {
   useGetUnitConditionReportsQuery,
   useAddUnitConditionReportMutation,
   useDeleteUnitConditionReportMutation,
-  type ConditionReportType,
-  type ConditionRating,
 } from '@/services/estatesApi';
+import { TYPE_LABELS, TYPE_COLORS, CONDITION_COLORS, formatDateShort as formatDate } from '@/utils/propertyUtils';
 import {
   ClipboardList,
   Plus,
@@ -28,34 +27,6 @@ import {
   User,
 } from 'lucide-react';
 
-const TYPE_LABELS: Record<ConditionReportType, string> = {
-  move_in: 'Move-in',
-  move_out: 'Move-out',
-  routine: 'Routine',
-  maintenance: 'Maintenance',
-  pre_listing: 'Pre-listing',
-};
-
-const TYPE_COLORS: Record<ConditionReportType, string> = {
-  move_in: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  move_out: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  routine: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  maintenance: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-  pre_listing: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-};
-
-const CONDITION_COLORS: Record<ConditionRating, string> = {
-  excellent: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-  good: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  fair: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-  poor: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-};
-
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-};
 
 interface ConditionReportsCardProps {
   unitId?: string;
