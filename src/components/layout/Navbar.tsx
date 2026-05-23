@@ -93,11 +93,6 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
               Log in
             </Button>
           </Link>
-          <Link to="/register">
-            <Button className="bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-md shadow-blue-600/30">
-              Create account
-            </Button>
-          </Link>
         </div>
 
         {/* Mobile hamburger */}
@@ -162,11 +157,6 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
                     )}
                   >
                     Log in
-                  </Button>
-                </Link>
-                <Link to="/register" className="w-full">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold">
-                    Create account
                   </Button>
                 </Link>
               </div>

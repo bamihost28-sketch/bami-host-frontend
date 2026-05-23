@@ -21,6 +21,12 @@ import {
     CalendarDays,
     Tag,
     BadgeCheck,
+    Share2,
+    Copy,
+    Check,
+    MessageCircle,
+    Twitter,
+    Facebook,
 } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -29,6 +35,7 @@ import { PropertyAgentSidebar } from "@/components/estate/PropertyAgentSidebar";
 import { RentalApplicationDialog } from "@/components/estate/RentalApplicationDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useGetPublicListingByIdQuery } from "@/services/estatesApi";
 import { formatDate, formatCurrency } from "@/utils/propertyUtils";
@@ -60,6 +67,28 @@ const PropertyDetails = () => {
 
     const estateId = property?.estate?.id ?? property?.estate?._id ?? id ?? '';
     const unitId = property?.id ?? property?._id ?? '';
+
+    const [copied, setCopied] = useState(false);
+    const pageUrl = window.location.href;
+    const shareText = property ? `Check out ${property.label} on BamiHustle` : "Check out this property on BamiHustle";
+
+    const handleCopyLink = async () => {
+        await navigator.clipboard.writeText(pageUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleShareWhatsApp = () => {
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${shareText}\n${pageUrl}`)}`, "_blank");
+    };
+
+    const handleShareTwitter = () => {
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(pageUrl)}`, "_blank");
+    };
+
+    const handleShareFacebook = () => {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`, "_blank");
+    };
 
     const handleShowAll = () => {
         info(`Viewing all ${property?.images?.length || 0} photos of this premium property!`);
@@ -190,15 +219,83 @@ const PropertyDetails = () => {
                                     )}
                                 </div>
                             </div>
-                            <div className="text-left md:text-right shrink-0">
-                                <p className="text-3xl font-black text-blue-600">
-                                    {property.monthlyPrice ? `${formatCurrency(property.monthlyPrice)}/mo` : "Contact Sales"}
-                                </p>
-                                {property.serviceChargeMonthly ? (
-                                    <p className="text-sm font-bold text-slate-400">
-                                        + {formatCurrency(property.serviceChargeMonthly)} service charge
+                            <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
+                                <div className="text-left md:text-right">
+                                    <p className="text-3xl font-black text-blue-600">
+                                        {property.monthlyPrice ? `${formatCurrency(property.monthlyPrice)}/mo` : "Contact Sales"}
                                     </p>
-                                ) : null}
+                                    {property.serviceChargeMonthly ? (
+                                        <p className="text-sm font-bold text-slate-400">
+                                            + {formatCurrency(property.serviceChargeMonthly)} service charge
+                                        </p>
+                                    ) : null}
+                                </div>
+
+                                {/* Share button */}
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-600/30">
+                                            <Share2 className="h-4 w-4" />
+                                            Share
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent align="end" className="w-64 p-3 rounded-2xl shadow-xl border-slate-100 bg-white">
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Share this property</p>
+                                        <div className="space-y-1">
+                                            <button
+                                                onClick={handleCopyLink}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left"
+                                            >
+                                                <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                                                    {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4 text-slate-600" />}
+                                                </span>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900">{copied ? "Copied!" : "Copy link"}</p>
+                                                    <p className="text-[10px] text-slate-400">Share the direct URL</p>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                onClick={handleShareWhatsApp}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 transition-colors text-left"
+                                            >
+                                                <span className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                                                    <MessageCircle className="h-4 w-4 text-green-600" />
+                                                </span>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900">WhatsApp</p>
+                                                    <p className="text-[10px] text-slate-400">Send via WhatsApp</p>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                onClick={handleShareTwitter}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-sky-50 transition-colors text-left"
+                                            >
+                                                <span className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
+                                                    <Twitter className="h-4 w-4 text-sky-500" />
+                                                </span>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900">Twitter / X</p>
+                                                    <p className="text-[10px] text-slate-400">Post on X</p>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                onClick={handleShareFacebook}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-blue-50 transition-colors text-left"
+                                            >
+                                                <span className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                                                    <Facebook className="h-4 w-4 text-blue-600" />
+                                                </span>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900">Facebook</p>
+                                                    <p className="text-[10px] text-slate-400">Share on Facebook</p>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                         </div>
 
