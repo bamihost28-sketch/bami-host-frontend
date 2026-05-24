@@ -6,7 +6,7 @@ export const ManagedServices = () => {
         <section className="py-24 bg-slate-950">
             <div className="container mx-auto px-6 text-center">
                 <span className="text-blue-500 font-black tracking-widest uppercase text-xs mb-4 block">Executive Services</span>
-                <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Big Assets & Managed Services</h2>
+                <h2 className="text-2xl md:text-3xl font-black text-white mb-6">Big Assets & Managed Services</h2>
                 <p className="text-slate-400 max-w-2xl mx-auto mb-16 italic">Personalized portfolio management for the discerning high-net-worth individual and institutional investments.</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

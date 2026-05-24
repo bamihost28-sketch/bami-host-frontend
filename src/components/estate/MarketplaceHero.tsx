@@ -13,7 +13,7 @@ export const MarketplaceHero = () => {
             </div>
 
             <div className="container mx-auto px-6 relative z-10 text-center">
-                <h1 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tighter mb-6">
+                <h1 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tighter mb-6">
                     One Conglomerate.<br />Infinite Possibilities.
                 </h1>
                 <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto leading-relaxed">

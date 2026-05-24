@@ -201,7 +201,7 @@ const PropertyDetails = () => {
                                         </Badge>
                                     )}
                                 </div>
-                                <h1 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
+                                <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
                                     {property.label}
                                 </h1>
                                 <div className="flex flex-wrap items-center gap-4 text-slate-500 font-medium">
@@ -221,7 +221,7 @@ const PropertyDetails = () => {
                             </div>
                             <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
                                 <div className="text-left md:text-right">
-                                    <p className="text-3xl font-black text-blue-600">
+                                    <p className="text-xl font-black text-blue-600">
                                         {property.monthlyPrice ? `${formatCurrency(property.monthlyPrice)}/mo` : "Contact Sales"}
                                     </p>
                                     {property.serviceChargeMonthly ? (
@@ -338,7 +338,7 @@ const PropertyDetails = () => {
 
                         {/* Description */}
                         <section className="space-y-6">
-                            <h3 className="text-2xl font-black text-slate-900">About this property</h3>
+                            <h3 className="text-lg font-black text-slate-900">About this property</h3>
                             <div className="text-slate-500 leading-relaxed font-medium space-y-4">
                                 {property.description ? (
                                     property.description.split('\n\n').map((para, i) => (
@@ -356,7 +356,7 @@ const PropertyDetails = () => {
                         {pricingRows.length > 0 && (
                             <>
                                 <section className="space-y-6">
-                                    <h3 className="text-2xl font-black text-slate-900">Pricing breakdown</h3>
+                                    <h3 className="text-lg font-black text-slate-900">Pricing breakdown</h3>
                                     <div className="rounded-2xl border border-slate-100 overflow-hidden">
                                         {pricingRows.map((row, idx) => (
                                             <div key={idx} className={`flex items-center justify-between px-6 py-4 ${idx % 2 === 0 ? "bg-slate-50" : "bg-white"}`}>
@@ -383,7 +383,7 @@ const PropertyDetails = () => {
 
                         {/* Amenities */}
                         <section className="space-y-8">
-                            <h3 className="text-2xl font-black text-slate-900">What this place offers</h3>
+                            <h3 className="text-lg font-black text-slate-900">What this place offers</h3>
                             {propertyAmenities.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-12">
                                     {propertyAmenities.map((amenity, idx) => (
@@ -402,7 +402,7 @@ const PropertyDetails = () => {
 
                         {/* Location / Map Placeholder */}
                         <section className="space-y-8">
-                            <h3 className="text-2xl font-black text-slate-900">Location</h3>
+                            <h3 className="text-lg font-black text-slate-900">Location</h3>
                             <div className="relative rounded-3xl overflow-hidden h-[400px] border border-slate-100 shadow-sm">
                                 <img
                                     src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=1600&q=80"

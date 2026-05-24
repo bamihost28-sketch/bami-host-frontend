@@ -42,7 +42,7 @@ const EstateList = () => {
     }, [properties, propertyType]);
 
     return (
-        <div className="min-h-screen bg-slate-50/50">
+        <div className="min-h-screen bg-slate-50">
             <Navbar variant="light" />
 
             <main className="container mx-auto px-4 md:px-6 py-8 mt-20">
@@ -52,7 +52,7 @@ const EstateList = () => {
                         <div className="flex items-center gap-2 text-blue-600 font-bold uppercase tracking-[0.2em] text-[10px]">
                             <Sparkles className="w-3 h-3" /> BamiHost Properties
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 italic tracking-tighter">Explore Premier Estates</h1>
+                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 italic tracking-tighter">Explore Premier Estates</h1>
                         <p className="text-slate-500 font-medium">Find your perfect home or investment across our curated collection.</p>
                     </div>
                     <div className="flex items-center gap-2 p-1 bg-white rounded-2xl border border-slate-100 shadow-sm">
@@ -146,23 +146,27 @@ const EstateList = () => {
                         <p className="text-slate-500 font-bold text-xl tracking-tight">Curating your next home...</p>
                     </div>
                 ) : filteredProperties.length > 0 ? (
-                    <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" : "space-y-6"}>
+                    <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
                         {filteredProperties.map((property) => (
-                            <div key={property.id || property._id} className={`group bg-white rounded-[2rem] overflow-hidden border border-slate-100/50 shadow-sm hover:shadow-2xl transition-all duration-500 ${viewMode === "list" ? "flex flex-col md:flex-row h-auto" : ""}`}>
-                                {/* Image Container */}
-                                <div className={`relative overflow-hidden ${viewMode === "list" ? "md:w-2/5 h-64 md:h-auto" : "h-72"}`}>
+                            <div
+                                key={property.id || property._id}
+                                className={`group bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 ${
+                                    viewMode === "list" ? "flex flex-row h-[200px]" : "flex flex-col h-[380px]"
+                                }`}
+                            >
+                                {/* Image */}
+                                <div className={`relative overflow-hidden shrink-0 ${viewMode === "list" ? "w-[260px] h-full" : "w-full h-[190px]"}`}>
                                     <img
                                         src={property.images && property.images.length > 0 ? property.images[0].url : "/images/estate/estate_exterior_modern_1768390624272.png"}
                                         alt={property.label}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="absolute top-6 left-6 flex gap-2 flex-wrap">
-                                        <Badge className="bg-blue-600 text-white font-black px-4 py-2 border-none rounded-xl shadow-lg">
+                                    <div className="absolute top-3 left-3 flex gap-1.5">
+                                        <Badge className="bg-blue-600 text-white font-bold px-2.5 py-1 border-none rounded-lg text-[10px] shadow">
                                             {property.category || "Property"}
                                         </Badge>
                                         {property.listingType && (
-                                            <Badge className="bg-white/90 text-slate-700 font-black px-3 py-2 border-none rounded-xl shadow-sm backdrop-blur">
+                                            <Badge className="bg-white/90 text-slate-700 font-bold px-2.5 py-1 border-none rounded-lg text-[10px] backdrop-blur">
                                                 {property.listingType}
                                             </Badge>
                                         )}
@@ -170,60 +174,57 @@ const EstateList = () => {
                                 </div>
 
                                 {/* Content */}
-                                <div className={`p-8 flex flex-col justify-between ${viewMode === "list" ? "md:w-3/5" : ""}`}>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 text-blue-600">
-                                            <MapPin className="w-4 h-4 shrink-0" />
-                                            <span className="text-xs font-bold uppercase tracking-wider truncate max-w-[200px]">
+                                <div className="flex flex-col justify-between p-4 flex-1 min-w-0 overflow-hidden">
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-1.5 text-blue-600">
+                                            <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider truncate">
                                                 {property.streetAddress || property.estate?.name || "Lagos, Nigeria"}
                                             </span>
                                         </div>
-                                        <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors truncate">
+                                        <h3 className="text-sm font-black text-slate-900 leading-snug group-hover:text-blue-600 transition-colors truncate">
                                             {property.label}
                                         </h3>
                                         {property.estate?.name && (
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider -mt-2">{property.estate.name}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{property.estate.name}</p>
                                         )}
-
-                                        {/* Stats */}
-                                        <div className="flex items-center gap-6 py-2">
+                                        <div className="flex items-center gap-4 pt-0.5">
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase">Beds</span>
-                                                <span className="text-sm font-bold text-slate-700">{property.bedrooms || 0}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase">Beds</span>
+                                                <span className="text-xs font-bold text-slate-700">{property.bedrooms || 0}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase">Baths</span>
-                                                <span className="text-sm font-bold text-slate-700">{property.bathrooms || 0}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase">Baths</span>
+                                                <span className="text-xs font-bold text-slate-700">{property.bathrooms || 0}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase">Size</span>
-                                                <span className="text-sm font-bold text-slate-700">{property.area ? `${property.area.toLocaleString()} sqft` : "N/A"}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase">Size</span>
+                                                <span className="text-xs font-bold text-slate-700">{property.area ? `${property.area.toLocaleString()} sqft` : "N/A"}</span>
                                             </div>
                                         </div>
-
                                         {property.availableDate && (
-                                            <div className="flex items-center gap-1.5 text-green-600 text-xs font-bold">
-                                                <CalendarDays className="w-3.5 h-3.5" />
+                                            <div className="flex items-center gap-1 text-green-600 text-[10px] font-bold">
+                                                <CalendarDays className="w-3 h-3" />
                                                 Available {formatDate(property.availableDate)}
                                             </div>
                                         )}
                                     </div>
 
-                                    <div className="mt-8 space-y-6">
-                                        <Separator className="bg-slate-50" />
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monthly</span>
-                                                <span className="text-2xl font-black text-blue-600 tracking-tighter italic">
+                                    <div>
+                                        <Separator className="mb-3" />
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Monthly</span>
+                                                <span className="text-sm font-black text-blue-600">
                                                     {property.monthlyPrice ? formatCurrency(property.monthlyPrice) : "Contact Sales"}
                                                 </span>
-                                                {property.serviceChargeMonthly ? (
-                                                    <span className="text-[10px] text-slate-400 font-bold">+ {formatCurrency(property.serviceChargeMonthly)} service</span>
-                                                ) : null}
+                                                {property.serviceChargeMonthly && (
+                                                    <span className="text-[9px] text-slate-400 font-bold block">+ {formatCurrency(property.serviceChargeMonthly)} service</span>
+                                                )}
                                             </div>
                                             <Link to={`/marketplace/estate/${property.id || property._id}`}>
-                                                <Button className="bg-slate-900 hover:bg-slate-800 text-white font-black px-6 py-6 rounded-2xl gap-2 transition-all transform active:scale-95 shadow-xl shadow-slate-200">
-                                                    Details <ArrowRight className="w-4 h-4" />
+                                                <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 h-9 rounded-xl gap-1.5 text-xs">
+                                                    Details <ArrowRight className="w-3.5 h-3.5" />
                                                 </Button>
                                             </Link>
                                         </div>
@@ -238,7 +239,7 @@ const EstateList = () => {
                             <Search className="w-10 h-10 text-slate-300" />
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-2xl font-black text-slate-900">No properties found</h3>
+                            <h3 className="text-xl font-black text-slate-900">No properties found</h3>
                             <p className="text-slate-500 font-medium">Try adjusting your filters or search query to find more results.</p>
                         </div>
                         <Button

@@ -10,7 +10,7 @@ export const EnergyHubs = () => {
                     <div className="space-y-8">
                         <div className="space-y-4">
                             <span className="text-blue-600 font-bold tracking-widest uppercase text-xs">Energy Hubs</span>
-                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight">Filling Stations &<br />Energy Hubs</h2>
+                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">Filling Stations &<br />Energy Hubs</h2>
                             <p className="text-slate-600 text-lg leading-relaxed">Powering the continent with a network of high-efficiency fueling centers and EV charging infrastructure built for performance.</p>
                         </div>
 

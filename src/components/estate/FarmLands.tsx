@@ -13,7 +13,7 @@ export const FarmLands = () => {
                 <div className="space-y-8">
                     <div>
                         <span className="text-blue-400 font-black tracking-widest uppercase text-xs">Sustainability</span>
-                        <h2 className="text-3xl md:text-5xl font-black text-white mt-4 mb-6 leading-tight">Farm Lands &<br />Land Rentals</h2>
+                        <h2 className="text-2xl md:text-3xl font-black text-white mt-4 mb-6 leading-tight">Farm Lands &<br />Land Rentals</h2>
                         <p className="text-slate-300 text-lg leading-relaxed">Pioneering agricultural advancements with premium land assets and infrastructure for large-scale production.</p>
                     </div>
 

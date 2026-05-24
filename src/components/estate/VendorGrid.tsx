@@ -11,7 +11,7 @@ export const VendorGrid = () => {
         <section className="py-24 bg-white">
             <div className="container mx-auto px-6 text-center">
                 <span className="text-blue-600 font-bold tracking-widest uppercase text-xs mb-4 block">Our Ecosystem</span>
-                <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6">Vendor Marketplace & Services</h2>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6">Vendor Marketplace & Services</h2>
                 <p className="text-slate-500 max-w-2xl mx-auto mb-16">Connect with pre-vetted industry experts and certified service providers handpicked for their dedication to excellence.</p>
 
                 {isLoading ? (

@@ -8,7 +8,7 @@ export const MachinerySection = () => {
             <div className="container mx-auto px-6">
                 <div className="text-center mb-16 space-y-4">
                     <span className="text-blue-600 font-bold tracking-widest uppercase text-xs">Heavy Assets</span>
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-900">Equipment Yards & Heavy Machinery</h2>
+                    <h2 className="text-2xl md:text-3xl font-black text-slate-900">Equipment Yards & Heavy Machinery</h2>
                     <p className="text-slate-500 max-w-2xl mx-auto">First-class terminal services and industrial equipment leasing for infrastructure development projects.</p>
                 </div>
 
@@ -22,7 +22,7 @@ export const MachinerySection = () => {
                             <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
                             <div className="absolute inset-0 flex flex-col justify-end p-8 transform translate-y-2 group-hover:translate-y-0 transition-transform">
-                                <h4 className="text-2xl font-black text-white mb-2">{item.title}</h4>
+                                <h4 className="text-lg font-black text-white mb-2">{item.title}</h4>
                                 <p className="text-slate-300 text-sm mb-6 opacity-0 group-hover:opacity-100 transition-opacity">Premium equipment for high-scale construction needs.</p>
                                 <div className="flex items-center gap-2 text-white text-xs font-black uppercase tracking-widest hover:text-blue-400 transition-colors">
                                     Check Inventory <ArrowRight className="w-4 h-4" />
