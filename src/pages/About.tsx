@@ -35,7 +35,7 @@ const About = () => {
       {/* Hero Section */}
       <section className="relative container mx-auto px-6 pt-20 pb-32">
         <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-6">
             About{" "}
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
               The Scalable Company
@@ -56,7 +56,7 @@ const About = () => {
           <Card className="bg-white/5 backdrop-blur-sm border-white/10">
             <CardContent className="p-12">
               <div className="mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Story: From Success to Breaking Point (and Back)</h2>
+                <h2 className="text-xl md:text-2xl font-bold mb-6">Our Story: From Success to Breaking Point (and Back)</h2>
                 <div className="space-y-6 text-slate-300 leading-relaxed">
                   <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-6 border border-green-400/30">
                     <h3 className="text-xl font-bold text-white mb-3">The Highs</h3>
@@ -133,7 +133,7 @@ const About = () => {
       {/* Core Values */}
       <section className="relative container mx-auto px-6 pb-24">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Core Values</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Our Core Values</h2>
           <p className="text-xl text-slate-300">
             The principles that guide everything we build and every decision we make
           </p>
@@ -193,7 +193,7 @@ const About = () => {
       {/* What Makes Us Different */}
       <section className="relative container mx-auto px-6 pb-24">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">What Makes Us Different</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">What Makes Us Different</h2>
           <p className="text-xl text-slate-300">
             We're not just another productivity tool—we're a complete system for entrepreneurial success
           </p>
@@ -246,25 +246,25 @@ const About = () => {
         <div className="max-w-5xl mx-auto">
           <Card className="bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-green-600/10 backdrop-blur-sm border-white/10">
             <CardContent className="p-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">By the Numbers</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-center mb-12">By the Numbers</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-black text-white mb-2">91%</div>
+                  <div className="text-2xl md:text-3xl font-black text-white mb-2">91%</div>
                   <div className="text-slate-400 text-sm">Business Failure Rate</div>
                   <div className="text-slate-500 text-xs mt-1">We're changing this</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-black text-blue-400 mb-2">7</div>
+                  <div className="text-2xl md:text-3xl font-black text-blue-400 mb-2">7</div>
                   <div className="text-slate-400 text-sm">Growth Levels</div>
                   <div className="text-slate-500 text-xs mt-1">From start to exit</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-black text-purple-400 mb-2">3</div>
+                  <div className="text-2xl md:text-3xl font-black text-purple-400 mb-2">3</div>
                   <div className="text-slate-400 text-sm">Core Frameworks</div>
                   <div className="text-slate-500 text-xs mt-1">Proven strategies</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-black text-green-400 mb-2">∞</div>
+                  <div className="text-2xl md:text-3xl font-black text-green-400 mb-2">∞</div>
                   <div className="text-slate-400 text-sm">Your Potential</div>
                   <div className="text-slate-500 text-xs mt-1">No limits</div>
                 </div>

@@ -151,15 +151,16 @@ const EstateList = () => {
                             <div
                                 key={property.id || property._id}
                                 className={`group bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 ${
-                                    viewMode === "list" ? "flex flex-row h-[200px]" : "flex flex-col h-[380px]"
+                                    viewMode === "list" ? "flex flex-row h-[210px]" : "flex flex-col h-[420px]"
                                 }`}
                             >
                                 {/* Image */}
-                                <div className={`relative overflow-hidden shrink-0 ${viewMode === "list" ? "w-[260px] h-full" : "w-full h-[190px]"}`}>
+                                <div className={`relative overflow-hidden shrink-0 ${viewMode === "list" ? "w-[260px] h-full" : "w-full h-[200px]"}`}>
                                     <img
                                         src={property.images && property.images.length > 0 ? property.images[0].url : "/images/estate/estate_exterior_modern_1768390624272.png"}
                                         alt={property.label}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        onError={(e) => { (e.target as HTMLImageElement).src = "/images/estate/estate_exterior_modern_1768390624272.png"; }}
                                     />
                                     <div className="absolute top-3 left-3 flex gap-1.5">
                                         <Badge className="bg-blue-600 text-white font-bold px-2.5 py-1 border-none rounded-lg text-[10px] shadow">
@@ -174,37 +175,37 @@ const EstateList = () => {
                                 </div>
 
                                 {/* Content */}
-                                <div className="flex flex-col justify-between p-4 flex-1 min-w-0 overflow-hidden">
-                                    <div className="space-y-1.5">
+                                <div className="flex flex-col justify-between p-5 flex-1 min-w-0 overflow-hidden">
+                                    <div className="space-y-2">
                                         <div className="flex items-center gap-1.5 text-blue-600">
                                             <MapPin className="w-3.5 h-3.5 shrink-0" />
-                                            <span className="text-[10px] font-bold uppercase tracking-wider truncate">
+                                            <span className="text-xs font-bold uppercase tracking-wider truncate">
                                                 {property.streetAddress || property.estate?.name || "Lagos, Nigeria"}
                                             </span>
                                         </div>
-                                        <h3 className="text-sm font-black text-slate-900 leading-snug group-hover:text-blue-600 transition-colors truncate">
+                                        <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-blue-600 transition-colors truncate">
                                             {property.label}
                                         </h3>
                                         {property.estate?.name && (
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{property.estate.name}</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">{property.estate.name}</p>
                                         )}
-                                        <div className="flex items-center gap-4 pt-0.5">
+                                        <div className="flex items-center gap-5">
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase">Beds</span>
-                                                <span className="text-xs font-bold text-slate-700">{property.bedrooms || 0}</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase">Beds</span>
+                                                <span className="text-sm font-bold text-slate-700">{property.bedrooms || 0}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase">Baths</span>
-                                                <span className="text-xs font-bold text-slate-700">{property.bathrooms || 0}</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase">Baths</span>
+                                                <span className="text-sm font-bold text-slate-700">{property.bathrooms || 0}</span>
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase">Size</span>
-                                                <span className="text-xs font-bold text-slate-700">{property.area ? `${property.area.toLocaleString()} sqft` : "N/A"}</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase">Size</span>
+                                                <span className="text-sm font-bold text-slate-700">{property.area ? `${property.area.toLocaleString()} sqft` : "N/A"}</span>
                                             </div>
                                         </div>
                                         {property.availableDate && (
-                                            <div className="flex items-center gap-1 text-green-600 text-[10px] font-bold">
-                                                <CalendarDays className="w-3 h-3" />
+                                            <div className="flex items-center gap-1 text-green-600 text-xs font-bold">
+                                                <CalendarDays className="w-3.5 h-3.5" />
                                                 Available {formatDate(property.availableDate)}
                                             </div>
                                         )}
@@ -214,16 +215,16 @@ const EstateList = () => {
                                         <Separator className="mb-3" />
                                         <div className="flex items-center justify-between gap-2">
                                             <div>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Monthly</span>
-                                                <span className="text-sm font-black text-blue-600">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Monthly</span>
+                                                <span className="text-base font-black text-blue-600">
                                                     {property.monthlyPrice ? formatCurrency(property.monthlyPrice) : "Contact Sales"}
                                                 </span>
                                                 {property.serviceChargeMonthly && (
-                                                    <span className="text-[9px] text-slate-400 font-bold block">+ {formatCurrency(property.serviceChargeMonthly)} service</span>
+                                                    <span className="text-[10px] text-slate-400 font-bold block">+ {formatCurrency(property.serviceChargeMonthly)} service</span>
                                                 )}
                                             </div>
                                             <Link to={`/marketplace/estate/${property.id || property._id}`}>
-                                                <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 h-9 rounded-xl gap-1.5 text-xs">
+                                                <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 h-9 rounded-xl gap-1.5 text-sm">
                                                     Details <ArrowRight className="w-3.5 h-3.5" />
                                                 </Button>
                                             </Link>

@@ -37,12 +37,13 @@ export const EstateProperties = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {properties.map((property) => (
-                            <div key={property.id || property._id} className="group flex flex-col h-[380px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300">
-                                <div className="relative h-[190px] shrink-0 overflow-hidden">
+                            <div key={property.id || property._id} className="group flex flex-col h-[420px] bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                                <div className="relative h-[200px] shrink-0 overflow-hidden">
                                     <img
                                         src={property.images && property.images.length > 0 ? property.images[0].url : "/images/estate/estate_exterior_modern_1768390624272.png"}
                                         alt={property.label}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        onError={(e) => { (e.target as HTMLImageElement).src = "/images/estate/estate_exterior_modern_1768390624272.png"; }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
                                     <div className="absolute top-3 left-3 flex gap-1.5">

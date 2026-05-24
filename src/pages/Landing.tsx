@@ -213,7 +213,7 @@ const Landing = () => {
             </div>
 
             <div key={`content-${currentSlide}`} className="space-y-6">
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight animate-in fade-in slide-in-from-left-8 duration-700 delay-100">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black leading-[1.05] tracking-tight animate-in fade-in slide-in-from-left-8 duration-700 delay-100">
                 {heroSlides[currentSlide].title.split("SCALING").map((part, i, arr) => (
                   <span key={i}>
                     {part}
@@ -303,7 +303,7 @@ const Landing = () => {
               <Zap className="w-3.5 h-3.5" />
               Estate Renting
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold leading-snug">
+            <h2 className="text-xl md:text-2xl font-bold leading-snug">
               Find, manage, and rent estates{" "}
               <span className="text-fuchsia-400">seamlessly</span>
             </h2>
@@ -375,7 +375,7 @@ const Landing = () => {
               <span className="inline-block text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">
                 The Data
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-300 via-blue-200 to-blue-300 bg-clip-text text-transparent mb-4">
+              <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-300 via-blue-200 to-blue-300 bg-clip-text text-transparent mb-4">
                 The Truth About Business Failure
               </h2>
               <p className="text-xl text-slate-300 max-w-2xl mx-auto">
@@ -440,7 +440,7 @@ const Landing = () => {
                     <p className={cn("text-xs font-bold uppercase tracking-widest", stat.labelColor)}>
                       {stat.label}
                     </p>
-                    <div className={cn("text-6xl md:text-7xl font-black bg-gradient-to-br bg-clip-text text-transparent", stat.textGrad)}>
+                    <div className={cn("text-3xl md:text-4xl font-black bg-gradient-to-br bg-clip-text text-transparent", stat.textGrad)}>
                       {stat.value}
                     </div>
                     <p className={cn("text-sm", stat.subColor)}>{stat.sub}</p>
@@ -518,11 +518,11 @@ const Landing = () => {
             <div className="inline-block bg-gradient-to-r from-green-500 to-emerald-500 text-black font-bold text-xs px-4 py-2 rounded-full tracking-widest uppercase mb-6">
               Our Mission
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-3 leading-tight">
+            <h2 className="text-xl md:text-2xl font-bold mb-3 leading-tight">
               Help entrepreneurs{" "}
               <span className="text-green-400">scale themselves</span>
             </h2>
-            <h3 className="text-3xl md:text-5xl font-bold mb-8 leading-tight">
+            <h3 className="text-xl md:text-2xl font-bold mb-8 leading-tight">
               so they can{" "}
               <span className="text-green-400">scale their companies</span>
             </h3>
@@ -568,7 +568,7 @@ const Landing = () => {
               <span className="inline-block text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">
                 The Process
               </span>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Your Path to Level 7</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-4">Your Path to Level 7</h2>
               <p className="text-lg text-slate-400 max-w-2xl mx-auto">
                 Follow our proven 3-step system to build a systematic approach that scales. No more guesswork.
               </p>
@@ -628,7 +628,7 @@ const Landing = () => {
                   { value: "L7", label: "Business Maturity", sub: 'Your "number" + exit readiness', color: "text-purple-400" },
                 ].map((stat) => (
                   <div key={stat.label} className="text-center pt-6 md:pt-0 first:pt-0">
-                    <div className={cn("text-4xl md:text-5xl font-black mb-2", stat.color)}>{stat.value}</div>
+                    <div className={cn("text-2xl md:text-3xl font-black mb-2", stat.color)}>{stat.value}</div>
                     <div className="text-sm font-semibold text-white mb-1">{stat.label}</div>
                     <div className="text-xs text-slate-400">{stat.sub}</div>
                   </div>
@@ -659,7 +659,7 @@ const Landing = () => {
             <span className="inline-block text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">
               Social Proof
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">What Entrepreneurs Are Saying</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-3">What Entrepreneurs Are Saying</h2>
             <p className="text-lg text-slate-400">Join hundreds of entrepreneurs who've transformed their business approach</p>
           </div>
 
@@ -717,7 +717,7 @@ const Landing = () => {
             <span className="inline-block text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">
               Self Discovery
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Type of Entrepreneur Are You?</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-4">What Type of Entrepreneur Are You?</h2>
             <p className="text-lg text-slate-400 mb-8 max-w-2xl mx-auto">
               Discover your entrepreneurial journey and get a personalized roadmap to scale systematically.
             </p>
@@ -741,7 +741,7 @@ const Landing = () => {
             <span className="inline-block text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">
               FAQ
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3">Frequently Asked Questions</h2>
+            <h2 className="text-xl md:text-2xl font-bold mb-3">Frequently Asked Questions</h2>
             <p className="text-lg text-slate-400">Everything you need to know about getting started</p>
           </div>
 
@@ -787,7 +787,7 @@ const Landing = () => {
               <Rocket className="h-4 w-4 text-blue-300" />
               Ready to scale?
             </div>
-            <h3 className="text-3xl md:text-5xl font-black mb-4 leading-tight">
+            <h3 className="text-2xl md:text-3xl font-black mb-4 leading-tight">
               Ready to Break Through{" "}
               <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
                 the Flatline?

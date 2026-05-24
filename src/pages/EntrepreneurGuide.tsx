@@ -34,7 +34,7 @@ const EntrepreneurGuide = () => {
       {/* Hero */}
       <section className="container mx-auto px-6 py-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-4">
+          <h1 className="text-2xl md:text-3xl font-extrabold leading-tight tracking-tight mb-4">
             The <span className="text-blue-400">Accidental Entrepreneur</span> Guide
           </h1>
           <p className="text-lg md:text-xl text-slate-200/80 max-w-3xl mx-auto">
@@ -176,7 +176,7 @@ const EntrepreneurGuide = () => {
               <h3 className="text-xl font-bold mb-6 text-center">The Silent Struggle</h3>
               
               <div className="text-center mb-6">
-                <div className="text-6xl md:text-7xl font-black text-red-400 mb-2">91%</div>
+                <div className="text-3xl md:text-4xl font-black text-red-400 mb-2">91%</div>
                 <div className="text-sm text-slate-400">Eventually fail because they can't break through the scaling flatline</div>
               </div>
               
@@ -205,7 +205,7 @@ const EntrepreneurGuide = () => {
           <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-400/30 rounded-xl p-8 mb-8">
             <div className="text-center">
               <div className="text-sm text-slate-300 mb-2">THE REALITY: Most entrepreneurs are...</div>
-              <div className="text-4xl md:text-5xl font-black text-green-400 mb-4">STUCK IN THE FLATLINE</div>
+              <div className="text-2xl md:text-3xl font-black text-green-400 mb-4">STUCK IN THE FLATLINE</div>
               <div className="flex items-center justify-center gap-2 text-sm text-slate-300">
                 <span>👉</span>
                 <span>But there's a systematic way to break through and scale without burning out.</span>
@@ -294,7 +294,7 @@ const EntrepreneurGuide = () => {
             </h3>
             
             <div className="relative">
-              <div className="text-6xl md:text-8xl font-black text-slate-700 opacity-30 absolute -top-4 -left-2">
+              <div className="text-4xl md:text-5xl font-black text-slate-700 opacity-30 absolute -top-4 -left-2">
                 ""
               </div>
               

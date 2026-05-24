@@ -17,7 +17,7 @@ const Privacy = () => {
       {/* Hero Section */}
       <section className="relative container mx-auto px-6 pt-20 pb-16">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-6">
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
               Privacy Policy
             </span>

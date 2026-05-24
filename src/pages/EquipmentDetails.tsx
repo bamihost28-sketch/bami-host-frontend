@@ -127,7 +127,7 @@ const EquipmentDetails = () => {
                                 <div className="space-y-2">
                                     <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Rental Rate</div>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-4xl font-black text-slate-900 italic">₦{EQUIPMENT_DATA.dailyRate.toLocaleString()}</span>
+                                        <span className="text-2xl font-black text-slate-900 italic">₦{EQUIPMENT_DATA.dailyRate.toLocaleString()}</span>
                                         <span className="text-slate-400 font-bold text-sm">/ Day</span>
                                     </div>
                                 </div>

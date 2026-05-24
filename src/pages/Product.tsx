@@ -92,7 +92,7 @@ const Product = () => {
       {/* Hero */}
       <section className="container mx-auto px-6 py-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-4">
+          <h1 className="text-2xl md:text-3xl font-extrabold leading-tight tracking-tight mb-4">
             The <span className="text-blue-400">7 Levels of Scale</span> Platform
           </h1>
           <p className="text-lg md:text-xl text-slate-200/80 max-w-3xl mx-auto">
@@ -171,17 +171,17 @@ const Product = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="text-center">
-                  <div className="text-4xl font-black text-green-400 mb-2">80%</div>
+                  <div className="text-2xl font-black text-green-400 mb-2">80%</div>
                   <div className="text-sm text-slate-300">Survive Year 1</div>
                   <div className="text-xs text-green-400">✓ Starting is achievable</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-black text-yellow-400 mb-2">50%</div>
+                  <div className="text-2xl font-black text-yellow-400 mb-2">50%</div>
                   <div className="text-sm text-slate-300">Make it to Year 5</div>
                   <div className="text-xs text-yellow-400">⚠ Scaling is harder</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-4xl font-black text-red-400 mb-2">9%</div>
+                  <div className="text-2xl font-black text-red-400 mb-2">9%</div>
                   <div className="text-sm text-slate-300">Achieve Long-term Success</div>
                   <div className="text-xs text-red-400">💔 Most get stuck in the flatline</div>
                 </div>
@@ -311,7 +311,7 @@ const Product = () => {
         <div className="grid md:grid-cols-3 gap-6">
           {steps.map((s) => (
             <div key={s.step} className="rounded-xl p-6 bg-white/5 border border-white/10">
-              <div className="text-5xl font-black text-white/10">{s.step}</div>
+              <div className="text-3xl font-black text-white/10">{s.step}</div>
               <div className="mt-2 text-lg font-semibold">{s.title}</div>
               <div className="mt-1 text-slate-300/80">{s.desc}</div>
             </div>

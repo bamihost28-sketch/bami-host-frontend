@@ -18,7 +18,7 @@ const Projects = () => {
       <section className="container mx-auto px-6 pt-6 pb-10 md:pb-16">
         <div className="flex items-end justify-between gap-6">
           <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight">Scale Without Burning Out</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold leading-tight tracking-tight">Scale Without Burning Out</h1>
             <p className="mt-3 text-slate-200/85 text-lg max-w-2xl">See how entrepreneurs use our platform to break through the flatline and build Level 7 businesses systematically.</p>
           </div>
           <a href={GOOGLE_FORM_URL} target="_blank" rel="noopener noreferrer" className="hidden md:block">
