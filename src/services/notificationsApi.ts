@@ -13,7 +13,14 @@ export interface Notification {
 
 interface NotificationsResponse {
   success: boolean;
+  count: number;
+  unreadCount: number;
   data: Notification[];
+}
+
+interface NotificationCountResponse {
+  success: boolean;
+  unreadCount: number;
 }
 
 export const notificationsApi = createApi({
@@ -33,6 +40,10 @@ export const notificationsApi = createApi({
       query: () => '/api/notifications',
       providesTags: ['Notifications'],
     }),
+    getNotificationCount: builder.query<NotificationCountResponse, void>({
+      query: () => '/api/notifications/count',
+      providesTags: ['Notifications'],
+    }),
     markAllRead: builder.mutation<void, void>({
       query: () => ({ url: '/api/notifications/read-all', method: 'PUT' }),
       invalidatesTags: ['Notifications'],
@@ -50,6 +61,7 @@ export const notificationsApi = createApi({
 
 export const {
   useGetNotificationsQuery,
+  useGetNotificationCountQuery,
   useMarkAllReadMutation,
   useMarkReadMutation,
   useDeleteNotificationMutation,

@@ -1,6 +1,7 @@
 import { Bell, Settings, User, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useGetNotificationCountQuery } from "@/services/notificationsApi";
 
 interface DashboardHeaderProps {
   onMenuClick?: () => void;
@@ -9,6 +10,8 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ onMenuClick, sidebarOpen }: DashboardHeaderProps) => {
   const { user, logout } = useAuth();
+  const { data: countData } = useGetNotificationCountQuery(undefined, { pollingInterval: 60000 });
+  const unreadCount = countData?.unreadCount ?? 0;
   return (
     <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 md:ml-64 transition-all duration-300 print:hidden">
       <div className="flex items-center justify-between h-full px-4 md:px-6">
@@ -40,8 +43,13 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen }: DashboardHeaderPro
         
         <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
           {/* Notifications - hidden on very small screens */}
-          <Button variant="ghost" size="sm" className="hidden sm:flex">
+          <Button variant="ghost" size="sm" className="hidden sm:flex relative">
             <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </Button>
           
           <Button variant="ghost" size="sm" className="hidden sm:flex">

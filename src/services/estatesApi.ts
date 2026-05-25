@@ -827,6 +827,10 @@ export const estatesApi = createApi({
         return [{ type: 'Tenant' as const, id: tenantId }];
       },
     }),
+    getMyTenant: builder.query<{ success: boolean; data: Tenant & { unpaidBillingCount: number } }, void>({
+      query: () => '/api/tenants/me',
+      providesTags: [{ type: 'Tenant', id: 'ME' }],
+    }),
     getTenantBilling: builder.query<TenantBillingResponse, string>({
       query: (tenantId) => `/api/tenants/${tenantId}/billing`,
       providesTags: (result, error, tenantId) => [{ type: 'Tenant' as const, id: tenantId }],
@@ -1243,6 +1247,7 @@ export const {
   useGetEstateOverviewQuery,
   useGetAllEstatesOverviewQuery,
   useGetDashboardOverviewQuery,
+  useGetMyTenantQuery,
   useGetMyBillingQuery,
   useInitiateRentPaymentMutation,
   useInitiateServiceChargePaymentMutation,
