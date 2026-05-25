@@ -229,33 +229,57 @@ export const EstateDetailPage = () => {
                   <div className="text-xs text-muted-foreground">{overviewData?.data?.billing?.last30d?.transactions ?? 0} transactions</div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Projections</CardTitle>
-                  <CardDescription>Estimated revenue</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-bold">
-                    {(overviewData.data as any).projections?.currency} {(overviewData.data as any).projections?.monthly?.toLocaleString() || '0'}
+              <Card className="border-blue-200 bg-blue-50/40">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-1">
+                    <CardTitle className="text-sm">Projections</CardTitle>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">
+                      Estimate
+                    </span>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Monthly | Yearly: {(overviewData.data as any).projections?.yearly?.toLocaleString() || '0'}
+                  <CardDescription className="text-[11px]">Expected revenue based on active tenants — not yet collected</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  <div className="text-xl font-bold text-blue-700">
+                    NGN {(overviewData.data as any).projections?.monthly?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">
+                    per month
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">
+                    Yearly: <span className="font-semibold text-foreground">NGN {(overviewData.data as any).projections?.yearly?.toLocaleString() || '0'}</span>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Wallets</CardTitle>
-                  <CardDescription>Available balances</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-bold">
-                    {(overviewData.data as any).projections?.currency} {(overviewData.data as any).wallets?.totalAvailable?.toLocaleString() || '0'}
+              <Card className="border-green-200 bg-green-50/40">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between gap-1">
+                    <CardTitle className="text-sm">Wallet Balance</CardTitle>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                      Received
+                    </span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground flex flex-wrap gap-x-2">
-                    <span>Mkt: {(overviewData.data as any).wallets?.marketing?.toLocaleString() || '0'}</span>
-                    <span>Ops: {(overviewData.data as any).wallets?.operations?.toLocaleString() || '0'}</span>
-                    <span>Own: {(overviewData.data as any).wallets?.owner?.toLocaleString() || '0'}</span>
+                  <CardDescription className="text-[11px]">
+                    Real money collected from tenant payments — split across your 50/30/20 buckets
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="text-xl font-bold text-green-700">
+                    NGN {(overviewData.data as any).wallets?.totalAvailable?.toLocaleString() || '0'}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-muted-foreground">Marketing (50%)</span>
+                      <span className="font-semibold">{(overviewData.data as any).wallets?.marketing?.toLocaleString() || '0'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-muted-foreground">Operations (30%)</span>
+                      <span className="font-semibold">{(overviewData.data as any).wallets?.operations?.toLocaleString() || '0'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-muted-foreground">Owner/Savings (20%)</span>
+                      <span className="font-semibold">{(overviewData.data as any).wallets?.owner?.toLocaleString() || '0'}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

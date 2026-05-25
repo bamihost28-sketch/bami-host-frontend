@@ -25,7 +25,15 @@
       "Bash(sed -i '' 's/text-4xl md:text-5xl font-black text-green-400/text-2xl md:text-3xl font-black text-green-400/g' /Users/temple/Documents/Bami/BamiHustle-frontend/src/pages/EntrepreneurGuide.tsx)",
       "Bash(sed -i '' 's/text-6xl md:text-8xl font-black text-slate-700/text-4xl md:text-5xl font-black text-slate-700/g' /Users/temple/Documents/Bami/BamiHustle-frontend/src/pages/EntrepreneurGuide.tsx)",
       "Bash(sed -i '' 's/text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-4/text-2xl md:text-3xl font-extrabold leading-tight tracking-tight mb-4/g' /Users/temple/Documents/Bami/BamiHustle-frontend/src/pages/Product.tsx)",
-      "Bash(sed -i '' 's/text-4xl font-black text-green-400 mb-2/text-2xl font-black text-green-400 mb-2/g; s/text-4xl font-black text-yellow-400 mb-2/text-2xl font-black text-yellow-400 mb-2/g; s/text-4xl font-black text-red-400 mb-2/text-2xl font-black text-red-400 mb-2/g; s/text-5xl font-black text-white\\\\/10/text-3xl font-black text-white\\\\/10/g' /Users/temple/Documents/Bami/BamiHustle-frontend/src/pages/Product.tsx)"
+      "Bash(sed -i '' 's/text-4xl font-black text-green-400 mb-2/text-2xl font-black text-green-400 mb-2/g; s/text-4xl font-black text-yellow-400 mb-2/text-2xl font-black text-yellow-400 mb-2/g; s/text-4xl font-black text-red-400 mb-2/text-2xl font-black text-red-400 mb-2/g; s/text-5xl font-black text-white\\\\/10/text-3xl font-black text-white\\\\/10/g' /Users/temple/Documents/Bami/BamiHustle-frontend/src/pages/Product.tsx)",
+      "Bash(ls /Users/temple/Documents/Bami/BamiHustle-backend/)",
+      "Read(//Users/temple/Documents/Bami/BamiHustle-backend/**)",
+      "Bash(node -e \"require\\('./controllers/unitController'\\); console.log\\('OK'\\)\")",
+      "Bash(node -e \"require\\('./routes/units'\\); console.log\\('OK'\\)\")"
+    ],
+    "additionalDirectories": [
+      "/Users/temple/Documents/Bami/BamiHustle-backend/controllers",
+      "/Users/temple/Documents/Bami/BamiHustle-backend/routes"
     ]
   }
 }
