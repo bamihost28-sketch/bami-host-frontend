@@ -56,8 +56,9 @@ export interface WalletTransactionListItem {
   description?: string;
   reference?: string;
   createdAt: string;
-  user?: { name: string; email: string };
+  user?: { name: string; email: string; role?: string };
   estate?: { name: string };
+  tenant?: { tenantName: string };
 }
 
 export interface WalletTransactionListResponse {
