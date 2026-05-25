@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
     Search, MapPin, LayoutGrid, List,
     ArrowRight, Building2,
     Sparkles, Filter,
-    Loader2, CalendarDays
+    Loader2, CalendarDays, X, ChevronDown
 } from "lucide-react";
 import { formatDate, formatCurrency } from "@/utils/propertyUtils";
 import { Navbar } from "@/components/layout/Navbar";
@@ -19,17 +19,31 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { useGetPublicListingsQuery } from "@/services/estatesApi";
+import { useGetPublicListingsQuery, useGetPublicEstatesQuery } from "@/services/estatesApi";
 
 const EstateList = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [searchQuery, setSearchQuery] = useState("");
     const [propertyType, setPropertyType] = useState("all");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+    const activeEstateId = searchParams.get("estate") || undefined;
+    const activeEstateName = searchParams.get("estateName") || undefined;
+
     const { data: response, isLoading } = useGetPublicListingsQuery({
         search: searchQuery || undefined,
+        estateId: activeEstateId,
     });
+
+    const { data: estatesResponse } = useGetPublicEstatesQuery();
+    const publicEstates = estatesResponse?.data || [];
 
     const properties = response?.data || [];
 
@@ -40,6 +54,14 @@ const EstateList = () => {
             return matchesType;
         });
     }, [properties, propertyType]);
+
+    const handleEstateFilter = (estateId: string, estateName: string) => {
+        setSearchParams({ estate: estateId, estateName });
+    };
+
+    const clearEstateFilter = () => {
+        setSearchParams({});
+    };
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -52,8 +74,14 @@ const EstateList = () => {
                         <div className="flex items-center gap-2 text-blue-600 font-bold uppercase tracking-[0.2em] text-[10px]">
                             <Sparkles className="w-3 h-3" /> BamiHost Properties
                         </div>
-                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 italic tracking-tighter">Explore Premier Estates</h1>
-                        <p className="text-slate-500 font-medium">Find your perfect home or investment across our curated collection.</p>
+                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 italic tracking-tighter">
+                            {activeEstateName ? activeEstateName : "Explore Premier Estates"}
+                        </h1>
+                        <p className="text-slate-500 font-medium">
+                            {activeEstateName
+                                ? `Showing all available units in ${activeEstateName}`
+                                : "Find your perfect home or investment across our curated collection."}
+                        </p>
                     </div>
                     <div className="flex items-center gap-2 p-1 bg-white rounded-2xl border border-slate-100 shadow-sm">
                         <button
@@ -70,6 +98,26 @@ const EstateList = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* Active Estate Filter Banner */}
+                {activeEstateName && (
+                    <div className="flex items-center gap-3 mb-8 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                        <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
+                            <Building2 className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-black text-blue-600 uppercase tracking-widest">Filtered by Estate</p>
+                            <p className="text-sm font-bold text-slate-900 truncate">{activeEstateName}</p>
+                        </div>
+                        <Button
+                            onClick={clearEstateFilter}
+                            variant="outline"
+                            className="shrink-0 h-8 px-3 rounded-xl border-blue-200 bg-white text-slate-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 font-bold text-xs gap-1.5"
+                        >
+                            <X className="w-3.5 h-3.5" /> Clear
+                        </Button>
+                    </div>
+                )}
 
                 {/* Search & Filter Bar */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-10">
@@ -101,10 +149,47 @@ const EstateList = () => {
                         </Select>
                     </div>
                     <div className="md:col-span-3">
-                        <Button variant="outline" className="w-full h-16 rounded-2xl border-slate-100 bg-white shadow-sm font-bold text-slate-700 hover:bg-slate-50 gap-3">
-                            <MapPin className="w-5 h-5 text-blue-600" />
-                            Lagos, NG
-                        </Button>
+                        {/* Estate Filter Dropdown */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className={`w-full h-16 rounded-2xl border-slate-100 bg-white shadow-sm font-bold text-slate-700 hover:bg-slate-50 gap-3 justify-between px-6 ${activeEstateId ? "border-blue-300 bg-blue-50" : ""}`}
+                                >
+                                    <span className="flex items-center gap-3 truncate">
+                                        <MapPin className="w-5 h-5 text-blue-600 shrink-0" />
+                                        <span className="truncate">{activeEstateName || "Filter by Estate"}</span>
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 shrink-0 text-slate-400" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-72 rounded-2xl p-2 border-slate-100 shadow-xl">
+                                {activeEstateId && (
+                                    <DropdownMenuItem
+                                        onClick={clearEstateFilter}
+                                        className="rounded-xl font-bold px-4 py-3 text-slate-500 hover:text-slate-900 cursor-pointer flex items-center gap-2"
+                                    >
+                                        <X className="w-4 h-4" /> All Estates
+                                    </DropdownMenuItem>
+                                )}
+                                {publicEstates.length === 0 ? (
+                                    <div className="px-4 py-3 text-xs text-slate-400 font-bold">No estates available</div>
+                                ) : (
+                                    publicEstates.map(estate => (
+                                        <DropdownMenuItem
+                                            key={estate._id}
+                                            onClick={() => handleEstateFilter(estate._id, estate.name)}
+                                            className={`rounded-xl px-4 py-3 cursor-pointer flex items-center justify-between gap-2 ${activeEstateId === estate._id ? "bg-blue-50 text-blue-700" : ""}`}
+                                        >
+                                            <span className="font-bold text-sm truncate">{estate.name}</span>
+                                            <span className="shrink-0 text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">
+                                                {estate.vacantUnits} vacant
+                                            </span>
+                                        </DropdownMenuItem>
+                                    ))
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                     <div className="md:col-span-6">
                         <Button className="w-full h-16 rounded-2xl bg-slate-900 border-none hover:bg-slate-800 text-white font-black gap-3 shadow-xl transform active:scale-95 transition-all">
@@ -186,9 +271,22 @@ const EstateList = () => {
                                         <h3 className="text-base font-black text-slate-900 leading-snug group-hover:text-blue-600 transition-colors truncate">
                                             {property.label}
                                         </h3>
+
+                                        {/* Clickable Estate Name */}
                                         {property.estate?.name && (
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">{property.estate.name}</p>
+                                            <button
+                                                onClick={() => handleEstateFilter(
+                                                    property.estate!._id || property.estate!.id,
+                                                    property.estate!.name
+                                                )}
+                                                className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors group/estate w-full text-left"
+                                            >
+                                                <Building2 className="w-3 h-3 shrink-0 text-slate-400 group-hover/estate:text-blue-600 transition-colors" />
+                                                <span className="truncate uppercase tracking-wider">{property.estate.name}</span>
+                                                <ArrowRight className="w-3 h-3 shrink-0 opacity-0 group-hover/estate:opacity-100 transition-opacity ml-auto" />
+                                            </button>
                                         )}
+
                                         <div className="flex items-center gap-5">
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] font-black text-slate-400 uppercase">Beds</span>
@@ -241,10 +339,14 @@ const EstateList = () => {
                         </div>
                         <div className="space-y-2">
                             <h3 className="text-xl font-black text-slate-900">No properties found</h3>
-                            <p className="text-slate-500 font-medium">Try adjusting your filters or search query to find more results.</p>
+                            <p className="text-slate-500 font-medium">
+                                {activeEstateName
+                                    ? `No vacant units found in ${activeEstateName}.`
+                                    : "Try adjusting your filters or search query to find more results."}
+                            </p>
                         </div>
                         <Button
-                            onClick={() => { setSearchQuery(""); setPropertyType("all"); }}
+                            onClick={() => { setSearchQuery(""); setPropertyType("all"); clearEstateFilter(); }}
                             variant="link"
                             className="text-blue-600 font-black h-auto p-0"
                         >

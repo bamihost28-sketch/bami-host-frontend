@@ -602,8 +602,17 @@ export interface EstateUnit {
   meterNumber?: string;
   status?: string;
   images?: { url: string; _id: string; publicId?: string | null; caption?: string }[];
-  estate?: { _id: string; id: string; name: string };
+  estate?: { _id: string; id: string; name: string; description?: string; images?: { url: string; publicId?: string; caption?: string }[] };
   features?: EstateUnitFeature[];
+}
+
+export interface PublicEstate {
+  _id: string;
+  id: string;
+  name: string;
+  description?: string;
+  images?: { url: string; publicId?: string; caption?: string }[];
+  vacantUnits: number;
 }
 
 export interface CreateTenantPayload {
@@ -948,7 +957,7 @@ export const estatesApi = createApi({
       }),
     }),
     // Public List Endpoints
-    getPublicListings: builder.query<PaginatedResponse<EstateUnit>, { page?: number; limit?: number; search?: string } | void>({
+    getPublicListings: builder.query<PaginatedResponse<EstateUnit>, { page?: number; limit?: number; search?: string; estateId?: string } | void>({
       query: (params = {}) => ({
         url: '/api/estates/public/listings',
         params: params || {},
@@ -957,6 +966,10 @@ export const estatesApi = createApi({
         result && Array.isArray(result.data)
           ? [...result.data.map((u) => ({ type: 'Estate' as const, id: u.id || u._id })), { type: 'Estate', id: 'LIST' }]
           : [{ type: 'Estate', id: 'LIST' }],
+    }),
+    getPublicEstates: builder.query<{ success: boolean; count: number; data: PublicEstate[] }, void>({
+      query: () => '/api/estates/public/estates',
+      providesTags: [{ type: 'Estate', id: 'PUBLIC_ESTATES' }],
     }),
     getPublicListingById: builder.query<{ success: boolean; data: EstateUnit }, string>({
       query: (id) => `/api/estates/public/listings/${id}`,
@@ -1259,6 +1272,7 @@ export const {
     useManualRecordPaymentMutation,
     // Public
     useGetPublicListingsQuery,
+    useGetPublicEstatesQuery,
     useGetPublicListingByIdQuery,
     // Unified Payment Transactions
     useGetPaymentTransactionsQuery,

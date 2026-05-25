@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
     ChevronRight,
+    ArrowRight,
+    Building2,
     Bed,
     Bath,
     Maximize,
@@ -164,7 +166,12 @@ const PropertyDetails = () => {
                     {property.estate?.name && (
                         <>
                             <ChevronRight className="h-4 w-4" />
-                            <span className="text-slate-500">{property.estate.name}</span>
+                            <Link
+                                to={`/marketplace/estate/all?estate=${property.estate._id || property.estate.id}&estateName=${encodeURIComponent(property.estate.name)}`}
+                                className="text-blue-600 hover:text-blue-700 font-semibold transition-colors"
+                            >
+                                {property.estate.name}
+                            </Link>
                         </>
                     )}
                     <ChevronRight className="h-4 w-4" />
@@ -199,6 +206,16 @@ const PropertyDetails = () => {
                                             <BadgeCheck className="h-3 w-3 mr-1" />
                                             {property.status}
                                         </Badge>
+                                    )}
+                                    {property.estate?.name && (
+                                        <Link
+                                            to={`/marketplace/estate/all?estate=${property.estate._id || property.estate.id}&estateName=${encodeURIComponent(property.estate.name)}`}
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full transition-colors"
+                                        >
+                                            <Compass className="h-3 w-3" />
+                                            {property.estate.name}
+                                            <ArrowRight className="h-3 w-3" />
+                                        </Link>
                                     )}
                                 </div>
                                 <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
@@ -431,6 +448,31 @@ const PropertyDetails = () => {
                                 </div>
                             </div>
                         </section>
+
+                        {/* More units in this estate */}
+                        {property.estate?.name && (
+                            <>
+                                <div className="border-t border-slate-100" />
+                                <section>
+                                    <Link
+                                        to={`/marketplace/estate/all?estate=${property.estate._id || property.estate.id}&estateName=${encodeURIComponent(property.estate.name)}`}
+                                        className="group flex items-center justify-between p-6 bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 rounded-2xl transition-all"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
+                                                <Building2 className="h-6 w-6 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-black text-blue-600 uppercase tracking-widest mb-0.5">Browse Estate</p>
+                                                <h4 className="text-base font-black text-slate-900">See other vacant units in {property.estate.name}</h4>
+                                                <p className="text-xs font-medium text-slate-500 mt-0.5">View all available apartments in this estate</p>
+                                            </div>
+                                        </div>
+                                        <ArrowRight className="h-5 w-5 text-blue-600 shrink-0 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
+                                </section>
+                            </>
+                        )}
                     </div>
 
                     {/* Sidebar */}

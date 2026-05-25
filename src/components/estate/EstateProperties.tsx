@@ -1,4 +1,4 @@
-import { MapPin, ArrowRight, Loader2, CalendarDays, Bed, Bath } from "lucide-react";
+import { MapPin, ArrowRight, Loader2, CalendarDays, Bed, Bath, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
@@ -62,7 +62,15 @@ export const EstateProperties = () => {
                                     <div className="space-y-1.5">
                                         <h3 className="text-sm font-black text-slate-900 truncate group-hover:text-blue-600 transition-colors">{property.label}</h3>
                                         {property.estate?.name && (
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{property.estate.name}</p>
+                                            <Link
+                                                to={`/marketplace/estate/all?estate=${property.estate._id || property.estate.id}&estateName=${encodeURIComponent(property.estate.name)}`}
+                                                className="flex items-center gap-1 text-[10px] font-bold text-blue-500 hover:text-blue-700 uppercase tracking-wider truncate group/estate"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <Building2 className="w-3 h-3 shrink-0" />
+                                                <span className="truncate">{property.estate.name}</span>
+                                                <ArrowRight className="w-2.5 h-2.5 shrink-0 opacity-0 group-hover/estate:opacity-100 transition-opacity" />
+                                            </Link>
                                         )}
                                         <div className="flex items-center gap-1.5 text-slate-500">
                                             <MapPin className="w-3 h-3 text-blue-500 shrink-0" />
