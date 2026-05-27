@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, CreditCard } from "lucide-react";
+import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, CreditCard, Building2, Copy, CheckCircle2, ImageIcon, Upload } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +25,7 @@ import {
   useTransferToUserMutation,
   useAddFundsMutation,
 } from "@/services";
-import { usePaystackDeposit } from "@/hooks/useWallet";
+import { useGetBankInfoQuery, useSubmitDepositMutation } from "@/services/bankDepositsApi";
 
 // Import refactored components
 import { OverviewCards } from "./tenant/OverviewCards";
@@ -81,8 +81,15 @@ export const TenantDashboard: React.FC = () => {
   const [transferToUser, { isLoading: isTransferringUser }] = useTransferToUserMutation();
   const [addFunds, { isLoading: isAddingFunds }] = useAddFundsMutation();
   
-  // Paystack Deposit Hook
-  const { initializeDeposit, isInitializing } = usePaystackDeposit();
+  // Bank deposit hooks
+  const { data: bankInfoData } = useGetBankInfoQuery();
+  const bankInfo = bankInfoData?.data;
+  const [submitDeposit, { isLoading: isSubmittingDeposit }] = useSubmitDepositMutation();
+  const [depositProofFile, setDepositProofFile] = useState<File | null>(null);
+  const [depositProofPreview, setDepositProofPreview] = useState<string | null>(null);
+  const [depositCopied, setDepositCopied] = useState<string | null>(null);
+  const [depositSubmitted, setDepositSubmitted] = useState(false);
+  const depositFileRef = useRef<HTMLInputElement>(null);
 
   // Get API data
   const apiUser = overviewData?.data?.user;
@@ -301,6 +308,9 @@ export const TenantDashboard: React.FC = () => {
   const handleReportMaintenance = () => setMaintenanceDialogOpen(true);
   const handleOpenDeposit = () => {
     setDepositForm({ amount: "" });
+    setDepositProofFile(null);
+    setDepositProofPreview(null);
+    setDepositSubmitted(false);
     setDepositDialogOpen(true);
   };
 
@@ -315,17 +325,39 @@ export const TenantDashboard: React.FC = () => {
   };
 
   const handleDeposit = async () => {
-    if (!depositForm.amount || parseFloat(depositForm.amount) <= 0) {
-      toast("Error: Please enter a valid amount");
+    const amount = parseFloat(depositForm.amount);
+    if (!amount || amount < 100) {
+      toast("Error: Minimum deposit is ₦100");
+      return;
+    }
+    if (!depositProofFile) {
+      toast("Error: Please upload your proof of payment screenshot");
       return;
     }
     try {
-      await initializeDeposit(parseFloat(depositForm.amount));
-      setDepositDialogOpen(false);
-      setDepositForm({ amount: "" });
+      const formData = new FormData();
+      formData.append('amount', String(amount));
+      formData.append('proof', depositProofFile);
+      await submitDeposit(formData).unwrap();
+      setDepositSubmitted(true);
     } catch (error: any) {
-      toast(`Error: ${error?.data?.message || "Deposit failed"}`);
+      toast(`Error: ${error?.data?.message || "Failed to submit deposit"}`);
     }
+  };
+
+  const handleDepositFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDepositProofFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setDepositProofPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleDepositCopy = (value: string, key: string) => {
+    navigator.clipboard.writeText(value);
+    setDepositCopied(key);
+    setTimeout(() => setDepositCopied(null), 2000);
   };
 
   const handleWithdraw = async () => {
@@ -1158,33 +1190,112 @@ export const TenantDashboard: React.FC = () => {
       />
 
       {/* Deposit Dialog */}
-      <Dialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen}>
-        <DialogContent>
+      <Dialog open={depositDialogOpen} onOpenChange={(o) => { setDepositDialogOpen(o); if (!o) { setDepositForm({ amount: "" }); setDepositProofFile(null); setDepositProofPreview(null); setDepositSubmitted(false); } }}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Deposit Funds</DialogTitle>
+            <DialogTitle>Add Funds to Wallet</DialogTitle>
             <DialogDescription>
-              Enter the amount you want to deposit into your wallet.
+              Transfer to the UBA account below, then upload your proof of payment.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Amount (₦)</label>
-              <Input
-                type="number"
-                placeholder="Enter amount"
-                value={depositForm.amount}
-                onChange={(e) => setDepositForm({ amount: e.target.value })}
-              />
+
+          {depositSubmitted ? (
+            <div className="text-center space-y-3 py-4">
+              <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
+              <p className="font-semibold">Deposit Submitted!</p>
+              <p className="text-sm text-muted-foreground">An admin will review your proof and credit your wallet shortly.</p>
+              <Button className="w-full" onClick={() => setDepositDialogOpen(false)}>Done</Button>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDepositDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleDeposit} disabled={isInitializing}>
-              {isInitializing ? "Initializing..." : "Deposit"}
-            </Button>
-          </DialogFooter>
+          ) : (
+            <div className="space-y-4">
+              {/* Bank account details */}
+              <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-green-800 dark:text-green-300 text-sm font-semibold">
+                  <Building2 className="h-4 w-4" />
+                  Transfer to this UBA account:
+                </div>
+                {bankInfo ? (
+                  [
+                    { label: 'Bank', value: bankInfo.bankName },
+                    { label: 'Account Number', value: bankInfo.accountNumber },
+                    { label: 'Account Name', value: bankInfo.accountName },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between gap-2 bg-white dark:bg-card rounded p-2 border">
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+                        <p className="text-sm font-bold font-mono truncate">{value}</p>
+                      </div>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => handleDepositCopy(value, label)}>
+                        {depositCopied === label ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="animate-pulse space-y-2">
+                    {[1, 2, 3].map((i) => <div key={i} className="h-9 bg-green-100 dark:bg-green-900/30 rounded" />)}
+                  </div>
+                )}
+              </div>
+
+              {/* Amount input */}
+              <div>
+                <label className="text-sm font-medium">Amount Transferred (₦)</label>
+                <Input
+                  type="number"
+                  min="100"
+                  placeholder="Enter exact amount sent (min ₦100)"
+                  value={depositForm.amount}
+                  onChange={(e) => setDepositForm({ amount: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              {/* Proof upload */}
+              <div>
+                <label className="text-sm font-medium">Proof of Payment</label>
+                <input
+                  ref={depositFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={handleDepositFileChange}
+                />
+                {depositProofPreview ? (
+                  <div className="relative mt-1 border rounded-lg overflow-hidden">
+                    <img src={depositProofPreview} alt="Proof" className="w-full max-h-36 object-contain bg-slate-50" />
+                    <Button size="sm" variant="secondary" className="absolute top-2 right-2" onClick={() => depositFileRef.current?.click()}>
+                      Change
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => depositFileRef.current?.click()}
+                    className="mt-1 w-full border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-5 text-center hover:border-green-500 transition-colors"
+                  >
+                    <ImageIcon className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                    <p className="text-sm font-medium">Upload screenshot</p>
+                    <p className="text-xs text-muted-foreground">JPEG, PNG or WEBP</p>
+                  </button>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDepositDialogOpen(false)}>Cancel</Button>
+                <Button
+                  onClick={handleDeposit}
+                  disabled={isSubmittingDeposit || !depositForm.amount || !depositProofFile}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmittingDeposit ? (
+                    <><Loader className="mr-2 h-4 w-4 animate-spin" />Submitting...</>
+                  ) : (
+                    <><Upload className="mr-2 h-4 w-4" />Submit Deposit</>
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

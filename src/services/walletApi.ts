@@ -1,10 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BASE_API_URL } from './api';
 import {
-  Wallet,
   WalletResponse,
-  PaystackInitializeResponse,
-  PaystackVerifyResponse,
+  DepositRequestResponse,
   DepositInitializeRequest,
   WalletTransactionResponse,
 } from '../types/wallet';
@@ -115,46 +113,28 @@ export const walletApi = createApi({
   tagTypes: ['Wallet', 'GlobalWallet', 'PersonalWallet', 'WalletTransactions'],
   endpoints: (builder) => ({
     // GLOBAL WALLET ENDPOINTS (Multi-Engine)
-    // Global wallet summary across all 3 engines
     getGlobalWalletSummary: builder.query<GlobalWalletResponse, void>({
       query: () => '/api/wallets/global-summary',
       providesTags: ['GlobalWallet'],
     }),
-    // Individual wallet by ID
     getWallet: builder.query<any, string>({
       query: (userId) => `/api/wallets/${userId}`,
       providesTags: ['Wallet'],
     }),
 
-    // PERSONAL WALLET ENDPOINTS (Deposits/Transactions)
-    // Get user's personal wallet
+    // PERSONAL WALLET ENDPOINTS
     getPersonalWallet: builder.query<WalletResponse, void>({
       query: () => '/api/wallet',
       providesTags: ['PersonalWallet'],
     }),
 
-    // Initialize Paystack deposit
-    initializePaystackDeposit: builder.mutation<
-      PaystackInitializeResponse,
-      DepositInitializeRequest
-    >({
+    // Request bank transfer deposit instructions
+    requestDepositInstructions: builder.mutation<DepositRequestResponse, DepositInitializeRequest>({
       query: (body) => ({
-        url: '/api/wallet/paystack/initialize',
+        url: '/api/wallet/deposit/request',
         method: 'POST',
         body,
       }),
-    }),
-
-    // Verify Paystack payment and credit wallet
-    verifyPaystackDeposit: builder.mutation<
-      PaystackVerifyResponse,
-      { reference: string }
-    >({
-      query: ({ reference }) => ({
-        url: `/api/wallet/paystack/verify/${reference}`,
-        method: 'GET',
-      }),
-      invalidatesTags: ['PersonalWallet', 'WalletTransactions'],
     }),
 
     // Get wallet transactions
@@ -197,8 +177,7 @@ export const {
   useGetGlobalWalletSummaryQuery,
   useGetWalletQuery,
   useGetPersonalWalletQuery,
-  useInitializePaystackDepositMutation,
-  useVerifyPaystackDepositMutation,
+  useRequestDepositInstructionsMutation,
   useGetWalletTransactionsQuery,
   useGetWalletTransactionListQuery,
   useLazyAdminLookupUserQuery,

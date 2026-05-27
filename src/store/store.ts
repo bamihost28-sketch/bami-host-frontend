@@ -11,6 +11,7 @@ import { businessTypesApi } from '../services/businessTypesApi';
 import { walletApi } from '../services/walletApi';
 import { walletTransactionApi } from '../services/walletTransactionApi';
 import { notificationsApi } from '../services/notificationsApi';
+import { bankDepositsApi } from '../services/bankDepositsApi';
 import authReducer from './authSlice';
 
 export const store = configureStore({
@@ -29,6 +30,7 @@ export const store = configureStore({
     [walletApi.reducerPath]: walletApi.reducer,
     [walletTransactionApi.reducerPath]: walletTransactionApi.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
+    [bankDepositsApi.reducerPath]: bankDepositsApi.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -45,7 +47,8 @@ export const store = configureStore({
       businessTypesApi.middleware,
       walletApi.middleware,
       walletTransactionApi.middleware,
-      notificationsApi.middleware
+      notificationsApi.middleware,
+      bankDepositsApi.middleware,
     ),
 });
 

@@ -26,43 +26,26 @@ export interface WalletResponse {
   data: Wallet;
 }
 
-// Paystack types
-export interface PaystackInitializePayload {
+export interface BankAccount {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}
+
+export interface BankTransferInstructions {
+  bankAccount: BankAccount;
+  reference: string;
   amount: number;
-  email: string;
-  callback_url: string;
-  metadata?: {
-    user_id: string;
-    payment_type: string;
-  };
+  description: string;
 }
 
-export interface PaystackInitializeResponse {
+export interface DepositRequestResponse {
   success: boolean;
-  data: {
-    authorization_url: string;
-    access_code: string;
-    reference: string;
-  };
-}
-
-export interface PaystackVerifyResponse {
-  success: boolean;
-  data: {
-    reference: string;
-    amount: number;
-    status: string;
-    newBalance: number;
-    wallet: Wallet;
-  };
+  data: BankTransferInstructions;
 }
 
 export interface DepositInitializeRequest {
   amount: number;
-}
-
-export interface DepositVerifyRequest {
-  reference: string;
 }
 
 export interface WalletTransaction {
@@ -73,8 +56,7 @@ export interface WalletTransaction {
   amount: number;
   currency: string;
   status: 'pending' | 'completed' | 'failed' | 'cancelled';
-  /** Payment method - deposits use Paystack only */
-  paymentMethod: 'paystack';
+  paymentMethod: 'bank_transfer' | 'cash' | 'wallet' | string;
   reference?: string;
   description?: string;
   metadata?: Record<string, any>;

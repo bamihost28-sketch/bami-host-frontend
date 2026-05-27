@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -8,7 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from '@/components/ui/use-toast';
-import { useInitiatePaymentMutation, useManualRecordPaymentMutation } from '@/services/estatesApi';
+import { Building2, Copy, CheckCircle2 } from 'lucide-react';
+import { useManualRecordPaymentMutation } from '@/services/estatesApi';
+
+// UBA account details — kept in sync with backend bankConfig.js
+const UBA_ACCOUNT = {
+  bankName: 'UBA',
+  accountNumber: '1027525073',
+  accountName: 'UNITED TRADING INTEGRATED VENTURES ACC 1',
+};
+
+function generateReference(type: string) {
+  const tag = type.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6);
+  const suffix = Date.now().toString(36).toUpperCase().slice(-6);
+  return `BT-${tag}-${suffix}`;
+}
 
 interface PaymentCollectionDialogProps {
   tenantId?: string;
@@ -25,17 +38,17 @@ export const PaymentCollectionDialog = ({
   tenant,
   billingData,
   open,
-  onOpenChange
+  onOpenChange,
 }: PaymentCollectionDialogProps) => {
-  const navigate = useNavigate();
-  const [initiatePayment, { isLoading: paying }] = useInitiatePaymentMutation();
   const [recordManualPayment, { isLoading: recordingManual }] = useManualRecordPaymentMutation();
 
-  // Online (Paystack) state
-  const [payType, setPayType] = useState<'deposit' | 'rent' | 'service-charge' | 'security-charge' | 'caution-fee' | 'legal-fee' | 'initial'>('rent');
+  // Bank transfer tab state
+  const [payType, setPayType] = useState<'deposit' | 'rent' | 'service-charge' | 'caution-fee' | 'legal-fee' | 'initial'>('rent');
   const [payMonths, setPayMonths] = useState('12');
+  const [btReference, setBtReference] = useState(() => generateReference('RENT'));
+  const [copied, setCopied] = useState<string | null>(null);
 
-  // Manual record state
+  // Manual record tab state
   const [manualAmount, setManualAmount] = useState('');
   const [manualMethod, setManualMethod] = useState<'bank_transfer' | 'cash' | 'check'>('bank_transfer');
   const [manualType, setManualType] = useState('rent');
@@ -45,61 +58,75 @@ export const PaymentCollectionDialog = ({
   const [manualNotes, setManualNotes] = useState('');
 
   const billingItems = billingData?.data?.items ?? [];
-  const getBillingItemForType = (
-    type: 'deposit' | 'rent' | 'service-charge' | 'security-charge' | 'caution-fee' | 'legal-fee'
-  ) => {
-    switch (type) {
-      case 'rent':
-        return billingItems.find((i: any) => i.code === 'rent');
-      case 'service-charge':
-        return billingItems.find((i: any) => i.code === 'service_charge');
-      case 'caution-fee':
-        return billingItems.find((i: any) => i.code === 'caution_fee');
-      case 'legal-fee':
-        return billingItems.find((i: any) => i.code === 'legal_fee');
-      default:
-        return undefined;
+
+  const getAmount = () => {
+    if (payType === 'rent') {
+      const months = Number(payMonths) || 1;
+      return (overview?.rent || 0) + (overview?.serviceCharge || 0) * months * months;
     }
+    const codeMap: Record<string, string> = {
+      'service-charge': 'service_charge',
+      'caution-fee': 'caution_fee',
+      'legal-fee': 'legal_fee',
+      deposit: 'deposit',
+      initial: 'initial',
+    };
+    const item = billingItems.find((i: any) => i.code === codeMap[payType]);
+    return item?.amount || 0;
+  };
+
+  const calcAmount = () => {
+    if (payType === 'rent') {
+      const months = Number(payMonths) || 1;
+      const monthly = (overview?.rent || 0) + (overview?.serviceCharge || 0);
+      return monthly * months;
+    }
+    return getAmount();
+  };
+
+  const handleCopy = (value: string, key: string) => {
+    navigator.clipboard.writeText(value);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
     if (!newOpen) {
-      // Reset forms
       setManualAmount('');
       setPayMonths('12');
       setManualMonths('12');
     }
   };
 
+  const btAmount = calcAmount();
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>Collect Payment</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Collect Payment</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="online" className="w-full">
+        <Tabs defaultValue="bank_transfer" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="online">Online (Paystack)</TabsTrigger>
-            <TabsTrigger value="manual">Manual (Offline)</TabsTrigger>
+            <TabsTrigger value="bank_transfer">Bank Transfer</TabsTrigger>
+            <TabsTrigger value="manual">Record Payment</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="online" className="space-y-4 py-4">
+
+          {/* ── Bank Transfer Instructions ── */}
+          <TabsContent value="bank_transfer" className="space-y-4 py-4">
             <div className="grid gap-2">
-              <Label>Payment type</Label>
-              <Select value={payType} onValueChange={(v: any) => setPayType(v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
+              <Label>Payment Type</Label>
+              <Select value={payType} onValueChange={(v: any) => { setPayType(v); setBtReference(generateReference(v)); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="rent">Rent (Bundles Service Charge)</SelectItem>
-                  <SelectItem value="service-charge">Standalone Service Charge</SelectItem>
-                  <SelectItem value="initial">Initial (Caution, Legal, etc.)</SelectItem>
+                  <SelectItem value="rent">Rent (includes Service Charge)</SelectItem>
+                  <SelectItem value="service-charge">Service Charge Only</SelectItem>
+                  <SelectItem value="initial">Initial Fees (Caution, Legal…)</SelectItem>
                   <SelectItem value="deposit">Security Deposit</SelectItem>
-                  <SelectItem value="security-charge">Security Charge</SelectItem>
                   <SelectItem value="caution-fee">Caution Fee</SelectItem>
                   <SelectItem value="legal-fee">Legal Fee</SelectItem>
                 </SelectContent>
@@ -108,85 +135,69 @@ export const PaymentCollectionDialog = ({
 
             {payType === 'rent' && (
               <div className="grid gap-2">
-                <Label>Duration (Months)</Label>
+                <Label>Duration</Label>
                 <Select value={payMonths} onValueChange={(v) => setPayMonths(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="6">6 months</SelectItem>
                     <SelectItem value="12">12 months</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-muted-foreground">Automatically bundles service charge for this period.</p>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => handleOpenChange(false)}>Cancel</Button>
-              <Button
-                onClick={async () => {
-                  if (!tenantId) return;
-                  
-                  let amt = 0;
-                  let desc = "";
-                  
-                  if (payType === 'rent') {
-                    const months = Number(payMonths) || 1;
-                    const monthlyRent = overview?.rent || tenant?.rentAmount || 0;
-                    const monthlyService = overview?.serviceCharge || 0;
-                    amt = (monthlyRent + monthlyService) * months;
-                    desc = `${months} months Rent + Service Charge`;
-                  } else {
-                    const item = getBillingItemForType(payType as any);
-                    amt = item?.amount || 0;
-                    desc = item?.label || payType;
-                  }
+            {btAmount > 0 && (
+              <p className="text-sm font-semibold text-center">
+                Amount: <span className="text-green-600">₦{btAmount.toLocaleString()}</span>
+              </p>
+            )}
 
-                  try {
-                    const res = await initiatePayment({ 
-                      type: payType as any, 
-                      body: { 
-                        tenantId, 
-                        amount: amt, 
-                        description: desc,
-                        durationMonths: payType === 'rent' ? Number(payMonths) : undefined
-                      } 
-                    }).unwrap();
-                    toast({ title: 'Payment initiated', description: res.message || 'Redirecting to checkout...' });
-                    if (res?.data?.paymentLink) window.open(res.data.paymentLink, '_blank');
-                    if (res?.data?.reference) {
-                      navigate(`/dashboard/payment/success?reference=${encodeURIComponent(res.data.reference)}`);
-                    }
-                    handleOpenChange(false);
-                  } catch (e) {
-                    toast({ title: 'Failed to initiate payment', variant: 'destructive' });
-                  }
-                }}
-                disabled={paying}
-              >
-                {paying ? 'Processing...' : 'Generate Payment Link'}
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 text-green-800 dark:text-green-300 text-sm font-semibold mb-1">
+                <Building2 className="h-4 w-4" />
+                Transfer to this UBA account:
+              </div>
+              {[
+                { label: 'Bank', value: UBA_ACCOUNT.bankName },
+                { label: 'Account Number', value: UBA_ACCOUNT.accountNumber },
+                { label: 'Account Name', value: UBA_ACCOUNT.accountName },
+                { label: 'Reference (Narration)', value: btReference },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between gap-2 bg-white dark:bg-card rounded p-2 border">
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</p>
+                    <p className="text-sm font-bold font-mono truncate">{value}</p>
+                  </div>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => handleCopy(value, label)}>
+                    {copied === label ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              Once you confirm the transfer was received, record it in the "Record Payment" tab.
+            </p>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="ghost" onClick={() => handleOpenChange(false)}>Close</Button>
+              <Button variant="outline" onClick={() => setBtReference(generateReference(payType))}>
+                New Reference
               </Button>
             </div>
           </TabsContent>
 
+          {/* ── Manual Record ── */}
           <TabsContent value="manual" className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Amount (₦)</Label>
-                <Input 
-                  type="number" 
-                  placeholder="720000" 
-                  value={manualAmount}
-                  onChange={(e) => setManualAmount(e.target.value)}
-                />
+                <Input type="number" placeholder="720000" value={manualAmount} onChange={(e) => setManualAmount(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label>Method</Label>
                 <Select value={manualMethod} onValueChange={(v: any) => setManualMethod(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                     <SelectItem value="cash">Cash</SelectItem>
@@ -200,9 +211,7 @@ export const PaymentCollectionDialog = ({
               <div className="grid gap-2">
                 <Label>Type</Label>
                 <Select value={manualType} onValueChange={(v: any) => setManualType(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="rent">Rent</SelectItem>
                     <SelectItem value="service_charge">Service Charge</SelectItem>
@@ -215,9 +224,7 @@ export const PaymentCollectionDialog = ({
               <div className="grid gap-2">
                 <Label>Duration (Months)</Label>
                 <Select value={manualMonths} onValueChange={(v) => setManualMonths(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="6">6 months</SelectItem>
                     <SelectItem value="12">12 months</SelectItem>
@@ -228,30 +235,17 @@ export const PaymentCollectionDialog = ({
 
             <div className="grid gap-2">
               <Label>Payment Date</Label>
-              <Input 
-                type="date" 
-                value={manualDate}
-                onChange={(e) => setManualDate(e.target.value)}
-              />
+              <Input type="date" value={manualDate} onChange={(e) => setManualDate(e.target.value)} />
             </div>
 
             <div className="grid gap-2">
               <Label>Description</Label>
-              <Input 
-                placeholder="Admin manually recorded..." 
-                value={manualDesc}
-                onChange={(e) => setManualDesc(e.target.value)}
-              />
+              <Input placeholder="Rent + service charge for 12 months" value={manualDesc} onChange={(e) => setManualDesc(e.target.value)} />
             </div>
 
             <div className="grid gap-2">
               <Label>Notes</Label>
-              <Textarea 
-                placeholder="Reference confirmed..." 
-                value={manualNotes}
-                onChange={(e) => setManualNotes(e.target.value)}
-                className="h-20"
-              />
+              <Textarea placeholder="Transfer reference confirmed..." value={manualNotes} onChange={(e) => setManualNotes(e.target.value)} className="h-20" />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -271,11 +265,11 @@ export const PaymentCollectionDialog = ({
                       durationMonths: Number(manualMonths),
                       paymentDate: manualDate,
                       description: manualDesc,
-                      notes: manualNotes
+                      notes: manualNotes,
                     }).unwrap();
                     toast({ title: 'Payment recorded', description: 'Due date has been updated.' });
                     handleOpenChange(false);
-                  } catch (e) {
+                  } catch {
                     toast({ title: 'Failed to record payment', variant: 'destructive' });
                   }
                 }}

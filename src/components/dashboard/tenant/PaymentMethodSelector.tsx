@@ -1,9 +1,9 @@
-import { Wallet, CreditCard } from "lucide-react";
+import { Wallet, Building2 } from "lucide-react";
 import { formatCurrency } from "./utils";
 
 interface PaymentMethodSelectorProps {
-  paymentMethod: "wallet" | "paystack";
-  onMethodChange: (method: "wallet" | "paystack") => void;
+  paymentMethod: "wallet" | "bank_transfer";
+  onMethodChange: (method: "wallet" | "bank_transfer") => void;
   walletBalance: number;
 }
 
@@ -35,18 +35,18 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           </div>
         </button>
         <button
-          onClick={() => onMethodChange("paystack")}
+          onClick={() => onMethodChange("bank_transfer")}
           className={`p-3 rounded-lg border-2 transition-all ${
-            paymentMethod === "paystack"
+            paymentMethod === "bank_transfer"
               ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
               : "border-slate-300 dark:border-slate-600"
           }`}
         >
           <div className="flex items-center gap-2 justify-center">
-            <CreditCard className="h-4 w-4" />
+            <Building2 className="h-4 w-4" />
             <div className="text-left">
-              <p className="font-medium text-sm">Paystack</p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Online payment</p>
+              <p className="font-medium text-sm">Bank Transfer</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">UBA account</p>
             </div>
           </div>
         </button>

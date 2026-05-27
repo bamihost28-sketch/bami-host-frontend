@@ -30,7 +30,10 @@
       "Read(//Users/temple/Documents/Bami/BamiHustle-backend/**)",
       "Bash(node -e \"require\\('./controllers/unitController'\\); console.log\\('OK'\\)\")",
       "Bash(node -e \"require\\('./routes/units'\\); console.log\\('OK'\\)\")",
-      "Bash(grep -n 'getPublicListings\\\\|search\\\\|estateId\\\\|$lookup' /Users/temple/Documents/Bami/BamiHustle-backend/controllers/unitController.js)"
+      "Bash(grep -n 'getPublicListings\\\\|search\\\\|estateId\\\\|$lookup' /Users/temple/Documents/Bami/BamiHustle-backend/controllers/unitController.js)",
+      "Bash(node --check /Users/temple/Documents/Bami/BamiHustle-backend/controllers/tenantController.js)",
+      "Bash(node --check /Users/temple/Documents/Bami/BamiHustle-backend/controllers/dashboardController.js)",
+      "Bash(node --check /Users/temple/Documents/Bami/BamiHustle-backend/controllers/paymentController.js)"
     ],
     "additionalDirectories": [
       "/Users/temple/Documents/Bami/BamiHustle-backend/controllers",

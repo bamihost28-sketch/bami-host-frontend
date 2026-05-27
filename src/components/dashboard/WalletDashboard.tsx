@@ -22,6 +22,7 @@ import {
   type WalletTxStatus,
 } from "@/services/walletApi";
 import { WalletCard } from "./WalletCard";
+import { BankDepositsPanel } from "./business/BankDepositsPanel";
 import { toast } from "@/components/ui/use-toast";
 import {
   Wallet,
@@ -740,6 +741,7 @@ export const WalletDashboard = () => {
           <Tabs defaultValue="transactions" className="space-y-4">
             <TabsList className="dashboard-tabs-list">
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
+              {canAdminCredit && <TabsTrigger value="bank-deposits">Bank Deposits</TabsTrigger>}
               <TabsTrigger value="how-it-works">How It Works</TabsTrigger>
               {canAdminCredit && <TabsTrigger value="admin-credit">Admin Credit</TabsTrigger>}
               <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -748,6 +750,12 @@ export const WalletDashboard = () => {
             <TabsContent value="transactions">
               <TransactionList />
             </TabsContent>
+
+            {canAdminCredit && (
+              <TabsContent value="bank-deposits">
+                <BankDepositsPanel />
+              </TabsContent>
+            )}
 
             {/* How It Works — replaces empty "Allocation History" */}
             <TabsContent value="how-it-works" className="space-y-4">
