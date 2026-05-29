@@ -2,8 +2,6 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BASE_API_URL } from './api';
 import {
   WalletResponse,
-  DepositRequestResponse,
-  DepositInitializeRequest,
   WalletTransactionResponse,
 } from '../types/wallet';
 
@@ -128,15 +126,6 @@ export const walletApi = createApi({
       providesTags: ['PersonalWallet'],
     }),
 
-    // Request bank transfer deposit instructions
-    requestDepositInstructions: builder.mutation<DepositRequestResponse, DepositInitializeRequest>({
-      query: (body) => ({
-        url: '/api/wallet/deposit/request',
-        method: 'POST',
-        body,
-      }),
-    }),
-
     // Get wallet transactions
     getWalletTransactions: builder.query<WalletTransactionResponse, void>({
       query: () => '/api/wallet/transactions',
@@ -177,7 +166,6 @@ export const {
   useGetGlobalWalletSummaryQuery,
   useGetWalletQuery,
   useGetPersonalWalletQuery,
-  useRequestDepositInstructionsMutation,
   useGetWalletTransactionsQuery,
   useGetWalletTransactionListQuery,
   useLazyAdminLookupUserQuery,
