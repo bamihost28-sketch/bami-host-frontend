@@ -53,6 +53,9 @@ export const EstateDetailPage = () => {
   const [tenantType, setTenantType] = useState<'new' | 'existing' | 'renewal' | 'transfer'>('new');
   const [entryDate, setEntryDate] = useState('');
   const [durationMonths, setDurationMonths] = useState('');
+  const [nextDueDate, setNextDueDate] = useState('');
+  const [outstandingRent, setOutstandingRent] = useState('');
+  const [outstandingServiceCharge, setOutstandingServiceCharge] = useState('');
 
   // Quarterly rent filters
   const currentYear = new Date().getFullYear();
@@ -108,8 +111,11 @@ export const EstateDetailPage = () => {
 
   const submitTenant = async () => {
     if (!estateId || !tenantName.trim() || !selectedUnitId) return;
+    const isExisting = tenantType !== 'new';
     try {
       const duration = Number(durationMonths);
+      const rent_outstanding = Number(outstandingRent) > 0 ? Number(outstandingRent) : undefined;
+      const sc_outstanding = Number(outstandingServiceCharge) > 0 ? Number(outstandingServiceCharge) : undefined;
       await createTenant({
         estateId, body: {
           unitId: selectedUnitId,
@@ -119,12 +125,16 @@ export const EstateDetailPage = () => {
           tenantType,
           entryDate: entryDate || undefined,
           durationMonths: Number.isFinite(duration) && duration > 0 ? duration : undefined,
-          // nextDueDate will be computed by the backend when durationMonths is provided
+          nextDueDate: isExisting && nextDueDate ? nextDueDate : undefined,
+          rentOutstanding: rent_outstanding,
+          serviceChargeOutstanding: sc_outstanding,
         }
       }).unwrap();
       toast({ title: 'Tenant added' });
       setAddOpen(false);
-      setSelectedUnitId(''); setTenantName(''); setTenantEmail(''); setTenantPhone(''); setTenantType('new'); setEntryDate(''); setDurationMonths('');
+      setSelectedUnitId(''); setTenantName(''); setTenantEmail(''); setTenantPhone('');
+      setTenantType('new'); setEntryDate(''); setDurationMonths('');
+      setNextDueDate(''); setOutstandingRent(''); setOutstandingServiceCharge('');
     } catch (e) {
       toast({ title: 'Failed to add tenant', variant: 'destructive' });
     }
@@ -441,7 +451,10 @@ export const EstateDetailPage = () => {
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label>Entry date</Label>
+                      <Label>{tenantType !== 'new' ? 'Original move-in date' : 'Entry date'}</Label>
+                      {tenantType !== 'new' && (
+                        <p className="text-xs text-muted-foreground -mt-1">Use the date they first moved in, so rent increase cycles calculate correctly.</p>
+                      )}
                       <Input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
@@ -456,7 +469,41 @@ export const EstateDetailPage = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {tenantType !== 'new' && (
+                      <>
+                        <div className="grid gap-2">
+                          <Label>Next due date</Label>
+                          <p className="text-xs text-muted-foreground -mt-1">When their next rent payment falls due (prevents overdue status).</p>
+                          <Input type="date" value={nextDueDate} onChange={(e) => setNextDueDate(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Outstanding rent (₦)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={outstandingRent}
+                            onChange={(e) => setOutstandingRent(e.target.value)}
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Outstanding service charge (₦)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={outstandingServiceCharge}
+                            onChange={(e) => setOutstandingServiceCharge(e.target.value)}
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
+                  {tenantType !== 'new' && (
+                    <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                      <strong>Existing tenant checklist:</strong> Set the unit's base price to the tenant's <em>original</em> rent (before any 26% increases) so future rent increase calculations stay accurate. Set "Next due date" to when their next payment is actually due — leaving it blank will default to the move-in date and may show the tenant as overdue immediately.
+                    </div>
+                  )}
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button>
                     <Button onClick={submitTenant} disabled={creating}>
@@ -548,6 +595,11 @@ export const EstateDetailPage = () => {
                             <span className="text-sm font-semibold">
                               {total > 0 ? `₦${total.toLocaleString()}` : '—'}
                             </span>
+                            {((t.rentOutstanding ?? 0) + (t.serviceChargeOutstanding ?? 0)) > 0 && (
+                              <div className="text-xs text-destructive font-medium mt-0.5">
+                                ₦{((t.rentOutstanding ?? 0) + (t.serviceChargeOutstanding ?? 0)).toLocaleString()} outstanding
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>{statusBadge}</TableCell>
                           <TableCell>

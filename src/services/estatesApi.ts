@@ -625,6 +625,9 @@ export interface CreateTenantPayload {
   durationMonths?: number; // how many months until next rent is due
   // nextDueDate is now computed by the backend when durationMonths is provided
   nextDueDate?: string; // ISO YYYY-MM-DD (optional override if durationMonths is not provided)
+  // Existing tenant fields — outstanding balances carried over into the system
+  rentOutstanding?: number;
+  serviceChargeOutstanding?: number;
 }
 
 
