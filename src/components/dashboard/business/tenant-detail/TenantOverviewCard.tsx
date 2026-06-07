@@ -63,6 +63,19 @@ export const TenantOverviewCard = ({ overview, tenant }: TenantOverviewCardProps
             <div className="font-medium font-mono">{overview?.meter || tenant?.electricMeterNumber || '—'}</div>
           </div>
         </div>
+        {((tenant?.rentOutstanding ?? 0) + (tenant?.serviceChargeOutstanding ?? 0)) > 0 && (
+          <div className="mt-4 rounded-md bg-red-500/20 border border-red-400/40 px-3 py-2">
+            <div className="text-xs text-red-100 uppercase tracking-wider font-semibold mb-1">Outstanding Balance</div>
+            <div className="flex flex-wrap gap-4 text-sm text-white">
+              {(tenant?.rentOutstanding ?? 0) > 0 && (
+                <span>Rent: <strong>₦{(tenant.rentOutstanding).toLocaleString()}</strong></span>
+              )}
+              {(tenant?.serviceChargeOutstanding ?? 0) > 0 && (
+                <span>Service charge: <strong>₦{(tenant.serviceChargeOutstanding).toLocaleString()}</strong></span>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

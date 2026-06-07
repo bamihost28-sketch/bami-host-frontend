@@ -109,10 +109,11 @@ export interface Tenant {
   email?: string;
   tenantEmail?: string;  // Legacy field
   whatsapp?: string;
-  tenantPhone?: string;  // Legacy field  
+  tenantPhone?: string;  // Legacy field
   whatsappNumber?: string;  // Legacy field
   rentAmount?: number;
   serviceChargeMonthly?: number;
+  serviceChargeAmount?: number;
   cautionFee?: number;
   legalFee?: number;
   tenantType?: 'new' | 'existing' | 'renewal' | 'transfer';
@@ -122,6 +123,8 @@ export interface Tenant {
   entryDate?: string;
   createdAt?: string;
   estate?: { _id: string; name: string; id: string };
+  rentOutstanding?: number;
+  serviceChargeOutstanding?: number;
 }
 
 export interface TenantHistoryEntry {
@@ -448,6 +451,8 @@ export interface TenantDashboardOverviewResponse {
         status: string;
         tenantType?: string;
         meterNumber?: string;
+        rentOutstanding?: number;
+        serviceChargeOutstanding?: number;
       };
       billing: {
         totalPending: number;

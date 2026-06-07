@@ -463,6 +463,21 @@ export const TenantDashboard: React.FC = () => {
                 tenantInfo={tenantInfo}
                 daysUntilRentDue={daysUntilRentDue}
               />
+              {((apiApartment?.rentOutstanding ?? 0) + (apiApartment?.serviceChargeOutstanding ?? 0)) > 0 && (
+                <Alert className="mb-4 border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  <AlertTitle className="text-red-800 dark:text-red-300 font-semibold">Outstanding Balance</AlertTitle>
+                  <AlertDescription className="text-red-700 dark:text-red-400 text-sm space-y-1">
+                    {(apiApartment?.rentOutstanding ?? 0) > 0 && (
+                      <div>Rent: <strong>{formatCurrency(apiApartment!.rentOutstanding!)}</strong></div>
+                    )}
+                    {(apiApartment?.serviceChargeOutstanding ?? 0) > 0 && (
+                      <div>Service charge: <strong>{formatCurrency(apiApartment!.serviceChargeOutstanding!)}</strong></div>
+                    )}
+                    <div className="mt-1 text-xs opacity-80">Please contact the estate office or pay via the Billing tab to clear this balance.</div>
+                  </AlertDescription>
+                </Alert>
+              )}
               
               <WalletBalanceCard
                 balance={walletBalance}
