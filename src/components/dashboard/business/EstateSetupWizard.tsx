@@ -788,7 +788,6 @@ export const EstateSetupWizard = ({ open, onOpenChange }: EstateSetupWizardProps
                 <SelectContent>
                   <SelectItem value="new">New</SelectItem>
                   <SelectItem value="existing">Existing</SelectItem>
-                  <SelectItem value="renewal">Renewal</SelectItem>
                   <SelectItem value="transfer">Transfer</SelectItem>
                 </SelectContent>
               </Select>

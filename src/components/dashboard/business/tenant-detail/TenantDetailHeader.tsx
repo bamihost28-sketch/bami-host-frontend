@@ -25,7 +25,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
-  const [editType, setEditType] = useState<'new' | 'existing' | 'renewal' | 'transfer'>('new');
+  const [editType, setEditType] = useState<'new' | 'existing' | 'transfer'>('new');
   const [editEntryDate, setEditEntryDate] = useState('');
 
   // Edit Fees state

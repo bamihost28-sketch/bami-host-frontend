@@ -50,7 +50,7 @@ export const EstateDetailPage = () => {
   const [tenantName, setTenantName] = useState('');
   const [tenantEmail, setTenantEmail] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
-  const [tenantType, setTenantType] = useState<'new' | 'existing' | 'renewal' | 'transfer'>('new');
+  const [tenantType, setTenantType] = useState<'new' | 'existing' | 'transfer'>('new');
   const [entryDate, setEntryDate] = useState('');
   const [durationMonths, setDurationMonths] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
@@ -438,14 +438,13 @@ export const EstateDetailPage = () => {
                     </div>
                     <div className="grid gap-2">
                       <Label>Tenant type</Label>
-                      <Select value={tenantType} onValueChange={(v: 'new' | 'existing' | 'renewal' | 'transfer') => setTenantType(v)}>
+                      <Select value={tenantType} onValueChange={(v: 'new' | 'existing' | 'transfer') => setTenantType(v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="new">New</SelectItem>
                           <SelectItem value="existing">Existing</SelectItem>
-                          <SelectItem value="renewal">Renewal</SelectItem>
                           <SelectItem value="transfer">Transfer</SelectItem>
                         </SelectContent>
                       </Select>

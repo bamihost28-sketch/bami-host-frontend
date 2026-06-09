@@ -37,7 +37,8 @@
     ],
     "additionalDirectories": [
       "/Users/temple/Documents/Bami/BamiHustle-backend/controllers",
-      "/Users/temple/Documents/Bami/BamiHustle-backend/routes"
+      "/Users/temple/Documents/Bami/BamiHustle-backend/routes",
+      "/Users/temple/Documents/Bami/BamiHustle-backend/models"
     ]
   }
 }

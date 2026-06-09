@@ -116,7 +116,7 @@ export interface Tenant {
   serviceChargeAmount?: number;
   cautionFee?: number;
   legalFee?: number;
-  tenantType?: 'new' | 'existing' | 'renewal' | 'transfer';
+  tenantType?: 'new' | 'existing' | 'transfer';
   electricMeterNumber?: string;
   status?: 'occupied' | 'vacant' | 'maintenance';
   nextDueDate?: string;
@@ -316,7 +316,7 @@ export interface TenantOverview {
   legalFee?: number;             // unit.legalFee
   nextDue?: string;
   meter?: string;
-  type?: 'new' | 'existing' | 'renewal' | 'transfer';
+  type?: 'new' | 'existing' | 'transfer';
   typeBadge?: string;
   status?: string;
   rentIncreased?: boolean;
@@ -625,7 +625,7 @@ export interface CreateTenantPayload {
   tenantName: string;
   tenantEmail?: string;
   tenantPhone?: string;
-  tenantType?: 'new' | 'existing' | 'renewal' | 'transfer';
+  tenantType?: 'new' | 'existing' | 'transfer';
   entryDate?: string; // ISO YYYY-MM-DD (when tenant moves in)
   durationMonths?: number; // how many months until next rent is due
   // nextDueDate is now computed by the backend when durationMonths is provided
