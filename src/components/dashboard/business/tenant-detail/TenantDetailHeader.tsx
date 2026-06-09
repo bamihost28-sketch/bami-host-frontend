@@ -27,6 +27,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   const [editPhone, setEditPhone] = useState('');
   const [editType, setEditType] = useState<'new' | 'existing' | 'transfer'>('new');
   const [editEntryDate, setEditEntryDate] = useState('');
+  const [editNextDueDate, setEditNextDueDate] = useState('');
 
   // Edit Fees state
   const [editFeesOpen, setEditFeesOpen] = useState(false);
@@ -48,13 +49,23 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
       if (entryDate) {
         const dateObj = new Date(entryDate);
         if (!Number.isNaN(dateObj.getTime())) {
-          const isoString = dateObj.toISOString().split('T')[0];
-          setEditEntryDate(isoString);
+          setEditEntryDate(dateObj.toISOString().split('T')[0]);
         } else {
           setEditEntryDate(entryDate);
         }
       } else {
         setEditEntryDate('');
+      }
+      const nextDueDate = (tenant as any).nextDueDate || '';
+      if (nextDueDate) {
+        const dateObj = new Date(nextDueDate);
+        if (!Number.isNaN(dateObj.getTime())) {
+          setEditNextDueDate(dateObj.toISOString().split('T')[0]);
+        } else {
+          setEditNextDueDate(nextDueDate);
+        }
+      } else {
+        setEditNextDueDate('');
       }
     }
   };
@@ -143,17 +154,24 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-entry-date">Entry Date</Label>
-                <Input 
+                <Label htmlFor="edit-entry-date">Original move-in date</Label>
+                <Input
                   id="edit-entry-date"
                   type="date"
-                  disabled={false}
-                  value={editEntryDate} 
-                  onChange={(e) => setEditEntryDate(e.target.value)} 
+                  value={editEntryDate}
+                  onChange={(e) => setEditEntryDate(e.target.value)}
                 />
               </div>
-
-
+              <div className="grid gap-2">
+                <Label htmlFor="edit-next-due-date">Next due date</Label>
+                <Input
+                  id="edit-next-due-date"
+                  type="date"
+                  value={editNextDueDate}
+                  onChange={(e) => setEditNextDueDate(e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground -mt-1">The date the tenant's next rent payment is due. Correcting this fixes the Current/Renewal Year cards.</p>
+              </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="ghost" onClick={() => setEditTenantOpen(false)}>Cancel</Button>
@@ -169,11 +187,13 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
                       tenantType: editType,
                     };
                     
-                    // Add entry date if provided, formatted as DD/MM/YYYY
                     if (editEntryDate) {
                       payload.entryDate = formatDateToDDMMYYYY(editEntryDate);
                     }
-                    
+                    if (editNextDueDate) {
+                      payload.nextDueDate = formatDateToDDMMYYYY(editNextDueDate);
+                    }
+
                     await updateTenant(payload).unwrap();
                     toast({ title: 'Tenant updated' });
                     setEditTenantOpen(false);
