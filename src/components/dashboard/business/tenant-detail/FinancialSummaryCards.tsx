@@ -79,23 +79,37 @@ export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSum
         </CardContent>
       </Card>
 
-      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:shadow-lg transition-shadow border-l-4 border-l-amber-500">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Next Due Date</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-white mt-1">
-                {formatDate((overview as any)?.nextDue || tenant?.nextDueDate)}
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {(() => {
+        const nextDue = (overview as any)?.nextDue || tenant?.nextDueDate;
+        const arrearsMonths: number = (overview as any)?.arrearsMonths ?? 0;
+        const isOverdue = nextDue && new Date(nextDue) < new Date() && arrearsMonths > 0;
+        return (
+          <Card className={`bg-white dark:bg-slate-900 hover:shadow-lg transition-shadow border-l-4 ${isOverdue ? 'border-l-red-500 border-red-200 dark:border-red-800' : 'border-l-amber-500 border-slate-200 dark:border-slate-800'}`}>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-xs font-medium uppercase tracking-wider ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    {isOverdue ? 'Overdue Since' : 'Next Due Date'}
+                  </p>
+                  <p className={`text-lg font-bold mt-1 ${isOverdue ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
+                    {formatDate(nextDue)}
+                  </p>
+                  {isOverdue && (
+                    <p className="text-xs text-red-500 dark:text-red-400 font-medium mt-0.5">
+                      {arrearsMonths} month{arrearsMonths !== 1 ? 's' : ''} overdue
+                    </p>
+                  )}
+                </div>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isOverdue ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}`}>
+                  <svg className={`w-5 h-5 ${isOverdue ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <Card className="bg-gradient-to-br from-slate-800 to-slate-900 dark:from-slate-800 dark:to-black border-0 shadow-lg">
         <CardContent className="pt-4 pb-4">
@@ -155,6 +169,34 @@ export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSum
           </div>
         </CardContent>
       </Card>
+
+      {(overview as any)?.hasOutstanding && (
+        <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-red-500 dark:text-red-400 uppercase tracking-wider">Outstanding Balance</p>
+                <p className="text-xl font-bold text-red-700 dark:text-red-300 mt-1">
+                  ₦{((overview as any).totalOutstanding ?? 0).toLocaleString()}
+                </p>
+                <div className="text-xs text-red-500 dark:text-red-400 mt-0.5 space-y-0.5">
+                  {(overview as any)?.rentOutstanding > 0 && (
+                    <div>Rent: ₦{(overview as any).rentOutstanding.toLocaleString()}</div>
+                  )}
+                  {(overview as any)?.serviceChargeOutstanding > 0 && (
+                    <div>Service: ₦{(overview as any).serviceChargeOutstanding.toLocaleString()}</div>
+                  )}
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {year1 && (
         <Card className="bg-gradient-to-br from-teal-600 to-teal-700 dark:from-teal-700 dark:to-teal-900 border-0 shadow-lg">

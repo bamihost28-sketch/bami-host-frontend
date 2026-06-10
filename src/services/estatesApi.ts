@@ -118,13 +118,24 @@ export interface Tenant {
   legalFee?: number;
   tenantType?: 'new' | 'existing' | 'transfer';
   electricMeterNumber?: string;
-  status?: 'occupied' | 'vacant' | 'maintenance';
+  status?: 'occupied' | 'vacant' | 'maintenance' | 'pending' | 'evicted';
   nextDueDate?: string;
   entryDate?: string;
   createdAt?: string;
   estate?: { _id: string; name: string; id: string };
   rentOutstanding?: number;
   serviceChargeOutstanding?: number;
+  // Computed fields from list endpoint
+  currentEffectiveRent?: number;
+  currentEffectiveService?: number;
+  isRentIncreased?: boolean;
+  isServiceIncreased?: boolean;
+  totalMonthlyFees?: number;
+  totalOutstanding?: number;
+  hasOutstanding?: boolean;
+  arrearsMonths?: number;
+  daysUntilDue?: number | null;
+  statusColor?: string;
 }
 
 export interface TenantHistoryEntry {
@@ -309,8 +320,13 @@ export interface TenantOverview {
   phone?: string;
   whatsapp?: string;
   // Pricing breakdown
-  rent?: number;                 // tenant.rentAmount (what you actually charge this tenant)
+  rent?: number;                 // current calculated rent (after increases)
+  storedRent?: number;           // original base rent
+  rentIncreased?: boolean;
   unitMonthlyPrice?: number;     // unit.monthlyPrice (base unit price)
+  serviceCharge?: number;
+  storedServiceCharge?: number;
+  serviceChargeIncreased?: boolean;
   serviceChargeMonthly?: number; // unit.serviceChargeMonthly
   cautionFee?: number;           // unit.cautionFee
   legalFee?: number;             // unit.legalFee
@@ -319,11 +335,12 @@ export interface TenantOverview {
   type?: 'new' | 'existing' | 'transfer';
   typeBadge?: string;
   status?: string;
-  rentIncreased?: boolean;
-  storedRent?: number;
-  serviceCharge?: number;
-  storedServiceCharge?: number;
-  serviceChargeIncreased?: boolean;
+  // Outstanding balances
+  rentOutstanding?: number;
+  serviceChargeOutstanding?: number;
+  totalOutstanding?: number;
+  hasOutstanding?: boolean;
+  arrearsMonths?: number;
 }
 
 export interface TenantDetailResponse {

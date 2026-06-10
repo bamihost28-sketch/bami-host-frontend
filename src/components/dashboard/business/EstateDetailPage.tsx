@@ -551,12 +551,19 @@ export const EstateDetailPage = () => {
 
                       const statusBadge = status === 'occupied'
                         ? <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0 font-medium">Occupied</Badge>
+                        : status === 'evicted'
+                        ? <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border-0 font-medium">Evicted</Badge>
+                        : status === 'pending'
+                        ? <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-0 font-medium">Pending</Badge>
                         : status === 'maintenance'
                         ? <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-0 font-medium">Maintenance</Badge>
                         : <Badge variant="secondary">{status || '—'}</Badge>;
 
-                      const dueDate = t.nextDueDate ? new Date(t.nextDueDate) : null;
-                      const isOverdue = dueDate && dueDate < new Date();
+                      // Use backend-computed daysUntilDue (includes projection logic) rather than
+                      // recomputing from raw nextDueDate which doesn't account for legacy onboarding dates.
+                      const daysUntilDue = t.daysUntilDue ?? null;
+                      const isOverdue = daysUntilDue !== null && daysUntilDue < 0;
+                      const arrearsMonths = t.arrearsMonths ?? 0;
 
                       return (
                         <TableRow key={id} className="group">
@@ -594,18 +601,22 @@ export const EstateDetailPage = () => {
                             <span className="text-sm font-semibold">
                               {total > 0 ? `₦${total.toLocaleString()}` : '—'}
                             </span>
-                            {((t.rentOutstanding ?? 0) + (t.serviceChargeOutstanding ?? 0)) > 0 && (
+                            {(t.totalOutstanding ?? (t.rentOutstanding ?? 0) + (t.serviceChargeOutstanding ?? 0)) > 0 && (
                               <div className="text-xs text-destructive font-medium mt-0.5">
-                                ₦{((t.rentOutstanding ?? 0) + (t.serviceChargeOutstanding ?? 0)).toLocaleString()} outstanding
+                                ₦{(t.totalOutstanding ?? (t.rentOutstanding ?? 0) + (t.serviceChargeOutstanding ?? 0)).toLocaleString()} outstanding
                               </div>
                             )}
                           </TableCell>
                           <TableCell>{statusBadge}</TableCell>
                           <TableCell>
-                            {dueDate ? (
+                            {t.nextDueDate ? (
                               <div className={isOverdue ? 'text-destructive' : 'text-foreground'}>
                                 <div className="text-sm font-medium">{formatDate(t.nextDueDate)}</div>
-                                {isOverdue && <div className="text-xs font-medium">Overdue</div>}
+                                {isOverdue && (
+                                  <div className="text-xs font-medium">
+                                    {arrearsMonths > 0 ? `${arrearsMonths} month${arrearsMonths !== 1 ? 's' : ''} overdue` : 'Overdue'}
+                                  </div>
+                                )}
                               </div>
                             ) : '—'}
                           </TableCell>
