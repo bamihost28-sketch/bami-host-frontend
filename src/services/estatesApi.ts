@@ -250,7 +250,7 @@ export interface ConditionReport {
   tenant?: { _id: string; unitLabel?: string; tenantName?: string };
 }
 
-// Admin payments
+// Admin payments (GET /api/payments — has embedded tenant/estate per record)
 export interface AdminPaymentRecord {
   paymentId: string;
   reference: string;
@@ -264,6 +264,22 @@ export interface AdminPaymentRecord {
   estate: { id: string; name: string };
   recordedBy?: { id: string; name: string };
   description?: string;
+}
+
+// Tenant payment history (GET /api/payments/tenant/:id — no embedded tenant/estate per record)
+export interface TenantPaymentRecord {
+  paymentId: string;
+  reference: string | null;
+  amount: number;
+  paymentType: string;
+  paymentMethod: string;
+  status: string;
+  description: string | null;
+  isDeposit: boolean;
+  recordedBy: { id: string; name: string; email: string } | null;
+  paymentDate: string;
+  createdAt: string;
+  notes: string | null;
 }
 
 export interface AdminPaymentsSummary {
@@ -871,7 +887,7 @@ export const estatesApi = createApi({
       },
     }),
     getMyPaymentHistory: builder.query<
-      { success: boolean; data: AdminPaymentRecord[]; pagination: { currentPage: number; totalPages: number; totalItems: number; limit: number } },
+      { success: boolean; data: TenantPaymentRecord[]; pagination: { currentPage: number; totalPages: number; totalItems: number; limit: number } },
       { tenantId: string; page?: number; limit?: number }
     >({
       query: ({ tenantId, ...params }) => ({ url: `/api/payments/tenant/${tenantId}`, params }),
@@ -922,7 +938,10 @@ export const estatesApi = createApi({
         method: 'POST',
         body
       }),
-      invalidatesTags: (result, error) => [{ type: 'Tenant', id: 'ME' }],
+      invalidatesTags: () => [
+        { type: 'Tenant', id: 'ME' },
+        { type: 'Payment', id: 'TENANT' },
+      ],
     }),
     // Vacant units for an estate
     getEstateVacantUnits: builder.query<{ success: boolean; data: { unitId: string; label: string; monthlyPrice: number; meterNumber?: string; status?: string; description?: string }[]; total?: number }, string>({

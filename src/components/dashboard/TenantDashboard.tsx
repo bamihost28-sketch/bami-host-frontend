@@ -17,7 +17,7 @@ import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, Credi
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetMyPaymentHistoryQuery, useGetIssuesQuery } from "@/services/estatesApi";
+import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetMyPaymentHistoryQuery, useGetIssuesQuery, type TenantPaymentRecord } from "@/services/estatesApi";
 import {
   useGetWalletBalanceQuery,
   useDepositMutation,
@@ -380,7 +380,7 @@ export const TenantDashboard: React.FC = () => {
       : []),
   ];
 
-  const allBillingItems = [...recurringItems, ...oneTimeItems, ...outstandingItems];
+  const allBillingItems = [...recurringItems, ...oneTimeItems, ...outstandingItems, ...utilityItems];
 
   const isInitialPaymentLocked = !!billingSummary?.requiresInitialPayment;
 
@@ -1000,19 +1000,39 @@ export const TenantDashboard: React.FC = () => {
                     Utility Bills
                   </h3>
                   <div className="space-y-2">
-                    {utilityItems.map(item => (
-                      <div key={item.code} className={`flex items-center justify-between p-4 border rounded-lg ${item.isOverdue ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800' : 'bg-orange-50 dark:bg-orange-900/10'}`}>
-                        <div>
-                          <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
-                          {item.isOverdue ? (
-                            <p className="text-xs text-red-600 dark:text-red-400">{item.daysOverdue}d overdue</p>
-                          ) : item.daysUntilDue !== null && item.daysUntilDue !== undefined ? (
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Due in {item.daysUntilDue}d</p>
-                          ) : null}
+                    {utilityItems.map(item => {
+                      const isChecked = selectedBillingItems.includes(item.code);
+                      return (
+                        <div
+                          key={item.code}
+                          className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
+                            isChecked
+                              ? "border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20"
+                              : item.isOverdue
+                              ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800"
+                              : "bg-orange-50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20"
+                          }`}
+                          onClick={() => handleSelectBillingItem(item.code)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={() => handleSelectBillingItem(item.code)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div>
+                              <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
+                              {item.isOverdue ? (
+                                <p className="text-xs text-red-600 dark:text-red-400">{item.daysOverdue}d overdue</p>
+                              ) : item.daysUntilDue !== null && item.daysUntilDue !== undefined ? (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Due in {item.daysUntilDue}d</p>
+                              ) : null}
+                            </div>
+                          </div>
+                          <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(item.amount)}</p>
                         </div>
-                        <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(item.amount)}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1102,14 +1122,14 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
-              {selectedBillingItems.length === 0 && recurringItems.length === 0 && oneTimeItems.length === 0 && outstandingItems.length === 0 && (
+              {selectedBillingItems.length === 0 && recurringItems.length === 0 && oneTimeItems.length === 0 && outstandingItems.length === 0 && utilityItems.length === 0 && (
                 <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                   <Receipt className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>No billing items available</p>
                 </div>
               )}
 
-              {selectedBillingItems.length === 0 && (recurringItems.length > 0 || oneTimeItems.length > 0 || outstandingItems.length > 0) && (
+              {selectedBillingItems.length === 0 && (recurringItems.length > 0 || oneTimeItems.length > 0 || outstandingItems.length > 0 || utilityItems.length > 0) && (
                 <div className="text-center py-5 text-slate-400 dark:text-slate-500 border-t">
                   <p className="text-sm">Select items above to proceed with payment</p>
                 </div>
