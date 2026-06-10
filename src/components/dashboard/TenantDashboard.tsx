@@ -695,7 +695,9 @@ export const TenantDashboard: React.FC = () => {
                       )}
                     </div>
                     <div className="border-t border-green-200 dark:border-green-800 pt-2 flex justify-between">
-                      <span className="font-semibold text-slate-900 dark:text-white">Total Paid</span>
+                      <span className="font-semibold text-slate-900 dark:text-white">
+                        {(apiYearlyPayment.currentYear.outstanding ?? 0) > 0 ? "Paid So Far" : "Total Paid"}
+                      </span>
                       <span className="font-bold text-green-700 dark:text-green-400 text-lg">
                         {formatCurrency(apiYearlyPayment.currentYear.paid?.total ?? apiYearlyPayment.currentYear.totalPaid ?? 0)}
                       </span>
@@ -1069,6 +1071,7 @@ export const TenantDashboard: React.FC = () => {
                       selectedItems={selectedBillingItems}
                       allItems={billingItemsForPayment}
                       totalAmount={calculateSelectedTotal()}
+                      rentMonths={rentPaymentMonths}
                     />
                   )}
 

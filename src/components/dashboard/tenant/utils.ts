@@ -6,8 +6,11 @@ export const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-export const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-NG", {
+export const formatDate = (dateString?: string | null) => {
+  if (!dateString) return "—";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-NG", {
     year: "numeric",
     month: "long",
     day: "numeric"
