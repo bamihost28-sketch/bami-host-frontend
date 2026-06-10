@@ -172,7 +172,11 @@ export const TenantDashboard: React.FC = () => {
 
   const displayName = tenantInfo?.name || authUser?.name || "Valued Tenant";
   const firstName = displayName?.split(" ")[0] || "Valued";
-  const daysUntilRentDue = tenantInfo?.nextPaymentDue 
+  // Prefer billing endpoint's daysUntilDue (already accounts for projection logic).
+  // Fall back to computing from nextPaymentDue only when billing data isn't loaded yet.
+  const daysUntilRentDue = billingSummary?.daysUntilDue !== undefined && billingSummary.daysUntilDue !== null
+    ? billingSummary.daysUntilDue
+    : tenantInfo?.nextPaymentDue
     ? Math.ceil((new Date(tenantInfo.nextPaymentDue).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : 30;
 
@@ -508,7 +512,15 @@ export const TenantDashboard: React.FC = () => {
                     <CardDescription>{apiApartment.estate}{apiApartment.estateAddress ? ` · ${apiApartment.estateAddress}` : ""}</CardDescription>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 capitalize">
+                    <Badge className={
+                      apiApartment.status === 'evicted'
+                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 capitalize"
+                        : apiApartment.status === 'pending'
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 capitalize"
+                        : apiApartment.status === 'occupied'
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 capitalize"
+                        : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 capitalize"
+                    }>
                       {apiApartment.status}
                     </Badge>
                     {apiApartment.tenantType && (
