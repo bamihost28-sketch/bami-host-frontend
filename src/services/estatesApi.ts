@@ -195,20 +195,38 @@ export interface TenantBillingResponse {
         status: string;
       }[];
       utilityBills: {
+        id: string;
+        code: string;
         label: string;
         amount: number;
+        dueDate?: string;
+        isPaid: boolean;
         isOverdue: boolean;
         daysOverdue: number;
+        daysUntilDue: number | null;
+        isRecurring: boolean;
+        frequency: string;
+        description?: string;
       }[];
     };
     summary: {
       recurringMonthly: number;
       oneTimeUnpaid: number;
       utilityUnpaid: number;
+      onboardingOutstanding: number;
       totalOutstanding: number;
       overdueAmount: number;
       isOverdue: boolean;
       daysUntilDue: number | null;
+      requiresInitialPayment: boolean;
+      initialPayment: {
+        rent12Months: number;
+        serviceCharge12Months: number;
+        cautionFee: number;
+        legalFee: number;
+        total: number;
+        note: string;
+      } | null;
     };
   };
 }
@@ -458,7 +476,7 @@ export interface TenantDashboardOverviewResponse {
           laundry?: boolean;
         };
         features?: string[];
-        images?: string[];
+        images?: { url: string; caption: string | null }[];
         estate: string;
         estateAddress?: string | null;
         rentAmount: number;

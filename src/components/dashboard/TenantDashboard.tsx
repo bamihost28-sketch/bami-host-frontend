@@ -96,7 +96,6 @@ export const TenantDashboard: React.FC = () => {
   const apiBilling = overviewData?.data?.data?.billing;
   const apiYearlyPayment = overviewData?.data?.data?.yearlyPayment;
   const apiWallet = overviewData?.data?.data?.wallet;
-  const apiPayments = overviewData?.data?.data?.payments;
 
   // Normalize billing response into a flat shape for the UI
   const charges = billingData?.data?.charges;
@@ -122,14 +121,17 @@ export const TenantDashboard: React.FC = () => {
       frequency: "once",
     }));
 
-  const utilityItems = (charges?.utilityBills || []).map((item, i) => ({
-    code: `utility_${i}`,
-    label: item.label,
-    amount: item.amount,
-    frequency: "once",
-    isOverdue: item.isOverdue,
-    daysOverdue: item.daysOverdue,
-  }));
+  const utilityItems = (charges?.utilityBills || [])
+    .filter(item => !item.isPaid)
+    .map((item, i) => ({
+      code: item.id || `utility_${i}`,
+      label: item.label,
+      amount: item.amount,
+      frequency: item.frequency || "once",
+      isOverdue: item.isOverdue,
+      daysOverdue: item.daysOverdue,
+      daysUntilDue: item.daysUntilDue,
+    }));
 
   // Get Wallet Data from API — prefer live query, fall back to overview balance instantly
   const walletData = walletResponse?.data;
@@ -799,41 +801,54 @@ export const TenantDashboard: React.FC = () => {
 
           {/* Summary Stats */}
           {billingSummary && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4">
-                <p className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wide">Monthly Recurring</p>
-                <p className="text-xl font-bold text-blue-900 dark:text-blue-100 mt-1">{formatCurrency(billingSummary.recurringMonthly)}</p>
-                <p className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5">per month</p>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4">
+                  <p className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wide">Monthly Recurring</p>
+                  <p className="text-xl font-bold text-blue-900 dark:text-blue-100 mt-1">{formatCurrency(billingSummary.recurringMonthly)}</p>
+                  <p className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5">per month</p>
+                </div>
+                <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 p-4">
+                  <p className="text-[11px] text-orange-600 dark:text-orange-400 font-semibold uppercase tracking-wide">One-Time Fees</p>
+                  <p className="text-xl font-bold text-orange-900 dark:text-orange-100 mt-1">{formatCurrency(billingSummary.oneTimeUnpaid)}</p>
+                  <p className="text-[11px] text-orange-500 dark:text-orange-400 mt-0.5">unpaid</p>
+                </div>
+                <div className="rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 p-4">
+                  <p className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wide">Utility Bills</p>
+                  <p className="text-xl font-bold text-purple-900 dark:text-purple-100 mt-1">{formatCurrency(billingSummary.utilityUnpaid)}</p>
+                  <p className="text-[11px] text-purple-500 dark:text-purple-400 mt-0.5">outstanding</p>
+                </div>
+                <div className={`rounded-lg border p-4 ${
+                  billingSummary.isOverdue
+                    ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                    : "bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800"
+                }`}>
+                  <p className={`text-[11px] font-semibold uppercase tracking-wide ${
+                    billingSummary.isOverdue ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+                  }`}>Total Outstanding</p>
+                  <p className={`text-xl font-bold mt-1 ${
+                    billingSummary.isOverdue ? "text-red-900 dark:text-red-100" : "text-green-900 dark:text-green-100"
+                  }`}>{formatCurrency(billingSummary.totalOutstanding)}</p>
+                  {billingSummary.isOverdue ? (
+                    <p className="text-[11px] text-red-500 dark:text-red-400 mt-0.5">Overdue: {formatCurrency(billingSummary.overdueAmount)}</p>
+                  ) : billingSummary.daysUntilDue !== null ? (
+                    <p className="text-[11px] text-green-500 dark:text-green-400 mt-0.5">Due in {billingSummary.daysUntilDue}d</p>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 mt-0.5">No due date yet</p>
+                  )}
+                </div>
               </div>
-              <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 p-4">
-                <p className="text-[11px] text-orange-600 dark:text-orange-400 font-semibold uppercase tracking-wide">One-Time Fees</p>
-                <p className="text-xl font-bold text-orange-900 dark:text-orange-100 mt-1">{formatCurrency(billingSummary.oneTimeUnpaid)}</p>
-                <p className="text-[11px] text-orange-500 dark:text-orange-400 mt-0.5">unpaid</p>
-              </div>
-              <div className="rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 p-4">
-                <p className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold uppercase tracking-wide">Utility Bills</p>
-                <p className="text-xl font-bold text-purple-900 dark:text-purple-100 mt-1">{formatCurrency(billingSummary.utilityUnpaid)}</p>
-                <p className="text-[11px] text-purple-500 dark:text-purple-400 mt-0.5">outstanding</p>
-              </div>
-              <div className={`rounded-lg border p-4 ${
-                billingSummary.isOverdue
-                  ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                  : "bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800"
-              }`}>
-                <p className={`text-[11px] font-semibold uppercase tracking-wide ${
-                  billingSummary.isOverdue ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
-                }`}>Total Outstanding</p>
-                <p className={`text-xl font-bold mt-1 ${
-                  billingSummary.isOverdue ? "text-red-900 dark:text-red-100" : "text-green-900 dark:text-green-100"
-                }`}>{formatCurrency(billingSummary.totalOutstanding)}</p>
-                {billingSummary.isOverdue ? (
-                  <p className="text-[11px] text-red-500 dark:text-red-400 mt-0.5">Overdue: {formatCurrency(billingSummary.overdueAmount)}</p>
-                ) : billingSummary.daysUntilDue !== null ? (
-                  <p className="text-[11px] text-green-500 dark:text-green-400 mt-0.5">Due in {billingSummary.daysUntilDue}d</p>
-                ) : (
-                  <p className="text-[11px] text-slate-400 mt-0.5">No due date yet</p>
-                )}
-              </div>
+
+              {/* Arrears banner — shown when tenant has unpaid balance from before current cycle */}
+              {(billingSummary.onboardingOutstanding ?? 0) > 0 && (
+                <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Arrears Balance</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Unpaid balance carried over from a previous period. Contact the estate office to resolve.</p>
+                  </div>
+                  <p className="text-lg font-bold text-amber-800 dark:text-amber-300 shrink-0">{formatCurrency(billingSummary.onboardingOutstanding)}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -1009,12 +1024,14 @@ export const TenantDashboard: React.FC = () => {
                   </h3>
                   <div className="space-y-2">
                     {utilityItems.map(item => (
-                      <div key={item.code} className="flex items-center justify-between p-4 border rounded-lg bg-orange-50 dark:bg-orange-900/10">
+                      <div key={item.code} className={`flex items-center justify-between p-4 border rounded-lg ${item.isOverdue ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800' : 'bg-orange-50 dark:bg-orange-900/10'}`}>
                         <div>
                           <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
-                          {item.isOverdue && (
-                            <p className="text-xs text-red-600">{item.daysOverdue}d overdue</p>
-                          )}
+                          {item.isOverdue ? (
+                            <p className="text-xs text-red-600 dark:text-red-400">{item.daysOverdue}d overdue</p>
+                          ) : item.daysUntilDue !== null && item.daysUntilDue !== undefined ? (
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Due in {item.daysUntilDue}d</p>
+                          ) : null}
                         </div>
                         <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(item.amount)}</p>
                       </div>
@@ -1190,11 +1207,15 @@ export const TenantDashboard: React.FC = () => {
                     >
                       <div>
                         <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
-                        {item.isOverdue && (
+                        {item.isOverdue ? (
                           <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
                             {item.daysOverdue} day{item.daysOverdue !== 1 ? 's' : ''} overdue
                           </p>
-                        )}
+                        ) : item.daysUntilDue !== null && item.daysUntilDue !== undefined ? (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Due in {item.daysUntilDue} day{item.daysUntilDue !== 1 ? 's' : ''}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(item.amount)}</p>
