@@ -31,13 +31,11 @@ import { useGetBankInfoQuery, useSubmitDepositMutation } from "@/services/bankDe
 import { OverviewCards } from "./tenant/OverviewCards";
 import { WalletBalanceCard } from "./tenant/WalletBalanceCard";
 import { QuickActions } from "./tenant/QuickActions";
-import { NoticeCard } from "./tenant/NoticeCard";
 import { NotificationsTab } from "./tenant/NotificationsTab";
 import { MaintenanceList } from "./tenant/MaintenanceList";
 import { ReportIssueDialog } from "./tenant/ReportIssueDialog";
 import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
-import { DocumentList } from "./tenant/DocumentList";
 import { ReceiptsTab } from "./tenant/ReceiptsTab";
 import { formatCurrency, formatDate } from "./tenant/utils";
 
@@ -63,6 +61,7 @@ export const TenantDashboard: React.FC = () => {
   const [billingDialogOpen, setBillingDialogOpen] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState("");
   const [rentPaymentMonths, setRentPaymentMonths] = useState<6 | 12>(12);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
 
   // Fetch dashboard overview from API
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
@@ -498,6 +497,7 @@ export const TenantDashboard: React.FC = () => {
 
               <QuickActions
                 onReportMaintenance={handleReportMaintenance}
+                onContactLandlord={() => setContactDialogOpen(true)}
               />
             </CardContent>
           </Card>
@@ -1164,6 +1164,66 @@ export const TenantDashboard: React.FC = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="utilities" className="space-y-5">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-yellow-500" />
+                Utility Bills
+              </CardTitle>
+              <CardDescription>Outstanding utility charges for your unit</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {utilityItems.length > 0 ? (
+                <div className="space-y-3">
+                  {utilityItems.map(item => (
+                    <div
+                      key={item.code}
+                      className={`flex items-center justify-between p-4 border rounded-lg ${
+                        item.isOverdue
+                          ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
+                          : 'bg-slate-50 dark:bg-slate-800/60'
+                      }`}
+                    >
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-white">{item.label}</p>
+                        {item.isOverdue && (
+                          <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                            {item.daysOverdue} day{item.daysOverdue !== 1 ? 's' : ''} overdue
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(item.amount)}</p>
+                        {item.isOverdue && (
+                          <Badge className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 text-[10px] mt-1">
+                            Overdue
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center pt-2">
+                    To pay utility bills, go to the{" "}
+                    <button
+                      className="text-blue-600 hover:underline font-medium"
+                      onClick={() => setActiveTab('billing')}
+                    >
+                      Billing tab
+                    </button>.
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                  <Building2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium text-slate-700 dark:text-slate-300">No pending utility bills</p>
+                  <p className="text-sm mt-1">Your utility charges will appear here when raised by the estate.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="transactions" className="space-y-6">
           <Card>
             <CardHeader>
@@ -1361,6 +1421,40 @@ export const TenantDashboard: React.FC = () => {
             <Button onClick={handleWithdraw} disabled={isWithdrawing}>
               {isWithdrawing ? "Processing..." : "Withdraw"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Landlord Dialog */}
+      <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Contact Estate Office</DialogTitle>
+            <DialogDescription>
+              Reach out to your estate management for any enquiries.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {apiApartment && (
+              <div className="rounded-lg border bg-slate-50 dark:bg-slate-800/60 p-4 space-y-2 text-sm">
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-0.5">Estate</p>
+                  <p className="font-semibold text-slate-900 dark:text-white">{apiApartment.estate}</p>
+                </div>
+                {apiApartment.estateAddress && (
+                  <div>
+                    <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-0.5">Address</p>
+                    <p className="text-slate-700 dark:text-slate-300">{apiApartment.estateAddress}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              For maintenance issues, use the <strong>Complaints</strong> tab. For urgent matters, please visit the estate office directly or call the estate manager.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button className="w-full" onClick={() => setContactDialogOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

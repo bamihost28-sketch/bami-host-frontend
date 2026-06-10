@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 
 interface QuickActionsProps {
   onReportMaintenance: () => void;
+  onContactLandlord?: () => void;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({
   onReportMaintenance,
+  onContactLandlord,
 }) => {
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -14,7 +16,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         <Wrench className="h-5 w-5" />
         <span className="text-xs">Report Issue</span>
       </Button>
-      <Button variant="outline" className="h-16 flex flex-col items-center gap-1">
+      <Button variant="outline" className="h-16 flex flex-col items-center gap-1" onClick={onContactLandlord}>
         <Phone className="h-5 w-5" />
         <span className="text-xs">Contact Landlord</span>
       </Button>
