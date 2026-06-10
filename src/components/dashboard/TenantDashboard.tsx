@@ -17,7 +17,7 @@ import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, Credi
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetAdminPaymentsQuery, useGetIssuesQuery } from "@/services/estatesApi";
+import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetMyPaymentHistoryQuery, useGetIssuesQuery } from "@/services/estatesApi";
 import {
   useGetWalletBalanceQuery,
   useDepositMutation,
@@ -44,15 +44,9 @@ export const TenantDashboard: React.FC = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [depositDialogOpen, setDepositDialogOpen] = useState(false);
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
-  const [paymentForm, setPaymentForm] = useState({ 
-    type: "rent",
-    amount: 0,
-    month: ""
-  });
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [depositForm, setDepositForm] = useState({ amount: "" });
   const [withdrawForm, setWithdrawForm] = useState({ amount: "", description: "" });
@@ -68,8 +62,9 @@ export const TenantDashboard: React.FC = () => {
   const { data: billingData } = useGetMyBillingQuery();
   const [payBilling, { isLoading: isPaying }] = usePayBillingMutation();
   const tenantId = overviewData?.data?.data?.apartment?.id;
-  const { data: transactionsData, isLoading: transactionsLoading } = useGetAdminPaymentsQuery(
-    tenantId ? { tenantId, page: 1, limit: 20 } : undefined
+  const { data: transactionsData, isLoading: transactionsLoading } = useGetMyPaymentHistoryQuery(
+    { tenantId: tenantId!, page: 1, limit: 20 },
+    { skip: !tenantId }
   );
   const { data: issuesData, isLoading: issuesLoading } = useGetIssuesQuery();
 
@@ -180,49 +175,6 @@ export const TenantDashboard: React.FC = () => {
     : tenantInfo?.nextPaymentDue
     ? Math.ceil((new Date(tenantInfo.nextPaymentDue).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : 30;
-
-  const handlePayRent = () => {
-    setPaymentForm({ type: "rent", amount: tenantInfo.monthlyRent, month: "Current Month" });
-    setPaymentDialogOpen(true);
-  };
-
-  const handleProcessPayment = async () => {
-    try {
-      setIsProcessingPayment(true);
-      
-      if (!paymentForm.amount || paymentForm.amount <= 0) {
-        toast("Error: Please enter a valid amount");
-        return;
-      }
-
-      toast("Processing: Payment in progress...");
-
-      const paymentTypeMap: Record<string, string> = {
-        'rent': 'rent',
-        'service_charge': 'service_charge',
-        'caution_fee': 'caution_fee',
-        'legal_fee': 'legal_fee',
-      };
-
-      const result = await payBilling({
-        billingCode: paymentTypeMap[paymentForm.type] || paymentForm.type,
-        amount: paymentForm.amount,
-        paymentType: paymentForm.type,
-      }).unwrap();
-
-      if (result.authorizationUrl) {
-        window.location.href = result.authorizationUrl;
-      } else {
-        toast("Success: Payment received");
-        setPaymentDialogOpen(false);
-        setPaymentForm({ type: "rent", amount: 0, month: "" });
-      }
-    } catch (error: any) {
-      toast(error?.data?.message || "Error: Payment failed. Please try again");
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
 
   const handleSelectBillingItem = (itemCode: string) => {
     let newSelection = [...selectedBillingItems];
@@ -419,7 +371,16 @@ export const TenantDashboard: React.FC = () => {
     }
   };
 
-  const allBillingItems = [...recurringItems, ...oneTimeItems];
+  const outstandingItems = [
+    ...(apiApartment?.rentOutstanding && apiApartment.rentOutstanding > 0
+      ? [{ code: "outstanding_rent", label: "Rent Arrears", amount: apiApartment.rentOutstanding, frequency: "once" as const }]
+      : []),
+    ...(apiApartment?.serviceChargeOutstanding && apiApartment.serviceChargeOutstanding > 0
+      ? [{ code: "outstanding_service_charge", label: "Service Charge Arrears", amount: apiApartment.serviceChargeOutstanding, frequency: "once" as const }]
+      : []),
+  ];
+
+  const allBillingItems = [...recurringItems, ...oneTimeItems, ...outstandingItems];
 
   const isInitialPaymentLocked = !!billingSummary?.requiresInitialPayment;
 
@@ -1015,6 +976,22 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
+              {/* Arrears (Outstanding Rent / Service Charge) */}
+              {outstandingItems.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    Outstanding Arrears
+                  </h3>
+                  <BillingItemList
+                    items={outstandingItems}
+                    selectedItems={selectedBillingItems}
+                    onToggleItem={handleSelectBillingItem}
+                    disabledCondition={isInitialPaymentLocked ? () => true : undefined}
+                  />
+                </div>
+              )}
+
               {/* Utility Bills */}
               {utilityItems.length > 0 && (
                 <div>
@@ -1125,14 +1102,14 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
-              {selectedBillingItems.length === 0 && recurringItems.length === 0 && oneTimeItems.length === 0 && (
+              {selectedBillingItems.length === 0 && recurringItems.length === 0 && oneTimeItems.length === 0 && outstandingItems.length === 0 && (
                 <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                   <Receipt className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>No billing items available</p>
                 </div>
               )}
 
-              {selectedBillingItems.length === 0 && (recurringItems.length > 0 || oneTimeItems.length > 0) && (
+              {selectedBillingItems.length === 0 && (recurringItems.length > 0 || oneTimeItems.length > 0 || outstandingItems.length > 0) && (
                 <div className="text-center py-5 text-slate-400 dark:text-slate-500 border-t">
                   <p className="text-sm">Select items above to proceed with payment</p>
                 </div>

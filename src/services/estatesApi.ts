@@ -870,6 +870,13 @@ export const estatesApi = createApi({
         return [{ type: 'Tenant' as const, id: tenantId }];
       },
     }),
+    getMyPaymentHistory: builder.query<
+      { success: boolean; data: AdminPaymentRecord[]; pagination: { currentPage: number; totalPages: number; totalItems: number; limit: number } },
+      { tenantId: string; page?: number; limit?: number }
+    >({
+      query: ({ tenantId, ...params }) => ({ url: `/api/payments/tenant/${tenantId}`, params }),
+      providesTags: [{ type: 'Payment', id: 'TENANT' }],
+    }),
     getMyTenant: builder.query<{ success: boolean; data: Tenant & { unpaidBillingCount: number } }, void>({
       query: () => '/api/tenants/me',
       providesTags: [{ type: 'Tenant', id: 'ME' }],
@@ -1312,6 +1319,7 @@ export const {
   useDeleteTenantMutation,
   useGetTenantHistoryQuery,
   useGetTenantTransactionsQuery,
+  useGetMyPaymentHistoryQuery,
   useGetTenantBillingQuery,
   useInitiatePaymentMutation,
   useSendTenantReceiptMutation,
