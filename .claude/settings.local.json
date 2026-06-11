@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "*",
       "Bash(npx tsc *)",
       "Bash(sed -n '3,15p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/AdditionalInfoRow.tsx)",
       "Bash(sed -n '11,40p' /Users/temple/Documents/Bami/BamiHustle-frontend/src/components/dashboard/business/tenant-detail/TenantDetailHeader.tsx)",
