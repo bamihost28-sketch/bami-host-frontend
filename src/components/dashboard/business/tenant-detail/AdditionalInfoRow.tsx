@@ -64,14 +64,14 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {tenant?.entryDate && tenant?.nextDueDate 
-                  ? `${Math.ceil((new Date(tenant.nextDueDate).getTime() - new Date(tenant.entryDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months`
+                {tenant?.entryDate && (overview?.nextDue || tenant?.nextDueDate)
+                  ? `${Math.ceil((new Date(overview?.nextDue || tenant.nextDueDate).getTime() - new Date(tenant.entryDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months`
                   : 'Ongoing'
                 }
               </p>
               <div className="flex flex-col text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
                 <span>Entry: {formatDate(tenant?.entryDate)}</span>
-                <span>Expiry: {formatDate(tenant?.nextDueDate)}</span>
+                <span>Next Due: {formatDate(overview?.nextDue || tenant?.nextDueDate)}</span>
               </div>
             </div>
           </div>
