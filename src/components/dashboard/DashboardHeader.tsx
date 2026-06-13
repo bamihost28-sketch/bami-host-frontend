@@ -6,14 +6,15 @@ import { useGetNotificationCountQuery } from "@/services/notificationsApi";
 interface DashboardHeaderProps {
   onMenuClick?: () => void;
   sidebarOpen?: boolean;
+  sidebarCollapsed?: boolean;
 }
 
-export const DashboardHeader = ({ onMenuClick, sidebarOpen }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: DashboardHeaderProps) => {
   const { user, logout } = useAuth();
   const { data: countData } = useGetNotificationCountQuery(undefined, { pollingInterval: 60000 });
   const unreadCount = countData?.unreadCount ?? 0;
   return (
-    <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 md:ml-64 transition-all duration-300 print:hidden">
+    <header className={`h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 transition-all duration-300 print:hidden ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
       <div className="flex items-center justify-between h-full px-4 md:px-6">
         <div className="flex items-center space-x-2 md:space-x-4">
           {/* Mobile Menu Button */}

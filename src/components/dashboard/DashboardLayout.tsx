@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -10,27 +11,33 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout = ({ children, currentView, onViewChange }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <DashboardHeader 
+      <DashboardHeader
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         sidebarOpen={sidebarOpen}
+        sidebarCollapsed={sidebarCollapsed}
       />
       <div className="flex flex-1 overflow-hidden">
-        <DashboardSidebar 
-          currentView={currentView} 
+        <DashboardSidebar
+          currentView={currentView}
           onViewChange={(view) => {
             onViewChange(view);
-            // Close sidebar on mobile after navigation
             if (window.innerWidth < 768) {
               setSidebarOpen(false);
             }
           }}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(c => !c)}
         />
-        <main className="flex-1 overflow-auto bg-background md:ml-64 transition-all duration-300 print:ml-0 print:bg-white">
+        <main className={cn(
+          "flex-1 overflow-auto bg-background transition-all duration-300 print:ml-0 print:bg-white",
+          sidebarCollapsed ? "md:ml-16" : "md:ml-64"
+        )}>
           <div className="p-4 md:p-6 max-w-7xl mx-auto h-full print:p-0 print:max-w-none">
             {children}
           </div>
