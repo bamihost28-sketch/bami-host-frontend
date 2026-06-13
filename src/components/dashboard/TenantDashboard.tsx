@@ -403,7 +403,7 @@ export const TenantDashboard: React.FC = () => {
   }, [isInitialPaymentLocked, charges]);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="dashboard-tabs-list">
           <TabsTrigger value="overview">Home</TabsTrigger>
@@ -420,7 +420,7 @@ export const TenantDashboard: React.FC = () => {
           <Card>
             <CardHeader className="pb-2">
               <div>
-                <CardTitle className="text-2xl text-slate-900 dark:text-white">Welcome back, {firstName}!</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl text-slate-900 dark:text-white">Welcome back, {firstName}!</CardTitle>
                 <CardDescription className="text-slate-600 dark:text-slate-400">Here's your home overview</CardDescription>
               </div>
             </CardHeader>
@@ -494,7 +494,7 @@ export const TenantDashboard: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-5">
                 {/* Specs row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   {apiApartment.bedrooms !== undefined && (
                     <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 border p-3 text-center">
                       <p className="text-xl font-bold text-slate-900 dark:text-white">{apiApartment.bedrooms}</p>
@@ -763,7 +763,7 @@ export const TenantDashboard: React.FC = () => {
           {/* Summary Stats */}
           {billingSummary && (
             <div className="space-y-3">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                 <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4">
                   <p className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold uppercase tracking-wide">Monthly Recurring</p>
                   <p className="text-xl font-bold text-blue-900 dark:text-blue-100 mt-1">{formatCurrency(billingSummary.recurringMonthly)}</p>

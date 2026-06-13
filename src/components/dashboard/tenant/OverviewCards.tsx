@@ -46,71 +46,71 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
       : 'text-slate-600 dark:text-slate-400';
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
-          <Building className="h-4 w-4" />
-          <span className="text-sm">Apartment</span>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-4 sm:mb-6">
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
+        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-1">
+          <Building className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="text-xs sm:text-sm truncate">Apartment</span>
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{tenantInfo.apartmentNumber}</p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">{tenantInfo.estateName}</p>
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 truncate">{tenantInfo.apartmentNumber}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{tenantInfo.estateName}</p>
       </div>
 
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
-          <Key className="h-4 w-4" />
-          <span className="text-sm">Lease Start</span>
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
+        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-1">
+          <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="text-xs sm:text-sm truncate">Lease Start</span>
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.leaseStartDate)}</p>
-        <p className={`text-sm capitalize ${statusColorClass}`}>{tenantInfo.leaseStatus}</p>
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.leaseStartDate)}</p>
+        <p className={`text-xs capitalize ${statusColorClass}`}>{tenantInfo.leaseStatus}</p>
       </div>
 
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
-          <LogIn className="h-4 w-4" />
-          <span className="text-sm">Move In Date</span>
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
+        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-1">
+          <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="text-xs sm:text-sm truncate">Move In Date</span>
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(moveInDate.toISOString())}</p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">1 year before next due</p>
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{formatDate(moveInDate.toISOString())}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">1yr before due</p>
       </div>
 
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
-          <Clock className="h-4 w-4" />
-          <span className="text-sm">Total Stay</span>
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
+        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-1">
+          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="text-xs sm:text-sm truncate">Total Stay</span>
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{totalStayLabel}</p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Since {leaseStartYear}</p>
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{totalStayLabel}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">Since {leaseStartYear}</p>
       </div>
 
-      <div className={`rounded-lg p-3 border ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-100 dark:bg-slate-800'}`}>
-        <div className={`flex items-center gap-2 mb-1 ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
-          <Calendar className="h-4 w-4" />
-          <span className="text-sm">{isOverdue ? 'Overdue Since' : 'Next Due'}</span>
+      <div className={`rounded-lg p-2.5 sm:p-3 border min-w-0 ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-100 dark:bg-slate-800'}`}>
+        <div className={`flex items-center gap-1.5 mb-1 ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
+          <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="text-xs sm:text-sm truncate">{isOverdue ? 'Overdue' : 'Next Due'}</span>
         </div>
-        <p className={`text-lg font-semibold ${isOverdue ? 'text-red-700 dark:text-red-300' : 'text-slate-900 dark:text-slate-100'}`}>
+        <p className={`text-sm sm:text-base font-semibold ${isOverdue ? 'text-red-700 dark:text-red-300' : 'text-slate-900 dark:text-slate-100'}`}>
           {formatDate(tenantInfo.nextPaymentDue)}
         </p>
         {isOverdue ? (
-          <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-            {overdueMonths > 0 ? `${overdueMonths} month${overdueMonths !== 1 ? 's' : ''} overdue` : `${Math.abs(daysUntilRentDue)} days overdue`}
+          <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+            {overdueMonths > 0 ? `${overdueMonths}mo overdue` : `${Math.abs(daysUntilRentDue)}d overdue`}
           </p>
         ) : (
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            {daysUntilRentDue <= 7 ? `Due in ${daysUntilRentDue} day${daysUntilRentDue !== 1 ? 's' : ''}` : `${daysUntilRentDue} days`}
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            {daysUntilRentDue <= 7 ? `Due in ${daysUntilRentDue}d` : `${daysUntilRentDue} days`}
           </p>
         )}
       </div>
 
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
-        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
-          <Zap className="h-4 w-4" />
-          <span className="text-sm">Meter No.</span>
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
+        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-1">
+          <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="text-xs sm:text-sm truncate">Meter No.</span>
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100 truncate">
           {tenantInfo.meterNumber || "Not assigned"}
         </p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">Electricity</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">Electricity</p>
       </div>
     </div>
   );

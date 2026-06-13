@@ -140,35 +140,9 @@
 
 /* Dashboard cards grid - mobile first */
 @media (max-width: 640px) {
-  /* Make cards full width on mobile */
+  /* Tighten gap on mobile grids */
   .grid {
-    gap: 0.75rem !important;
-  }
-  
-  /* Override grid columns for mobile */
-  .grid-cols-2,
-  .grid-cols-3,
-  .grid-cols-4 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .grid-cols-1\.md\:grid-cols-2 {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Medium screens - 2 columns */
-@media (min-width: 640px) and (max-width: 1024px) {
-  .grid-cols-1\.md\:grid-cols-2,
-  .grid-cols-2\.md\:grid-cols-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-/* Large screens - 4 columns */
-@media (min-width: 1024px) {
-  .grid-cols-1\.lg\:grid-cols-4 {
-    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem !important;
   }
 }
 
@@ -183,28 +157,19 @@
   }
 }
 
-/* Button sizing - touch-friendly */
+/* Button sizing - touch-friendly (only primary action buttons) */
 @media (max-width: 640px) {
-  button,
-  [role="button"],
-  .btn {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-  }
-  
   /* Full width buttons on mobile */
   .w-full\.md\:w-auto {
     width: 100% !important;
   }
-  
+
   /* Button grid */
   .grid.button-grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 0.5rem;
   }
-  
+
   .grid.button-grid-4 {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.5rem;
@@ -239,19 +204,11 @@
   }
 }
 
-/* Dialog/Modal - full screen on mobile */
+/* Dialog/Modal - near full screen on mobile with scroll */
 @media (max-width: 640px) {
-  [role="dialog"] {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    height: 100% !important;
-    max-height: 100% !important;
-  }
-  
   [class*="DialogContent"] {
-    height: 100% !important;
+    max-width: calc(100vw - 2rem) !important;
+    max-height: 90dvh !important;
     overflow-y: auto;
   }
 }
