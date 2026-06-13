@@ -24,7 +24,8 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
   const overdueMonths = isOverdue ? Math.floor(Math.abs(daysUntilRentDue) / 30) : 0;
 
   const moveInDate = new Date(tenantInfo.nextPaymentDue);
-  moveInDate.setDate(moveInDate.getDate() - 254);
+  moveInDate.setFullYear(moveInDate.getFullYear() - 1);
+  moveInDate.setDate(moveInDate.getDate() - 1);
 
   const leaseStartYear = new Date(tenantInfo.leaseStartDate).getFullYear();
   const currentYear = new Date().getFullYear();
@@ -70,7 +71,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
           <span className="text-sm">Move In Date</span>
         </div>
         <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(moveInDate.toISOString())}</p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">254 days before due</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">1 year before next due</p>
       </div>
 
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
