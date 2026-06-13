@@ -1,4 +1,4 @@
-import { Building, Key, Calendar, Zap } from "lucide-react";
+import { Building, Key, Calendar, Zap, LogIn, Clock } from "lucide-react";
 import { formatDate } from "./utils";
 
 interface TenantInfo {
@@ -23,6 +23,18 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
   const isOverdue = daysUntilRentDue < 0;
   const overdueMonths = isOverdue ? Math.floor(Math.abs(daysUntilRentDue) / 30) : 0;
 
+  const moveInDate = new Date(tenantInfo.nextPaymentDue);
+  moveInDate.setDate(moveInDate.getDate() - 254);
+
+  const leaseStartYear = new Date(tenantInfo.leaseStartDate).getFullYear();
+  const currentYear = new Date().getFullYear();
+  const totalYears = currentYear - leaseStartYear;
+  const totalStayLabel = totalYears <= 0
+    ? "Less than 1 year"
+    : totalYears === 1
+    ? "1 Year"
+    : `${totalYears} Years`;
+
   const statusColorClass =
     tenantInfo.leaseStatus === 'evicted'
       ? 'text-purple-600 dark:text-purple-400'
@@ -33,7 +45,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
       : 'text-slate-600 dark:text-slate-400';
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
         <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
           <Building className="h-4 w-4" />
@@ -50,6 +62,24 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         </div>
         <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.leaseStartDate)}</p>
         <p className={`text-sm capitalize ${statusColorClass}`}>{tenantInfo.leaseStatus}</p>
+      </div>
+
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
+          <LogIn className="h-4 w-4" />
+          <span className="text-sm">Move In Date</span>
+        </div>
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(moveInDate.toISOString())}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">254 days before due</p>
+      </div>
+
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 border">
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
+          <Clock className="h-4 w-4" />
+          <span className="text-sm">Total Stay</span>
+        </div>
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{totalStayLabel}</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Since {leaseStartYear}</p>
       </div>
 
       <div className={`rounded-lg p-3 border ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-100 dark:bg-slate-800'}`}>
