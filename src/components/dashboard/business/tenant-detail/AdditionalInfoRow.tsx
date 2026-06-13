@@ -7,8 +7,21 @@ interface AdditionalInfoRowProps {
 }
 
 export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) => {
+  const nextDueRaw = overview?.nextDue || tenant?.nextDueDate;
+  const moveInDate = nextDueRaw ? (() => {
+    const d = new Date(nextDueRaw);
+    d.setFullYear(d.getFullYear() - 1);
+    d.setDate(d.getDate() - 1);
+    return d;
+  })() : null;
+
+  const entryYear = moveInDate ? moveInDate.getFullYear() : new Date(tenant?.entryDate || tenant?.createdAt).getFullYear();
+  const currentYear = new Date().getFullYear();
+  const totalYears = currentYear - entryYear;
+  const totalStayLabel = totalYears <= 0 ? 'Less than 1 year' : totalYears === 1 ? '1 Year' : `${totalYears} Years`;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
       <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
         <CardHeader className="pb-2">
           <CardTitle className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Move-in Date</CardTitle>
@@ -22,9 +35,9 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {formatDate(tenant?.entryDate || tenant?.createdAt)}
+                {moveInDate ? formatDate(moveInDate.toISOString()) : formatDate(tenant?.entryDate || tenant?.createdAt)}
               </p>
-              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">Entry Date</p>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">1 year before next due</p>
             </div>
           </div>
         </CardContent>
@@ -73,6 +86,25 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
                 <span>Entry: {formatDate(tenant?.entryDate)}</span>
                 <span>Next Due: {formatDate(overview?.nextDue || tenant?.nextDueDate)}</span>
               </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-4 border-l-violet-500">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Stay</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-2">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900 dark:text-white">{totalStayLabel}</p>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">Since {entryYear}</p>
             </div>
           </div>
         </CardContent>
