@@ -313,6 +313,25 @@ export const DashboardSidebar = ({
     system: filteredItems.filter(item => item.category === 'system'),
   };
 
+  // Determine which section is active so we can open it by default
+  const activeCategory = filteredItems.find(
+    item => (item.path && location.pathname === item.path) || currentView === item.id
+  )?.category ?? 'core';
+
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set([activeCategory]));
+
+  const toggleSection = (key: string) => {
+    setOpenSections(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
   const renderExpandedItem = (item: SidebarItem) => {
     const Icon = item.icon;
     const hasAccess = canAccessNavigation(item.id);
@@ -371,14 +390,49 @@ export const DashboardSidebar = ({
     return button;
   };
 
-  const renderExpandedSection = (title: string, items: SidebarItem[]) => {
+  const renderExpandedSection = (title: string, sectionKey: string, items: SidebarItem[]) => {
     if (items.length === 0) return null;
+    const isOpen = openSections.has(sectionKey);
+    const config = categoryConfig[sectionKey];
+    const SectionIcon = config?.icon;
+    const hasActiveItem = items.some(
+      item => (item.path && location.pathname === item.path) || currentView === item.id
+    );
+
     return (
-      <div className="mb-4">
-        <div className="px-4 py-1.5 mb-1">
-          <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{title}</h3>
-        </div>
-        <div className="space-y-0.5">{items.map(renderExpandedItem)}</div>
+      <div key={sectionKey} className="mb-1">
+        {/* Clickable section header */}
+        <button
+          onClick={() => toggleSection(sectionKey)}
+          className={cn(
+            "w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 group",
+            "hover:bg-slate-700/40",
+            hasActiveItem && !isOpen && "bg-slate-700/30"
+          )}
+        >
+          {SectionIcon && (
+            <SectionIcon className={cn("w-3.5 h-3.5 shrink-0", config.color)} />
+          )}
+          <span className={cn(
+            "flex-1 text-left text-[10px] font-bold uppercase tracking-widest",
+            hasActiveItem ? "text-slate-300" : "text-slate-500",
+            "group-hover:text-slate-300"
+          )}>
+            {title}
+          </span>
+          <span className="text-[10px] text-slate-600 mr-1">{items.length}</span>
+          <ChevronDown className={cn(
+            "w-3 h-3 text-slate-500 transition-transform duration-200 shrink-0",
+            isOpen ? "rotate-0" : "-rotate-90"
+          )} />
+        </button>
+
+        {/* Collapsible items */}
+        {isOpen && (
+          <div className="mt-0.5 space-y-0.5 pl-1">
+            {items.map(renderExpandedItem)}
+          </div>
+        )}
       </div>
     );
   };
@@ -573,10 +627,10 @@ export const DashboardSidebar = ({
 
             {/* Nav sections */}
             <nav className="flex-1 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-700">
-              {renderExpandedSection("Dashboard", groupedItems.core)}
-              {renderExpandedSection("Financial", groupedItems.financial)}
-              {renderExpandedSection("Business", groupedItems.business)}
-              {renderExpandedSection("System", groupedItems.system)}
+              {renderExpandedSection("Dashboard", "core", groupedItems.core)}
+              {renderExpandedSection("Financial", "financial", groupedItems.financial)}
+              {renderExpandedSection("Business", "business", groupedItems.business)}
+              {renderExpandedSection("System", "system", groupedItems.system)}
             </nav>
 
             {/* Mobile: user info + logout */}
