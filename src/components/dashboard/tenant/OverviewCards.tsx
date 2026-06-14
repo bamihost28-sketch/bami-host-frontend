@@ -74,15 +74,6 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         <p className="text-xs text-slate-600 dark:text-slate-400">1yr before due</p>
       </div>
 
-      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
-        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-1">
-          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-          <span className="text-xs sm:text-sm truncate">Total Stay</span>
-        </div>
-        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{totalStayLabel}</p>
-        <p className="text-xs text-slate-600 dark:text-slate-400">Since {leaseStartYear}</p>
-      </div>
-
       <div className={`rounded-lg p-2.5 sm:p-3 border min-w-0 ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-100 dark:bg-slate-800'}`}>
         <div className={`flex items-center gap-1.5 mb-1 ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
           <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -100,6 +91,15 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
             {daysUntilRentDue <= 7 ? `Due in ${daysUntilRentDue}d` : `${daysUntilRentDue} days`}
           </p>
         )}
+      </div>
+
+      <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
+        <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 mb-1">
+          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+          <span className="text-xs sm:text-sm truncate">Total Stay</span>
+        </div>
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{totalStayLabel}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">Since {leaseStartYear}</p>
       </div>
 
       <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-2.5 sm:p-3 border min-w-0">
