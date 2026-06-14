@@ -107,12 +107,12 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
-        <h1 className="text-3xl font-bold">Tenant Overview</h1>
-        <p className="text-muted-foreground">Profile, history, and transactions</p>
+        <h1 className="text-xl sm:text-3xl font-bold">Tenant Overview</h1>
+        <p className="text-muted-foreground text-sm">Profile, history, and transactions</p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Dialog open={editTenantOpen} onOpenChange={(open) => {
           setEditTenantOpen(open);
           if (open) handleEditTenantOpen();
@@ -124,7 +124,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
             <DialogHeader>
               <DialogTitle>Edit Tenant</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2 text-sm">
+            <div className="grid grid-cols-1 gap-3 py-2 text-sm max-h-[70dvh] overflow-y-auto">
               <div className="grid gap-2">
                 <Label htmlFor="edit-name">Name</Label>
                 <Input 

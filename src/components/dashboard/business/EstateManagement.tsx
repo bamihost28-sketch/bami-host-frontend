@@ -99,12 +99,12 @@ export const EstateManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Estate Management</h1>
-          <p className="text-muted-foreground">Manage estates, units and tenants</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground">Estate Management</h1>
+          <p className="text-muted-foreground text-sm">Manage estates, units and tenants</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Dialog open={createEstateOpen} onOpenChange={setCreateEstateOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Quick Create</Button>
@@ -185,7 +185,7 @@ export const EstateManagement = () => {
           <CardDescription>Manage your estates</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <Input
               placeholder="Search estates..."
               value={searchTerm}
@@ -193,15 +193,15 @@ export const EstateManagement = () => {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="max-w-sm"
+              className="w-full sm:max-w-sm"
             />
           </div>
 
           {estateOptions.length === 0 ? (
             <div className="text-sm text-muted-foreground">No estates found.</div>
           ) : (
-            <div className="rounded-md border overflow-hidden">
-              <Table>
+            <div className="rounded-md border overflow-x-auto">
+              <Table className="min-w-[500px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40%]">Name</TableHead>

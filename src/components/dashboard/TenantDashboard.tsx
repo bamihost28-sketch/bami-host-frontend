@@ -852,7 +852,7 @@ export const TenantDashboard: React.FC = () => {
                       return (
                         <div
                           key={item.code}
-                          className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
+                          className={`flex items-center justify-between p-3 sm:p-4 border rounded-lg transition-colors ${
                             isDisabled && !isInitialPaymentLocked ? "opacity-50 cursor-not-allowed" : isInitialPaymentLocked ? "cursor-default" : "cursor-pointer"
                           } ${
                             isChecked
@@ -1141,12 +1141,12 @@ export const TenantDashboard: React.FC = () => {
         <TabsContent value="maintenance" className="space-y-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle className="text-slate-900 dark:text-white">Issue Reports</CardTitle>
                   <CardDescription>Track the progress of your reported issues</CardDescription>
                 </div>
-                <Button onClick={handleReportMaintenance}>
+                <Button onClick={handleReportMaintenance} className="self-start sm:self-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Report Issue
                 </Button>
@@ -1409,7 +1409,7 @@ export const TenantDashboard: React.FC = () => {
 
       {/* Withdraw Dialog */}
       <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Withdraw Funds</DialogTitle>
             <DialogDescription>
@@ -1482,7 +1482,7 @@ export const TenantDashboard: React.FC = () => {
 
       {/* Transfer Dialog */}
       <Dialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Transfer Funds</DialogTitle>
             <DialogDescription>

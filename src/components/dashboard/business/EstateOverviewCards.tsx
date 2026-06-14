@@ -8,7 +8,7 @@ export const EstateOverviewCards = () => {
 
     if (isLoading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[1, 2, 3, 4].map((i) => (
                     <Card key={i} className="animate-pulse">
                         <CardHeader className="pb-2">
@@ -64,7 +64,7 @@ export const EstateOverviewCards = () => {
     return (
         <div className="space-y-4">
             {/* Estates & Units */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -149,7 +149,7 @@ export const EstateOverviewCards = () => {
             </div>
 
             {/* Additional Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <Card>
                     <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium flex items-center gap-2">
