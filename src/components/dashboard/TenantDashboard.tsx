@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import ElectricityCard from "@/components/dashboard/meters/ElectricityCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -1182,6 +1183,9 @@ export const TenantDashboard: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="utilities" className="space-y-5">
+          {/* Smart meter card */}
+          <ElectricityCard />
+
           <Card>
             <CardHeader>
               <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">

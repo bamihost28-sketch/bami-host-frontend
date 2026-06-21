@@ -27,6 +27,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -262,6 +263,14 @@ const sidebarItems: SidebarItem[] = [
     category: 'financial',
     requiredPermissions: ['view_all_data'],
     path: '/dashboard/transactions'
+  },
+  {
+    id: "meters",
+    label: "Smart Meters",
+    icon: Zap,
+    category: 'financial',
+    requiredPermissions: ['view_all_data'],
+    path: '/dashboard/meters'
   },
   {
     id: "subscription",

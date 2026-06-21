@@ -37,6 +37,7 @@ import CandidateManagement from '@/components/hiring/CandidateManagement';
 import { AdminPeople } from '@/components/dashboard/AdminPeople';
 import { BusinessTypeManagement } from '@/components/dashboard/BusinessTypeManagement';
 import { SuperAdminTransactions } from '@/components/dashboard/SuperAdminTransactions';
+import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
 import ScalableImpactPlanner from '@/components/scalable-impact/ScalableImpactPlanner';
 import { Subscription } from '@/components/dashboard/Subscription';
 
@@ -485,6 +486,20 @@ const DashboardRouter: React.FC = () => {
               feature="Transactions"
               showUpgradePrompt={false}
               viewName="transactions"
+            />
+          }
+        />
+
+        {/* Smart Meters */}
+        <Route
+          path="/meters"
+          element={
+            <ProtectedRoute
+              element={<AdminMeterPage />}
+              requiredPermissions={['view_all_data']}
+              feature="Smart Meters"
+              showUpgradePrompt={false}
+              viewName="meters"
             />
           }
         />
