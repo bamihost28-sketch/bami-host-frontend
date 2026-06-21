@@ -52,7 +52,7 @@ export const Subscription = () => {
 
     const handleOpenDialog = (subscription?: Subscription) => {
         if (subscription) {
-            setEditingId(subscription._id);
+            setEditingId(subscription._id ?? subscription.id ?? null);
             setFormData({
                 name: subscription.name,
                 price: subscription.price.toString(),
@@ -298,7 +298,7 @@ export const Subscription = () => {
                             </TableHeader>
                             <TableBody>
                                 {subscriptions.map((subscription) => (
-                                    <TableRow key={subscription._id} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                    <TableRow key={subscription._id ?? subscription.id} className="border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                         <TableCell className="font-medium text-slate-900 dark:text-white">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${subscription.icon === 'Server (Backend)' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}>
@@ -346,7 +346,7 @@ export const Subscription = () => {
                                                     variant="ghost"
                                                     size="icon"
                                                     className="h-8 w-8 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                                                    onClick={() => handleDelete(subscription._id)}
+                                                    onClick={() => handleDelete(subscription._id ?? subscription.id ?? '')}
                                                     disabled={isDeleting}
                                                 >
                                                     {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}

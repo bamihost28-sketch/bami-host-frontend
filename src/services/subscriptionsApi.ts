@@ -2,7 +2,8 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BASE_API_URL } from './api';
 
 export interface Subscription {
-    _id: string;
+    _id?: string;
+    id?: string;
     name: string;
     price: number;
     billingPeriod: 'month' | 'year' | 'week' | 'day' | 'one-time';
