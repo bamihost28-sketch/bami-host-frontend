@@ -604,7 +604,7 @@ export const TenantDashboard: React.FC = () => {
           )}
 
           {/* Annual Payment Summary */}
-          {apiYearlyPayment && (
+          {apiYearlyPayment?.currentYear && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
@@ -669,7 +669,7 @@ export const TenantDashboard: React.FC = () => {
                   </div>
 
                   {/* Next Year */}
-                  <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 p-4">
+                  {apiYearlyPayment.nextYear && <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 p-4">
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-semibold text-slate-900 dark:text-white">
                         {apiYearlyPayment.nextYear.year} — Renewal
@@ -708,7 +708,7 @@ export const TenantDashboard: React.FC = () => {
                       <span className="font-semibold text-slate-900 dark:text-white">Projected Total</span>
                       <span className="font-bold text-blue-700 dark:text-blue-400 text-lg">{formatCurrency(apiYearlyPayment.nextYear.projectedTotal)}</span>
                     </div>
-                  </div>
+                  </div>}
                 </div>
               </CardContent>
             </Card>
