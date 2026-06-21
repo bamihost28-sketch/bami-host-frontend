@@ -1114,6 +1114,20 @@ export const estatesApi = createApi({
       providesTags: [{ type: 'Tenant', id: 'ME' }],
     }),
 
+    // Flat list of all units (for dropdowns — e.g. meter registration)
+    listUnits: builder.query<
+      { success: boolean; count: number; data: { id: string; label: string; estate: string; meter_number: string | null; status: string }[] },
+      { estateId?: string; limit?: number } | void
+    >({
+      query: (params = {}) => {
+        const qs = new URLSearchParams();
+        if ((params as any)?.estateId) qs.set('estateId', (params as any).estateId);
+        qs.set('limit', String((params as any)?.limit ?? 500));
+        return `/api/units?${qs.toString()}`;
+      },
+      providesTags: [{ type: 'EstateUnits', id: 'LIST' }],
+    }),
+
     // Unit detail (includes media)
     getUnit: builder.query<{ success: boolean; data: UnitDetail }, string>({
       query: (unitId) => `/api/estates/unit/${unitId}`,
@@ -1359,7 +1373,8 @@ export const {
     useGetPaymentReceiptsQuery,
     // Admin payments
     useGetAdminPaymentsQuery,
-    // Unit media
+    // Units
+    useListUnitsQuery,
     useGetUnitQuery,
     // Condition reports
     useGetUnitConditionReportsQuery,

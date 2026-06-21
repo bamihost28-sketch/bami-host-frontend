@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Zap, ZapOff, Plus, Search, RefreshCw, Wifi, WifiOff,
   Power, PowerOff, RotateCcw, Settings, Trash2, ChevronLeft, ChevronRight,
@@ -23,6 +23,7 @@ import {
   useReconnectMeterMutation, useResetBaselineMutation, useDeleteMeterMutation,
   type MeterDevice,
 } from "@/services/meterApi";
+import { useListUnitsQuery } from "@/services/estatesApi";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(n);
@@ -32,6 +33,12 @@ const fmt = (n: number) =>
 function RegisterDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const { toast } = useToast();
   const [register, { isLoading }] = useRegisterMeterMutation();
+  const { data: unitsData } = useListUnitsQuery();
+  const units = unitsData?.data ?? [];
+
+  const [unitSearch, setUnitSearch] = useState("");
+  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+  const [selectedUnitLabel, setSelectedUnitLabel] = useState("");
   const [form, setForm] = useState({
     deviceId: "", unitId: "", deviceName: "", meterNumber: "",
     ratePerKwh: "70", lowBalanceThreshold: "500", prepaidMode: true,
@@ -39,9 +46,34 @@ function RegisterDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
 
   const set = (k: string, v: string | boolean) => setForm(f => ({ ...f, [k]: v }));
 
+  const filteredUnits = useMemo(() =>
+    units.filter(u =>
+      u.label.toLowerCase().includes(unitSearch.toLowerCase()) ||
+      (u.meter_number ?? "").toLowerCase().includes(unitSearch.toLowerCase())
+    ).slice(0, 20),
+    [units, unitSearch]
+  );
+
+  const selectUnit = (unit: typeof units[0]) => {
+    setForm(f => ({
+      ...f,
+      unitId: unit.id,
+      meterNumber: f.meterNumber || unit.meter_number || "",
+      deviceName: f.deviceName || `${unit.label} Meter`,
+    }));
+    setSelectedUnitLabel(unit.label);
+    setUnitSearch("");
+    setShowUnitDropdown(false);
+  };
+
+  const resetForm = () => {
+    setForm({ deviceId: "", unitId: "", deviceName: "", meterNumber: "", ratePerKwh: "70", lowBalanceThreshold: "500", prepaidMode: true });
+    setSelectedUnitLabel(""); setUnitSearch("");
+  };
+
   const handleSubmit = async () => {
     if (!form.deviceId || !form.unitId) {
-      toast({ title: "Device ID and Unit ID are required", variant: "destructive" }); return;
+      toast({ title: "Device ID and Unit are required", variant: "destructive" }); return;
     }
     try {
       await register({
@@ -54,14 +86,14 @@ function RegisterDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
       }).unwrap();
       toast({ title: "Meter registered successfully" });
       onOpenChange(false);
-      setForm({ deviceId: "", unitId: "", deviceName: "", meterNumber: "", ratePerKwh: "70", lowBalanceThreshold: "500", prepaidMode: true });
+      resetForm();
     } catch (e: any) {
       toast({ title: "Registration failed", description: e?.data?.detail ?? "Please try again.", variant: "destructive" });
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={v => { onOpenChange(v); if (!v) resetForm(); }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Register Smart Meter</DialogTitle>
@@ -69,22 +101,63 @@ function RegisterDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="grid grid-cols-2 gap-3">
+            {/* Tuya Device ID */}
             <div className="col-span-2">
               <Label className="text-xs mb-1 block">Tuya Device ID *</Label>
               <Input placeholder="e.g. bf5a3b..." value={form.deviceId} onChange={e => set("deviceId", e.target.value)} />
             </div>
-            <div className="col-span-2">
-              <Label className="text-xs mb-1 block">Unit ID *</Label>
-              <Input placeholder="UUID of the unit" value={form.unitId} onChange={e => set("unitId", e.target.value)} />
+
+            {/* Unit picker with search */}
+            <div className="col-span-2 relative">
+              <Label className="text-xs mb-1 block">Unit *</Label>
+              <Input
+                placeholder="Search units by name or meter no…"
+                value={selectedUnitLabel || unitSearch}
+                onChange={e => { setUnitSearch(e.target.value); setSelectedUnitLabel(""); set("unitId", ""); setShowUnitDropdown(true); }}
+                onFocus={() => setShowUnitDropdown(true)}
+                onBlur={() => setTimeout(() => setShowUnitDropdown(false), 150)}
+              />
+              {selectedUnitLabel && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  ID: <span className="font-mono">{form.unitId}</span>
+                </p>
+              )}
+              {showUnitDropdown && filteredUnits.length > 0 && (
+                <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
+                  {filteredUnits.map(u => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent flex items-center justify-between gap-2"
+                      onMouseDown={() => selectUnit(u)}
+                    >
+                      <span className="font-medium">{u.label}</span>
+                      {u.meter_number && (
+                        <span className="text-xs text-muted-foreground font-mono">{u.meter_number}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {showUnitDropdown && unitSearch && filteredUnits.length === 0 && (
+                <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-md px-3 py-2 text-sm text-muted-foreground">
+                  No units found
+                </div>
+              )}
             </div>
+
+            {/* Device Name */}
             <div>
               <Label className="text-xs mb-1 block">Device Name</Label>
               <Input placeholder="e.g. Unit 4B Meter" value={form.deviceName} onChange={e => set("deviceName", e.target.value)} />
             </div>
+
+            {/* Meter Number — pre-filled from unit */}
             <div>
               <Label className="text-xs mb-1 block">Meter Number</Label>
               <Input placeholder="Physical meter no." value={form.meterNumber} onChange={e => set("meterNumber", e.target.value)} />
             </div>
+
             <div>
               <Label className="text-xs mb-1 block">Rate (₦/kWh)</Label>
               <Input type="number" value={form.ratePerKwh} onChange={e => set("ratePerKwh", e.target.value)} />
