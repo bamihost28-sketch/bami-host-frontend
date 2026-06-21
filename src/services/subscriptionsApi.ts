@@ -25,6 +25,8 @@ export interface CreateSubscriptionPayload {
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
     status?: 'Active' | 'Inactive';
     features?: string;
+    startDate?: string;
+    expiresAt?: string;
 }
 
 export interface UpdateSubscriptionPayload {
@@ -35,6 +37,8 @@ export interface UpdateSubscriptionPayload {
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
     status?: 'Active' | 'Inactive';
     features?: string;
+    startDate?: string;
+    expiresAt?: string;
 }
 
 export interface GetSubscriptionsParams {

@@ -34,7 +34,9 @@ export const Subscription = () => {
         description: "",
         features: "",
         icon: "Layout (Frontend)" as 'Layout (Frontend)' | 'Server (Backend)',
-        status: "Active" as 'Active' | 'Inactive'
+        status: "Active" as 'Active' | 'Inactive',
+        startDate: "",
+        expiresAt: "",
     });
 
     const resetForm = () => {
@@ -45,7 +47,9 @@ export const Subscription = () => {
             description: "",
             features: "",
             icon: "Layout (Frontend)",
-            status: "Active"
+            status: "Active",
+            startDate: "",
+            expiresAt: "",
         });
         setEditingId(null);
     };
@@ -60,7 +64,9 @@ export const Subscription = () => {
                 description: subscription.description || "",
                 features: subscription.features.join("\n"),
                 icon: subscription.icon || "Layout (Frontend)",
-                status: subscription.status
+                status: subscription.status,
+                startDate: subscription.startDate ? subscription.startDate.slice(0, 10) : "",
+                expiresAt: subscription.expiresAt ? subscription.expiresAt.slice(0, 10) : "",
             });
         } else {
             resetForm();
@@ -102,7 +108,9 @@ export const Subscription = () => {
                         description: formData.description,
                         features: featuresString,
                         icon: formData.icon,
-                        status: formData.status
+                        status: formData.status,
+                        startDate: formData.startDate || undefined,
+                        expiresAt: formData.expiresAt || undefined,
                     }
                 }).unwrap();
                 success("Subscription updated successfully");
@@ -114,7 +122,9 @@ export const Subscription = () => {
                     description: formData.description,
                     features: featuresString,
                     icon: formData.icon,
-                    status: formData.status
+                    status: formData.status,
+                    startDate: formData.startDate || undefined,
+                    expiresAt: formData.expiresAt || undefined,
                 }).unwrap();
                 success("Subscription added successfully");
             }
@@ -239,6 +249,26 @@ export const Subscription = () => {
                                     </Select>
                                 </div>
                             </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="startDate">Start Date</Label>
+                                    <Input
+                                        id="startDate"
+                                        type="date"
+                                        value={formData.startDate}
+                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="expiresAt">Expiry Date</Label>
+                                    <Input
+                                        id="expiresAt"
+                                        type="date"
+                                        value={formData.expiresAt}
+                                        onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
+                                    />
+                                </div>
+                            </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="features">Features (one per line)</Label>
                                 <Textarea
@@ -246,7 +276,7 @@ export const Subscription = () => {
                                     placeholder="Global CDN&#10;Unlimited Bandwidth&#10;DDoS Protection"
                                     value={formData.features}
                                     onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-                                    rows={6}
+                                    rows={5}
                                 />
                                 <p className="text-xs text-slate-500">Enter each feature on a new line</p>
                             </div>
@@ -316,7 +346,7 @@ export const Subscription = () => {
                                             {subscription.icon === 'Server (Backend)' ? 'Backend' : 'Frontend'}
                                         </TableCell>
                                         <TableCell className="font-mono font-bold text-slate-900 dark:text-white">
-                                            ${subscription.price.toLocaleString()}
+                                            ₦{subscription.price.toLocaleString()}
                                         </TableCell>
                                         <TableCell className="text-slate-700 dark:text-slate-300">
                                             {formatPeriod(subscription.billingPeriod)}
