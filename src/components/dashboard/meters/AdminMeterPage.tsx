@@ -88,7 +88,11 @@ function RegisterDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
       onOpenChange(false);
       resetForm();
     } catch (e: any) {
-      toast({ title: "Registration failed", description: e?.data?.detail ?? "Please try again.", variant: "destructive" });
+      const raw = e?.data?.detail;
+      const msg = Array.isArray(raw)
+        ? raw.map((d: any) => d.msg ?? String(d)).join("; ")
+        : typeof raw === "string" ? raw : "Please try again.";
+      toast({ title: "Registration failed", description: msg, variant: "destructive" });
     }
   };
 
