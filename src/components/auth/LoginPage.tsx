@@ -40,7 +40,7 @@ export const LoginPage = () => {
         });
 
         // Navigate to the authenticated app
-        navigate('/app', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       console.error("Login error:", error);

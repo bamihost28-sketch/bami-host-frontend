@@ -887,10 +887,10 @@ export const estatesApi = createApi({
       },
     }),
     getMyPaymentHistory: builder.query<
-      { success: boolean; data: TenantPaymentRecord[]; pagination: { currentPage: number; totalPages: number; totalItems: number; limit: number } },
-      { tenantId: string; page?: number; limit?: number }
+      { success: boolean; data: TenantPaymentRecord[]; total?: number; totalPages?: number; page?: number },
+      { page?: number; limit?: number }
     >({
-      query: ({ tenantId, ...params }) => ({ url: `/api/payments/tenant/${tenantId}`, params }),
+      query: (params = {}) => ({ url: '/api/payments', params }),
       providesTags: [{ type: 'Payment', id: 'TENANT' }],
     }),
     getMyTenant: builder.query<{ success: boolean; data: Tenant & { unpaidBillingCount: number } }, void>({

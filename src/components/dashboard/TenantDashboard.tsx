@@ -62,10 +62,8 @@ export const TenantDashboard: React.FC = () => {
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
   const { data: billingData } = useGetMyBillingQuery();
   const [payBilling, { isLoading: isPaying }] = usePayBillingMutation();
-  const tenantId = overviewData?.data?.data?.apartment?.id;
   const { data: transactionsData, isLoading: transactionsLoading } = useGetMyPaymentHistoryQuery(
-    { tenantId: tenantId!, page: 1, limit: 20 },
-    { skip: !tenantId }
+    { page: 1, limit: 20 }
   );
   const { data: issuesData, isLoading: issuesLoading } = useGetIssuesQuery();
 

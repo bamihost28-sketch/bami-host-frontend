@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PageLoaderProvider, usePageLoader } from "@/contexts/PageLoaderContext";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -108,7 +108,7 @@ const AppContent: React.FC = () => {
                         <Route path="/terms" element={<Terms />} />
 
                         {/* Authenticated app */}
-                        <Route path="/app" element={<Index />} />
+                        <Route path="/app" element={<Navigate to="/dashboard" replace />} />
                         <Route path="/dashboard/*" element={<Index />} />
                         
                         {/* Paystack callback routes (outside dashboard) */}
