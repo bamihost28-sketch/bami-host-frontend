@@ -46,21 +46,22 @@ export interface BankDetails {
 }
 
 export interface Transaction {
-  _id: string;
-  user: User | string;
-  walletId: string | { balance: number };
-  estate?: { name: string };
-  tenant?: { tenantName: string };
+  id: string;
+  _id?: string;
+  user?: { id: string; name: string; email: string } | string;
+  tenant?: { id: string; tenantName: string; unit?: string } | null;
+  estate?: { id: string; name: string } | null;
+  walletId?: string | { balance: number };
   amount: number;
-  type: TransactionType;
-  method: TransactionMethod;
-  status: TransactionStatus;
-  reference: string;
-  description: string;
-  isActive: boolean;
-  createdBy: string;
+  type: string;
+  method?: string;
+  status: string;
+  reference?: string;
+  description?: string;
+  isActive?: boolean;
+  createdBy?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface TransactionListResponse {
@@ -68,7 +69,8 @@ export interface TransactionListResponse {
   count: number;
   total: number;
   page: number;
-  pages: number;
+  pages?: number;
+  totalPages?: number;
   data: Transaction[];
 }
 
