@@ -11,6 +11,19 @@ export const prettyDate = (iso: string): string =>
     weekday: 'short', month: 'short', day: 'numeric',
   });
 
+/** Convert a 24-hour "HH:MM" value to a 12-hour label ("4:30 AM").
+ *  Passes through values that already include AM/PM (legacy data). */
+export const to12h = (t?: string | null): string => {
+  if (!t) return '';
+  if (/[ap]m/i.test(t)) return t;
+  const m = t.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return t;
+  let h = parseInt(m[1], 10);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${m[2]} ${ampm}`;
+};
+
 export const BLOCK_TYPES: BlockType[] = ['signal', 'noise', 'reminder', 'neutral'];
 
 export const BLOCK_STYLES: Record<BlockType, { label: string; chip: string; dot: string; row: string }> = {

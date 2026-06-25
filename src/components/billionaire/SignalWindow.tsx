@@ -12,7 +12,7 @@ import {
   useUpdateMissionMutation,
   useDeleteMissionMutation,
 } from '@/services/billionaireApi';
-import { localDate } from './constants';
+import { localDate, to12h } from './constants';
 
 export default function SignalWindow() {
   const today = localDate();
@@ -87,11 +87,13 @@ export default function SignalWindow() {
               className="flex-1"
             />
             <Input
-              placeholder="Deadline (e.g. 2 PM)"
+              type="time"
+              aria-label="Deadline"
+              title="Deadline (optional)"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && add()}
-              className="sm:w-44"
+              className="sm:w-36"
             />
             <Button onClick={add} disabled={creating || total >= 5} className="gap-1">
               <Plus className="w-4 h-4" /> Add
@@ -135,7 +137,7 @@ export default function SignalWindow() {
                   </p>
                   {m.deadline && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {m.deadline}
+                      <Clock className="w-3 h-3" /> {to12h(m.deadline)}
                     </p>
                   )}
                 </div>

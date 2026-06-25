@@ -15,7 +15,7 @@ import {
   useSeedTimeBlocksMutation,
 } from '@/services/billionaireApi';
 import type { BlockType } from '@/services/billionaireApi';
-import { localDate, prettyDate, BLOCK_TYPES, BLOCK_STYLES } from './constants';
+import { localDate, BLOCK_TYPES, BLOCK_STYLES, to12h } from './constants';
 
 export default function TimeAudit() {
   const { toast } = useToast();
@@ -81,7 +81,7 @@ export default function TimeAudit() {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" onClick={() => shiftDay(-1)}><ChevronLeft className="w-4 h-4" /></Button>
-              <span className="text-sm font-medium w-28 text-center">{prettyDate(day)}</span>
+              <Input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} className="w-40" />
               <Button variant="outline" size="icon" onClick={() => shiftDay(1)}><ChevronRight className="w-4 h-4" /></Button>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function TimeAudit() {
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-2">
-            <Input placeholder="Time (e.g. 4:30 AM)" value={timeLabel} onChange={(e) => setTimeLabel(e.target.value)} className="md:w-40" />
+            <Input type="time" aria-label="Block time" value={timeLabel} onChange={(e) => setTimeLabel(e.target.value)} className="md:w-36" />
             <Input placeholder="Activity" value={activity} onChange={(e) => setActivity(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} className="flex-1" />
             <Select value={blockType} onValueChange={(v) => setBlockType(v as BlockType)}>
               <SelectTrigger className="md:w-36"><SelectValue /></SelectTrigger>
@@ -133,7 +133,7 @@ export default function TimeAudit() {
               const s = BLOCK_STYLES[b.blockType];
               return (
                 <div key={b.id} className={`flex items-center gap-3 p-3 rounded-lg border border-l-4 ${s.row} bg-card`}>
-                  <span className="text-sm font-semibold text-slate-600 w-20 shrink-0">{b.timeLabel}</span>
+                  <span className="text-sm font-semibold text-slate-600 w-20 shrink-0">{to12h(b.timeLabel)}</span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{b.activity}</p>
                     {b.note && <p className="text-xs text-muted-foreground truncate">{b.note}</p>}
