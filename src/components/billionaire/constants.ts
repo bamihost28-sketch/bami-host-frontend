@@ -32,27 +32,3 @@ export const BLOCK_STYLES: Record<BlockType, { label: string; chip: string; dot:
   reminder: { label: 'Reminder', chip: 'bg-blue-100 text-blue-700 border-blue-200',          dot: 'bg-blue-500',    row: 'border-l-blue-500' },
   neutral:  { label: 'Neutral',  chip: 'bg-slate-100 text-slate-600 border-slate-200',       dot: 'bg-slate-400',   row: 'border-l-slate-300' },
 };
-
-/** 80/20 analyzer — revenue contribution by activity (from the Billionaire OS spec). */
-export const ANALYZER_DATA = [
-  { activity: 'Writing sales copy', value: 64, yield: 'high' as const },
-  { activity: 'Creating funnels',   value: 55, yield: 'high' as const },
-  { activity: 'Webinars',           value: 48, yield: 'high' as const },
-  { activity: 'Offers & promos',    value: 42, yield: 'high' as const },
-  { activity: 'Sales calls',        value: 35, yield: 'high' as const },
-  { activity: 'Creating systems',   value: 18, yield: 'low' as const },
-  { activity: 'Checking stats',     value: 10, yield: 'low' as const },
-  { activity: 'Checking emails',    value: 4,  yield: 'low' as const },
-  { activity: 'Running errands',    value: 2,  yield: 'low' as const },
-];
-
-/** The top 4% revenue-producing activities. */
-export const FOUR_PERCENT = [
-  'Writing sales copy',
-  'Creating offers & promotions',
-  'Building sales funnels',
-  'Webinars & live training',
-  'Scheming & strategic thinking',
-  'Shooting videos',
-  'Sales calls & lead follow-up',
-];

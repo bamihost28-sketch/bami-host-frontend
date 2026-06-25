@@ -3,10 +3,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import {
-  Crown, Target, Clock, Gauge, Zap, CalendarClock, BarChart3, Calculator, BookOpen,
+  Crown, Target, Clock, Gauge, Zap, CalendarClock, BarChart3, Calculator, BookOpen, Flame, TrendingUp,
 } from 'lucide-react';
-import { useGetSummaryQuery } from '@/services/billionaireApi';
-import { localDate, FOUR_PERCENT } from './constants';
+import { useGetSummaryQuery, useGetAnalyticsQuery, useGetKingsAuditQuery } from '@/services/billionaireApi';
+import { localDate } from './constants';
 import SignalWindow from './SignalWindow';
 import TimeAudit from './TimeAudit';
 import KingsAudit from './KingsAudit';
@@ -17,9 +17,16 @@ import Playbook from './Playbook';
 export default function BillionaireOS() {
   const today = localDate();
   const { data } = useGetSummaryQuery({ day: today });
+  const { data: analytics } = useGetAnalyticsQuery({ days: 7 });
+  const { data: kings } = useGetKingsAuditQuery();
+
   const snr = data?.snrScore ?? 96;
   const done = data?.missionsDone ?? 0;
   const total = data?.missionsTotal ?? 0;
+  const streak = analytics?.streak ?? 0;
+  const completion = analytics?.completionRate ?? 0;
+  const daily = analytics?.daily ?? [];
+  const fourPercent = kings?.high ?? [];
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
@@ -54,10 +61,10 @@ export default function BillionaireOS() {
         {/* Dashboard */}
         <TabsContent value="dashboard" className="space-y-6 mt-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricCard icon={<Clock className="w-5 h-5" />} label="Active Window" value="18 hrs" sub="4 AM – 10 PM" />
             <MetricCard icon={<Target className="w-5 h-5" />} label="Missions Done" value={`${done}/${total || 0}`} sub="today's signal" />
             <MetricCard icon={<Gauge className="w-5 h-5" />} label="SNR Score" value={`${snr}%`} sub="signal vs noise" />
-            <MetricCard icon={<Zap className="w-5 h-5" />} label="Focus Rule" value="4%" sub="drives 64% revenue" />
+            <MetricCard icon={<Flame className="w-5 h-5" />} label="Streak" value={`${streak}`} sub={streak === 1 ? 'day' : 'days'} />
+            <MetricCard icon={<TrendingUp className="w-5 h-5" />} label="7-Day Completion" value={`${completion}%`} sub="missions completed" />
           </div>
 
           {/* SNR bar */}
@@ -70,6 +77,35 @@ export default function BillionaireOS() {
                   ? 'No missions set yet — head to the Signal tab to set your 3–5 for today.'
                   : `${done} of ${total} missions complete. Drive your SNR to 100% by finishing them all.`}
               </p>
+            </CardContent>
+          </Card>
+
+          {/* 7-day SNR trend (real data) */}
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><TrendingUp className="w-4 h-4 text-emerald-600" /> 7-Day SNR Trend</CardTitle></CardHeader>
+            <CardContent>
+              <div className="flex items-end justify-between gap-2 h-32">
+                {daily.map((d) => {
+                  const val = d.snr ?? 0;
+                  // map 90–100 range to bar height for visual contrast
+                  const pct = d.snr === null ? 0 : Math.max(8, ((val - 90) / 10) * 100);
+                  const label = new Date(d.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short' });
+                  return (
+                    <div key={d.date} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full flex-1 flex items-end">
+                        <div
+                          className={`w-full rounded-t transition-all ${d.snr === null ? 'bg-muted' : 'bg-emerald-500'}`}
+                          style={{ height: `${pct}%` }}
+                          title={d.snr === null ? 'No missions' : `${d.snr}% · ${d.done}/${d.total}`}
+                        />
+                      </div>
+                      <span className="text-[10px] text-muted-foreground">{label}</span>
+                      <span className="text-[10px] font-medium">{d.snr === null ? '–' : `${Math.round(val)}`}</span>
+                    </div>
+                  );
+                })}
+                {daily.length === 0 && <p className="text-sm text-muted-foreground">No data yet.</p>}
+              </div>
             </CardContent>
           </Card>
 
@@ -89,17 +125,27 @@ export default function BillionaireOS() {
               </CardContent>
             </Card>
 
-            {/* Your 4% */}
+            {/* Your 4% — from King's Audit high-yield items (real data) */}
             <Card>
               <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Zap className="w-4 h-4 text-amber-500" /> Your 4% Activities</CardTitle></CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {FOUR_PERCENT.map((a) => (
-                    <Badge key={a} variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">{a}</Badge>
-                  ))}
-                </div>
+                {fourPercent.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Define these in the King's Audit tab — your high-yield 20% activities will appear here.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {fourPercent.map((a) => (
+                      <Badge key={a.id} variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">{a.text}</Badge>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
+          </div>
+
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" /> Active window: 18 hrs (4 AM – 10 PM) · the 4% rule: 4% of activities drive 64% of revenue.
           </div>
         </TabsContent>
 

@@ -57,6 +57,17 @@ export interface TimeValueProfile {
   delete: string[];
 }
 
+export interface AnalyticsResponse {
+  success: boolean;
+  days: number;
+  daily: { date: string; total: number; done: number; snr: number | null }[];
+  streak: number;
+  completionRate: number;
+  timeSplit: { signal: number; noise: number; reminder: number; neutral: number };
+  timeSnr: number;
+  kingsSplit: { high: number; low: number };
+}
+
 // ── API ───────────────────────────────────────────────────────────────────────
 
 export const billionaireApi = createApi({
@@ -70,13 +81,18 @@ export const billionaireApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Summary', 'Mission', 'TimeBlock', 'KingsAudit', 'TimeValue'],
+  tagTypes: ['Summary', 'Mission', 'TimeBlock', 'KingsAudit', 'TimeValue', 'Analytics'],
   endpoints: (builder) => ({
 
     // ── dashboard ────────────────────────────────────────────────────────────
     getSummary: builder.query<SummaryResponse, { day?: string } | void>({
       query: (params) => `/api/billionaire/summary${params?.day ? `?day=${params.day}` : ''}`,
       providesTags: ['Summary', 'Mission'],
+    }),
+
+    getAnalytics: builder.query<AnalyticsResponse, { days?: number } | void>({
+      query: (params) => `/api/billionaire/analytics?days=${params?.days ?? 7}`,
+      providesTags: ['Analytics', 'Mission', 'TimeBlock', 'KingsAudit'],
     }),
 
     // ── missions ─────────────────────────────────────────────────────────────
@@ -87,17 +103,22 @@ export const billionaireApi = createApi({
 
     createMission: builder.mutation<{ success: boolean; data: Mission }, { title: string; deadline?: string; missionDate?: string }>({
       query: (body) => ({ url: '/api/billionaire/missions', method: 'POST', body }),
-      invalidatesTags: ['Mission', 'Summary'],
+      invalidatesTags: ['Mission', 'Summary', 'Analytics'],
     }),
 
     updateMission: builder.mutation<{ success: boolean; data: Mission }, { id: string; body: { title?: string; deadline?: string; completed?: boolean } }>({
       query: ({ id, body }) => ({ url: `/api/billionaire/missions/${id}`, method: 'PATCH', body }),
-      invalidatesTags: ['Mission', 'Summary'],
+      invalidatesTags: ['Mission', 'Summary', 'Analytics'],
     }),
 
     deleteMission: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({ url: `/api/billionaire/missions/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['Mission', 'Summary'],
+      invalidatesTags: ['Mission', 'Summary', 'Analytics'],
+    }),
+
+    rolloverMissions: builder.mutation<{ success: boolean; carried: number; date: string; data: Mission[] }, { fromDate?: string; toDate?: string }>({
+      query: (body) => ({ url: '/api/billionaire/missions/rollover', method: 'POST', body }),
+      invalidatesTags: ['Mission', 'Summary', 'Analytics'],
     }),
 
     // ── time blocks ──────────────────────────────────────────────────────────
@@ -114,22 +135,22 @@ export const billionaireApi = createApi({
 
     createTimeBlock: builder.mutation<{ success: boolean; data: TimeBlock }, { blockDate?: string; timeLabel: string; activity: string; blockType?: BlockType; note?: string }>({
       query: (body) => ({ url: '/api/billionaire/time-blocks', method: 'POST', body }),
-      invalidatesTags: ['TimeBlock'],
+      invalidatesTags: ['TimeBlock', 'Analytics'],
     }),
 
     updateTimeBlock: builder.mutation<{ success: boolean; data: TimeBlock }, { id: string; body: Partial<Pick<TimeBlock, 'timeLabel' | 'activity' | 'blockType' | 'note'>> }>({
       query: ({ id, body }) => ({ url: `/api/billionaire/time-blocks/${id}`, method: 'PATCH', body }),
-      invalidatesTags: ['TimeBlock'],
+      invalidatesTags: ['TimeBlock', 'Analytics'],
     }),
 
     deleteTimeBlock: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({ url: `/api/billionaire/time-blocks/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['TimeBlock'],
+      invalidatesTags: ['TimeBlock', 'Analytics'],
     }),
 
     seedTimeBlocks: builder.mutation<{ success: boolean; data: TimeBlock[] }, { blockDate?: string }>({
       query: (body) => ({ url: '/api/billionaire/time-blocks/seed', method: 'POST', body }),
-      invalidatesTags: ['TimeBlock'],
+      invalidatesTags: ['TimeBlock', 'Analytics'],
     }),
 
     // ── king's audit ─────────────────────────────────────────────────────────
@@ -140,17 +161,17 @@ export const billionaireApi = createApi({
 
     createKingsAuditItem: builder.mutation<{ success: boolean; data: KingsAuditItem }, { bucket: 'low' | 'high'; text: string }>({
       query: (body) => ({ url: '/api/billionaire/kings-audit', method: 'POST', body }),
-      invalidatesTags: ['KingsAudit'],
+      invalidatesTags: ['KingsAudit', 'Analytics'],
     }),
 
     deleteKingsAuditItem: builder.mutation<{ success: boolean }, string>({
       query: (id) => ({ url: `/api/billionaire/kings-audit/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['KingsAudit'],
+      invalidatesTags: ['KingsAudit', 'Analytics'],
     }),
 
     seedKingsAudit: builder.mutation<KingsAuditResponse, void>({
       query: () => ({ url: '/api/billionaire/kings-audit/seed', method: 'POST' }),
-      invalidatesTags: ['KingsAudit'],
+      invalidatesTags: ['KingsAudit', 'Analytics'],
     }),
 
     // ── time value ───────────────────────────────────────────────────────────
@@ -169,10 +190,12 @@ export const billionaireApi = createApi({
 
 export const {
   useGetSummaryQuery,
+  useGetAnalyticsQuery,
   useListMissionsQuery,
   useCreateMissionMutation,
   useUpdateMissionMutation,
   useDeleteMissionMutation,
+  useRolloverMissionsMutation,
   useListTimeBlocksQuery,
   useCreateTimeBlockMutation,
   useUpdateTimeBlockMutation,

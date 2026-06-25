@@ -5,22 +5,30 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
-import { Target, Plus, Trash2, Check, Clock, AlertTriangle } from 'lucide-react';
+import { Target, Plus, Trash2, Check, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 import {
   useGetSummaryQuery,
   useCreateMissionMutation,
   useUpdateMissionMutation,
   useDeleteMissionMutation,
+  useRolloverMissionsMutation,
 } from '@/services/billionaireApi';
 import { localDate, to12h } from './constants';
 
 export default function SignalWindow() {
-  const today = localDate();
   const { toast } = useToast();
-  const { data, isLoading } = useGetSummaryQuery({ day: today });
+
+  // Day selector — Today / Tomorrow (the evening-planning loop)
+  const today = localDate();
+  const tomorrow = localDate(new Date(Date.now() + 86400000));
+  const [day, setDay] = useState(today);
+  const isToday = day === today;
+
+  const { data, isLoading } = useGetSummaryQuery({ day });
   const [createMission, { isLoading: creating }] = useCreateMissionMutation();
   const [updateMission] = useUpdateMissionMutation();
   const [deleteMission] = useDeleteMissionMutation();
+  const [rollover, { isLoading: rolling }] = useRolloverMissionsMutation();
 
   const [title, setTitle] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -37,7 +45,7 @@ export default function SignalWindow() {
       return;
     }
     try {
-      await createMission({ title: title.trim(), deadline: deadline.trim() || undefined, missionDate: today }).unwrap();
+      await createMission({ title: title.trim(), deadline: deadline.trim() || undefined, missionDate: day }).unwrap();
       setTitle('');
       setDeadline('');
     } catch (e: any) {
@@ -45,8 +53,44 @@ export default function SignalWindow() {
     }
   };
 
+  const carryOver = async () => {
+    try {
+      const res = await rollover({ fromDate: today, toDate: tomorrow }).unwrap();
+      setDay(tomorrow);
+      toast({
+        title: res.carried ? `Carried ${res.carried} mission${res.carried > 1 ? 's' : ''} to tomorrow` : 'Nothing to carry',
+        description: res.carried ? 'Your unfinished missions are now on tomorrow.' : 'No unfinished missions today.',
+      });
+    } catch (e: any) {
+      toast({ title: 'Could not carry over', description: e?.data?.detail ?? 'Try again.', variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Day toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="inline-flex rounded-lg border bg-muted/40 p-1">
+          <button
+            onClick={() => setDay(today)}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${isToday ? 'bg-background shadow text-foreground' : 'text-muted-foreground'}`}
+          >
+            Today
+          </button>
+          <button
+            onClick={() => setDay(tomorrow)}
+            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${!isToday ? 'bg-background shadow text-foreground' : 'text-muted-foreground'}`}
+          >
+            Tomorrow
+          </button>
+        </div>
+        {isToday && (
+          <Button variant="outline" size="sm" onClick={carryOver} disabled={rolling} className="gap-1.5">
+            Carry unfinished to tomorrow <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        )}
+      </div>
+
       {/* SNR header */}
       <Card className="border-0 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
         <CardContent className="p-6">
@@ -71,16 +115,18 @@ export default function SignalWindow() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-emerald-600" /> Today's Signal Missions
+            <Target className="w-5 h-5 text-emerald-600" /> {isToday ? "Today's" : "Tomorrow's"} Signal Missions
           </CardTitle>
           <CardDescription>
-            Set your 3–5 mission-critical tasks. They are non-negotiable — everything else is noise.
+            {isToday
+              ? 'Set your 3–5 mission-critical tasks. They are non-negotiable — everything else is noise.'
+              : 'Plan tomorrow now (at ~5:30 PM) so you wake at 4 AM already locked in.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
-              placeholder="What must get done today?"
+              placeholder="What must get done?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && add()}
@@ -112,7 +158,7 @@ export default function SignalWindow() {
             {!isLoading && total === 0 && (
               <div className="text-center py-10 text-muted-foreground">
                 <Target className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                <p>No missions set yet. Add your first signal mission for today.</p>
+                <p>No missions set yet. Add your first signal mission.</p>
               </div>
             )}
             {missions.map((m, i) => (
