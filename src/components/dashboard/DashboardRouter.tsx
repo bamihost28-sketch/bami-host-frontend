@@ -38,6 +38,7 @@ import { AdminPeople } from '@/components/dashboard/AdminPeople';
 import { BusinessTypeManagement } from '@/components/dashboard/BusinessTypeManagement';
 import { SuperAdminTransactions } from '@/components/dashboard/SuperAdminTransactions';
 import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
+import BillionaireOS from '@/components/billionaire/BillionaireOS';
 import ScalableImpactPlanner from '@/components/scalable-impact/ScalableImpactPlanner';
 import { Subscription } from '@/components/dashboard/Subscription';
 
@@ -77,6 +78,7 @@ const DashboardRouter: React.FC = () => {
   // Get current view from pathname for sidebar highlighting
   const getCurrentView = () => {
     const pathname = location.pathname;
+    if (pathname.includes('billionaire-os')) return 'billionaire-os';
     if (pathname.includes('ScalableImpactPlanner')) return 'scalable-impact-planner';
     if (pathname.includes('wallet')) return 'wallet';
     if (pathname.includes('portfolio')) return 'portfolio';
@@ -500,6 +502,19 @@ const DashboardRouter: React.FC = () => {
               feature="Smart Meters"
               showUpgradePrompt={false}
               viewName="meters"
+            />
+          }
+        />
+
+        {/* Billionaire OS */}
+        <Route
+          path="/billionaire-os"
+          element={
+            <ProtectedRoute
+              element={<BillionaireOS />}
+              feature="Billionaire OS"
+              showUpgradePrompt={false}
+              viewName="billionaire-os"
             />
           }
         />

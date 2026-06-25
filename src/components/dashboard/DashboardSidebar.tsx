@@ -28,6 +28,7 @@ import {
   ChevronRight,
   ChevronDown,
   Zap,
+  Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +74,14 @@ const sidebarItems: SidebarItem[] = [
     category: 'core',
     requiredPermissions: ['view_overview'],
     path: '/dashboard/overview'
+  },
+  {
+    id: "billionaire-os",
+    label: "Billionaire OS",
+    icon: Rocket,
+    category: 'core',
+    requiredPermissions: ['view_overview'],
+    path: '/dashboard/billionaire-os'
   },
   {
     id: "defining-your-number",
