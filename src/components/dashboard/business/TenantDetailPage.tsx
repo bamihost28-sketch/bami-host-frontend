@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useGetTenantQuery, useGetTenantBillingQuery } from '@/services/estatesApi';
+import { SkillContextPanel } from '@/components/skills/SkillContextPanel';
 import { TenantDetailSkeleton } from '@/components/ui/skeletons';
 import { TenantDetailHeader } from './tenant-detail/TenantDetailHeader';
 import { TenantOverviewCard } from './tenant-detail/TenantOverviewCard';
@@ -71,6 +72,36 @@ export const TenantDetailPage = () => {
         tenant={tenant}
         billingData={billingData}
       />
+
+      {/* Business Skills — contextual AI panels based on tenant status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Finance AI: always show for overdue or near-due tenants */}
+        {((overview as any)?.status === "overdue" || (overview as any)?.totalOutstanding > 0) && (
+          <SkillContextPanel
+            skill="finance"
+            event="tenant_overdue"
+            context={{
+              tenant_name: (tenant as any)?.name ?? "this tenant",
+              outstanding: (overview as any)?.totalOutstanding ?? 0,
+              status: (overview as any)?.status ?? "overdue",
+            }}
+            title="Finance AI — Arrears Strategy"
+            defaultPrompt="How do I recover this outstanding amount?"
+          />
+        )}
+        {/* Sales AI: if tenant was from an enquiry, show sales insight */}
+        <SkillContextPanel
+          skill="sales"
+          event="new_tenant"
+          context={{
+            tenant_name: (tenant as any)?.name ?? "this tenant",
+            unit: (tenant as any)?.unitLabel ?? "",
+          }}
+          title="Sales AI — Tenant Relationship"
+          defaultPrompt="How do I ensure this tenant renews their lease?"
+          collapsed
+        />
+      </div>
     </div>
   );
 };
