@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useCreateEstateUnitMutation } from "@/services/estatesApi";
+import { SkillContextPanel } from "@/components/skills/SkillContextPanel";
 import { useUploadImageMutation } from "@/services/uploadApi";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -72,6 +73,7 @@ export const AddPropertyPage = () => {
   const [createUnit, { isLoading: isPublishing }] = useCreateEstateUnitMutation();
   const [uploadImage, { isLoading: isUploading }] = useUploadImageMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [publishedUnit, setPublishedUnit] = useState<{ label: string; rent: number } | null>(null);
 
   // Basic Info
   const [label, setLabel] = useState("");
@@ -164,7 +166,9 @@ export const AddPropertyPage = () => {
       }).unwrap();
 
       toast({ title: "Unit created!", description: `${trimmedLabel} has been added to the estate.` });
-      navigate(`/dashboard/estate/${estateId}`);
+      setPublishedUnit({ label: trimmedLabel, rent: rent });
+      // Scroll down so skill panels are visible before navigating
+      setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 100);
     } catch {
       toast({ title: "Failed to create unit", description: "Please check the form and try again.", variant: "destructive" });
     }
@@ -473,6 +477,40 @@ export const AddPropertyPage = () => {
         </div>
 
       </div>
+
+      {/* Marketer + Designer AI activate immediately after a unit is published */}
+      {publishedUnit && (
+        <div className="container mx-auto px-4 sm:px-6 pb-12">
+          <p className="text-sm font-medium text-slate-500 mb-3 mt-6">Your AI Skills are ready — what should happen next?</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SkillContextPanel
+              skill="marketer"
+              event="new_property_listed"
+              context={{
+                unit_label: publishedUnit.label,
+                monthly_rent: publishedUnit.rent,
+              }}
+              title="Marketer AI — Promote This Unit"
+              defaultPrompt="Write a listing description and social media post for this unit."
+            />
+            <SkillContextPanel
+              skill="designer"
+              event="new_property_listed"
+              context={{
+                unit_label: publishedUnit.label,
+                monthly_rent: publishedUnit.rent,
+              }}
+              title="Designer AI — Presentation Checklist"
+              defaultPrompt="What photos and visuals do I need for this listing?"
+            />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button variant="outline" onClick={() => navigate(`/dashboard/estate/${estateId}`)}>
+              Back to Estate
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

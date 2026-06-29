@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { MoreVertical, Wand2 } from "lucide-react";
 import { EstateManagementSkeleton } from "@/components/ui/skeletons";
 import { EstateOverviewCards } from "./EstateOverviewCards";
 import { EstateSetupWizard } from "./EstateSetupWizard";
+import { SkillContextPanel } from "@/components/skills/SkillContextPanel";
 
 
 interface Estate { id: string; name: string; description?: string }
@@ -35,6 +36,7 @@ export const EstateManagement = () => {
   const [newEstateDesc, setNewEstateDesc] = useState("");
   const [newEstateUnits, setNewEstateUnits] = useState("");
   const [isCreatingEstate, setIsCreatingEstate] = useState(false);
+  const [newlyCreatedEstate, setNewlyCreatedEstate] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [createEstate] = useCreateEstateMutation();
@@ -72,6 +74,7 @@ export const EstateManagement = () => {
       setIsCreatingEstate(true);
       await createEstate({ name, description: newEstateDesc || undefined, totalUnits: unitsNum }).unwrap();
       toast({ title: "Estate created", description: `${name} has been created.` });
+      setNewlyCreatedEstate(name);
     } catch (e) {
       toast({ title: "Failed to create estate", description: "Please try again.", variant: "destructive" });
     } finally {
@@ -304,6 +307,27 @@ export const EstateManagement = () => {
       </Card>
 
       <EstateSetupWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+
+      {/* Marketer AI activates immediately after a new estate is created */}
+      {newlyCreatedEstate && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SkillContextPanel
+            skill="marketer"
+            event="new_property_listed"
+            context={{ estate_name: newlyCreatedEstate }}
+            title="Marketer AI — Promote Your New Estate"
+            defaultPrompt="Write a launch post I can share on WhatsApp and Instagram for this estate."
+          />
+          <SkillContextPanel
+            skill="designer"
+            event="new_property_listed"
+            context={{ estate_name: newlyCreatedEstate }}
+            title="Designer AI — Brand This Estate"
+            defaultPrompt="What visual assets do I need before I can start marketing this estate?"
+            collapsed
+          />
+        </div>
+      )}
     </div>
   );
 };

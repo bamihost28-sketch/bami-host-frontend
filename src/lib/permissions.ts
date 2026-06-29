@@ -309,6 +309,18 @@ export const PERMISSIONS: Record<string, Permission> = {
     description: 'View subscription management',
     category: 'system'
   },
+  'manage_subscription': {
+    id: 'manage_subscription',
+    name: 'Manage Subscriptions',
+    description: 'Manage subscription plans and billing',
+    category: 'system'
+  },
+  'manage_business_types': {
+    id: 'manage_business_types',
+    name: 'Manage Business Types',
+    description: 'Create and manage business type configurations',
+    category: 'system'
+  },
   'manage_accounting': {
     id: 'manage_accounting',
     name: 'Manage Accounting',
@@ -711,5 +723,12 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'business-types': ['view_business_types', 'manage_business_types'],
   'subscription': ['view_subscription', 'manage_subscription'],
   // Financial
-  'accounting': ['view_all_data', 'manage_accounting']
+  'accounting': ['view_all_data', 'manage_accounting'],
+  // Business Skills
+  'skills-designer':   ['view_designer_skill'],
+  'skills-marketing':  ['view_marketing_skill'],
+  'skills-sales':      ['view_sales_skill'],
+  'skills-finance':    ['view_finance_skill'],
+  'skills-operations': ['view_operations_skill'],
+  'skills-hr':         ['view_hr_skill']
 };

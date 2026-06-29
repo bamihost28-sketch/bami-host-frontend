@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Zap, Palette, Megaphone, DollarSign, Settings2, Users, TrendingUp, X, ChevronRight, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { BASE_API_URL } from "@/services/api";
 
 interface SkillSuggestion {
