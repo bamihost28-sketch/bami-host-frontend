@@ -364,6 +364,12 @@ export const PERMISSIONS: Record<string, Permission> = {
     name: 'HR Director Skill',
     description: 'Access to candidate pipeline, hiring decisions, and team building',
     category: 'business'
+  },
+  'view_autopilot': {
+    id: 'view_autopilot',
+    name: 'Business Autopilot',
+    description: 'AI-powered business automation — posts, reminders, follow-ups, and content generation',
+    category: 'business'
   }
 };
 
@@ -410,6 +416,7 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'view_finance_skill',
       'view_operations_skill',
       'view_hr_skill',
+      'view_autopilot',
     ]
   },
 
@@ -535,6 +542,7 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'view_finance_skill',
       'view_operations_skill',
       'view_hr_skill',
+      'view_autopilot',
     ]
   },
 
@@ -730,5 +738,7 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'skills-sales':      ['view_sales_skill'],
   'skills-finance':    ['view_finance_skill'],
   'skills-operations': ['view_operations_skill'],
-  'skills-hr':         ['view_hr_skill']
+  'skills-hr':         ['view_hr_skill'],
+  // Autopilot
+  'autopilot':         ['view_autopilot']
 };

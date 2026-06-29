@@ -47,6 +47,7 @@ import { SalesDashboard } from '@/components/skills/SalesDashboard';
 import { FinanceDashboard } from '@/components/skills/FinanceDashboard';
 import { OperationsDashboard } from '@/components/skills/OperationsDashboard';
 import { HRDashboard } from '@/components/skills/HRDashboard';
+import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -608,6 +609,19 @@ const DashboardRouter: React.FC = () => {
               feature="HR Director Skill"
               showUpgradePrompt={true}
               viewName="skills-hr"
+            />
+          }
+        />
+
+        <Route
+          path="/autopilot"
+          element={
+            <ProtectedRoute
+              element={<AutopilotDashboard />}
+              requiredPermissions={['view_autopilot']}
+              feature="Business Autopilot"
+              showUpgradePrompt={true}
+              viewName="autopilot"
             />
           }
         />

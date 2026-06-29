@@ -287,6 +287,15 @@ const sidebarItems: SidebarItem[] = [
     path: '/dashboard/skills/hr'
   },
   {
+    id: "autopilot",
+    label: "Business Autopilot",
+    icon: Zap,
+    category: 'business',
+    requiredPermissions: ['view_autopilot'],
+    isPremium: true,
+    path: '/dashboard/autopilot'
+  },
+  {
     id: "filling-station",
     label: "Filling Station",
     icon: Building,
