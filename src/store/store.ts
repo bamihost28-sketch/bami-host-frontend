@@ -14,6 +14,8 @@ import { notificationsApi } from '../services/notificationsApi';
 import { bankDepositsApi } from '../services/bankDepositsApi';
 import { meterApi } from '../services/meterApi';
 import { billionaireApi } from '../services/billionaireApi';
+import { managerApi } from '../services/managerApi';
+import { brandApi, marketingApi, salesApi, operationsApi, financeApi, hrApi } from '../services/skillsApi';
 import authReducer from './authSlice';
 
 export const store = configureStore({
@@ -35,6 +37,13 @@ export const store = configureStore({
     [bankDepositsApi.reducerPath]: bankDepositsApi.reducer,
     [meterApi.reducerPath]: meterApi.reducer,
     [billionaireApi.reducerPath]: billionaireApi.reducer,
+    [managerApi.reducerPath]: managerApi.reducer,
+    [brandApi.reducerPath]: brandApi.reducer,
+    [marketingApi.reducerPath]: marketingApi.reducer,
+    [salesApi.reducerPath]: salesApi.reducer,
+    [operationsApi.reducerPath]: operationsApi.reducer,
+    [financeApi.reducerPath]: financeApi.reducer,
+    [hrApi.reducerPath]: hrApi.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -55,6 +64,13 @@ export const store = configureStore({
       bankDepositsApi.middleware,
       meterApi.middleware,
       billionaireApi.middleware,
+      managerApi.middleware,
+      brandApi.middleware,
+      marketingApi.middleware,
+      salesApi.middleware,
+      operationsApi.middleware,
+      financeApi.middleware,
+      hrApi.middleware,
     ),
 });
 

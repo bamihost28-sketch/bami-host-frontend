@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp/claude-501",
+      "/Users/temple/Documents/Bami/BamiHustle-backend/fastapi_app/middleware",
+      "/Users/temple/Documents/Bami/BamiHustle-backend/fastapi_app"
+    ]
+  }
+}

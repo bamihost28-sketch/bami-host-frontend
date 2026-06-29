@@ -314,6 +314,44 @@ export const PERMISSIONS: Record<string, Permission> = {
     name: 'Manage Accounting',
     description: 'Access accounting management',
     category: 'financial'
+  },
+
+  // ── Business Skills ───────────────────────────────────────────────────────────
+  'view_designer_skill': {
+    id: 'view_designer_skill',
+    name: 'Designer Skill',
+    description: 'Access to brand assets, visual identity, and design tools',
+    category: 'business'
+  },
+  'view_marketing_skill': {
+    id: 'view_marketing_skill',
+    name: 'Marketer Skill',
+    description: 'Access to campaign tracking, lead management, and marketing analytics',
+    category: 'business'
+  },
+  'view_sales_skill': {
+    id: 'view_sales_skill',
+    name: 'Sales Skill',
+    description: 'Access to deal pipeline, client tracking, and revenue forecasting',
+    category: 'business'
+  },
+  'view_finance_skill': {
+    id: 'view_finance_skill',
+    name: 'Finance Director Skill',
+    description: 'Access to P&L overview, cash flow, revenue trends, and financial reports',
+    category: 'financial'
+  },
+  'view_operations_skill': {
+    id: 'view_operations_skill',
+    name: 'Operations Skill',
+    description: 'Access to vendor management, service tracking, and operational systems',
+    category: 'operations'
+  },
+  'view_hr_skill': {
+    id: 'view_hr_skill',
+    name: 'HR Director Skill',
+    description: 'Access to candidate pipeline, hiring decisions, and team building',
+    category: 'business'
   }
 };
 
@@ -337,14 +375,29 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
     priority: 85,
     permissions: [
       'view_overview',
-
       'view_settings',
       'view_estate',
       'manage_estate',
-
+      'manage_tenants',
+      'manage_issues',
+      'manage_payments',
+      'manage_billing',
+      'manage_enquiries',
+      'manage_applications',
+      'manage_service_requests',
+      'view_meters',
+      'send_notifications',
+      'view_vacancies',
       'view_assistant',
       'view_payment_history',
       'make_payments',
+      // Business Skills
+      'view_designer_skill',
+      'view_marketing_skill',
+      'view_sales_skill',
+      'view_finance_skill',
+      'view_operations_skill',
+      'view_hr_skill',
     ]
   },
 
@@ -439,9 +492,19 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'view_assistant',
       'view_settings',
       'view_reports',
-      // Business management based on department
+      // Estate & property management skills
       'view_estate',
       'manage_estate',
+      'manage_tenants',
+      'manage_issues',
+      'manage_payments',
+      'manage_billing',
+      'manage_enquiries',
+      'manage_applications',
+      'manage_service_requests',
+      'view_meters',
+      'send_notifications',
+      'view_vacancies',
       'view_filling_station',
       'manage_filling_station',
       'view_equipment',
@@ -452,7 +515,14 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'view_strategic_hiring',
       'view_hiring_triggers',
       'manage_candidates',
-      'conduct_halo_research'
+      'conduct_halo_research',
+      // Business Skills
+      'view_designer_skill',
+      'view_marketing_skill',
+      'view_sales_skill',
+      'view_finance_skill',
+      'view_operations_skill',
+      'view_hr_skill',
     ]
   },
 

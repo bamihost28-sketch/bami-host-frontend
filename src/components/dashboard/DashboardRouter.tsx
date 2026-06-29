@@ -41,6 +41,12 @@ import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
 import BillionaireOS from '@/components/billionaire/BillionaireOS';
 import ScalableImpactPlanner from '@/components/scalable-impact/ScalableImpactPlanner';
 import { Subscription } from '@/components/dashboard/Subscription';
+import { DesignerDashboard } from '@/components/skills/DesignerDashboard';
+import { MarketingDashboard } from '@/components/skills/MarketingDashboard';
+import { SalesDashboard } from '@/components/skills/SalesDashboard';
+import { FinanceDashboard } from '@/components/skills/FinanceDashboard';
+import { OperationsDashboard } from '@/components/skills/OperationsDashboard';
+import { HRDashboard } from '@/components/skills/HRDashboard';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -528,6 +534,80 @@ const DashboardRouter: React.FC = () => {
               feature="Subscription"
               showUpgradePrompt={false}
               viewName="subscription"
+            />
+          }
+        />
+
+        {/* ── Business Skills ─────────────────────────────────────────────── */}
+        <Route
+          path="/skills/designer"
+          element={
+            <ProtectedRoute
+              element={<DesignerDashboard />}
+              requiredPermissions={['view_designer_skill']}
+              feature="Designer Skill"
+              showUpgradePrompt={true}
+              viewName="skills-designer"
+            />
+          }
+        />
+        <Route
+          path="/skills/marketing"
+          element={
+            <ProtectedRoute
+              element={<MarketingDashboard />}
+              requiredPermissions={['view_marketing_skill']}
+              feature="Marketer Skill"
+              showUpgradePrompt={true}
+              viewName="skills-marketing"
+            />
+          }
+        />
+        <Route
+          path="/skills/sales"
+          element={
+            <ProtectedRoute
+              element={<SalesDashboard />}
+              requiredPermissions={['view_sales_skill']}
+              feature="Sales Skill"
+              showUpgradePrompt={true}
+              viewName="skills-sales"
+            />
+          }
+        />
+        <Route
+          path="/skills/finance"
+          element={
+            <ProtectedRoute
+              element={<FinanceDashboard />}
+              requiredPermissions={['view_finance_skill']}
+              feature="Finance Director Skill"
+              showUpgradePrompt={true}
+              viewName="skills-finance"
+            />
+          }
+        />
+        <Route
+          path="/skills/operations"
+          element={
+            <ProtectedRoute
+              element={<OperationsDashboard />}
+              requiredPermissions={['view_operations_skill']}
+              feature="Operations Skill"
+              showUpgradePrompt={true}
+              viewName="skills-operations"
+            />
+          }
+        />
+        <Route
+          path="/skills/hr"
+          element={
+            <ProtectedRoute
+              element={<HRDashboard />}
+              requiredPermissions={['view_hr_skill']}
+              feature="HR Director Skill"
+              showUpgradePrompt={true}
+              viewName="skills-hr"
             />
           }
         />

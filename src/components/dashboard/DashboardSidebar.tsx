@@ -29,6 +29,9 @@ import {
   ChevronDown,
   Zap,
   Rocket,
+  Palette,
+  Megaphone,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -228,6 +231,60 @@ const sidebarItems: SidebarItem[] = [
     requiredPermissions: ['view_estate'],
     isPremium: true,
     path: '/dashboard/estate'
+  },
+  {
+    id: "skills-designer",
+    label: "Designer Skill",
+    icon: Palette,
+    category: 'business',
+    requiredPermissions: ['view_designer_skill'],
+    isPremium: true,
+    path: '/dashboard/skills/designer'
+  },
+  {
+    id: "skills-marketing",
+    label: "Marketer Skill",
+    icon: Megaphone,
+    category: 'business',
+    requiredPermissions: ['view_marketing_skill'],
+    isPremium: true,
+    path: '/dashboard/skills/marketing'
+  },
+  {
+    id: "skills-sales",
+    label: "Sales Skill",
+    icon: TrendingUp,
+    category: 'business',
+    requiredPermissions: ['view_sales_skill'],
+    isPremium: true,
+    path: '/dashboard/skills/sales'
+  },
+  {
+    id: "skills-finance",
+    label: "Finance Director",
+    icon: DollarSign,
+    category: 'financial',
+    requiredPermissions: ['view_finance_skill'],
+    isPremium: true,
+    path: '/dashboard/skills/finance'
+  },
+  {
+    id: "skills-operations",
+    label: "Operations Skill",
+    icon: Settings2,
+    category: 'business',
+    requiredPermissions: ['view_operations_skill'],
+    isPremium: true,
+    path: '/dashboard/skills/operations'
+  },
+  {
+    id: "skills-hr",
+    label: "HR Director",
+    icon: Users,
+    category: 'business',
+    requiredPermissions: ['view_hr_skill'],
+    isPremium: true,
+    path: '/dashboard/skills/hr'
   },
   {
     id: "filling-station",
