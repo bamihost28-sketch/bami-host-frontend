@@ -42,6 +42,7 @@ import BillionaireOS from '@/components/billionaire/BillionaireOS';
 import ScalableImpactPlanner from '@/components/scalable-impact/ScalableImpactPlanner';
 import { Subscription } from '@/components/dashboard/Subscription';
 import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
+import { ScaleDashboard } from '@/components/skills/ScaleDashboard';
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
@@ -548,6 +549,18 @@ const DashboardRouter: React.FC = () => {
               feature="Business Autopilot"
               showUpgradePrompt={true}
               viewName="autopilot"
+            />
+          }
+        />
+        <Route
+          path="/scale"
+          element={
+            <ProtectedRoute
+              element={<ScaleDashboard />}
+              requiredPermissions={['view_autopilot']}
+              feature="Scale — 7 Levels"
+              showUpgradePrompt={true}
+              viewName="scale"
             />
           }
         />

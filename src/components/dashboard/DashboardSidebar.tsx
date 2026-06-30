@@ -244,6 +244,16 @@ const sidebarItems: SidebarItem[] = [
     path: '/dashboard/autopilot'
   },
   {
+    // Level 7 progress system — diagnose level, NPS/promoters, growth scorecard, pay-yourself-first
+    id: "scale",
+    label: "Scale · 7 Levels",
+    icon: TrendingUp,
+    category: 'business',
+    requiredPermissions: ['view_autopilot'],
+    isPremium: true,
+    path: '/dashboard/scale'
+  },
+  {
     id: "filling-station",
     label: "Filling Station",
     icon: Building,
