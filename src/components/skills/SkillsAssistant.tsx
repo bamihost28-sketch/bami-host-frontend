@@ -97,15 +97,15 @@ function buildSuggestions(overview: any): SkillSuggestion[] {
     });
   }
 
-  // Designer: if occupancy is low, brand might be the problem
+  // Designer: if occupancy is low, the Designer agent auto-creates listing graphics
   if (occupancy < 75 && vacant > 0) {
     suggestions.push({
       skill: "designer",
       icon: Palette,
       color: "designer",
-      trigger: `Occupancy at ${occupancy}% — your brand presence may need work`,
-      action: "Improve property listing visuals and brand identity to attract more leads",
-      path: "/dashboard/skills/designer",
+      trigger: `Occupancy at ${occupancy}% — your Designer agent is creating listing graphics`,
+      action: "Review the AI-designed marketing graphics for your vacant units in Autopilot",
+      path: "/dashboard/autopilot",
     });
   }
 

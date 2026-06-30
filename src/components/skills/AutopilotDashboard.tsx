@@ -3,7 +3,7 @@ import {
   Bot, Zap, Play, X, Copy, CheckCircle, Loader2, RefreshCw,
   Megaphone, DollarSign, Settings2, TrendingUp, Users, Palette,
   MessageCircle, Instagram, Facebook, Mail, Smartphone, FileText,
-  ChevronDown, ChevronUp, Send, Clock, BarChart3, Plus, SlidersHorizontal
+  ChevronDown, ChevronUp, Send, Clock, BarChart3, Plus, SlidersHorizontal, Sparkles
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -175,6 +175,20 @@ function ActionCard({ action, onExecute, onDismiss }: {
             )}
           </div>
         </div>
+
+        {/* AI-designed marketing graphic (from the background Designer agent) */}
+        {action.image_url && (
+          <div className="mt-3">
+            <img
+              src={action.image_url}
+              alt="AI-designed marketing graphic"
+              className="rounded-lg border max-h-64 w-auto object-contain bg-white"
+            />
+            <p className="mt-1 text-xs text-purple-600 flex items-center gap-1">
+              <Sparkles className="h-3 w-3" /> Designed automatically by your AI Designer
+            </p>
+          </div>
+        )}
 
         {/* Expanded content */}
         {expanded && action.content && (

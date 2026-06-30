@@ -20,6 +20,7 @@ export interface AutopilotAction {
   description: string;
   content: string | null;
   platform: string | null;
+  image_url: string | null;
   trigger_event: string | null;
   trigger_context: Record<string, any>;
   recipients: Array<{ name: string; phone: string; email: string }>;

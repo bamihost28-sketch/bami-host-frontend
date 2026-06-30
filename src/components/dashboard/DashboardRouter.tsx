@@ -41,7 +41,6 @@ import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
 import BillionaireOS from '@/components/billionaire/BillionaireOS';
 import ScalableImpactPlanner from '@/components/scalable-impact/ScalableImpactPlanner';
 import { Subscription } from '@/components/dashboard/Subscription';
-import { DesignerDashboard } from '@/components/skills/DesignerDashboard';
 import { MarketingDashboard } from '@/components/skills/MarketingDashboard';
 import { SalesDashboard } from '@/components/skills/SalesDashboard';
 import { FinanceDashboard } from '@/components/skills/FinanceDashboard';
@@ -540,18 +539,8 @@ const DashboardRouter: React.FC = () => {
         />
 
         {/* ── Business Skills ─────────────────────────────────────────────── */}
-        <Route
-          path="/skills/designer"
-          element={
-            <ProtectedRoute
-              element={<DesignerDashboard />}
-              requiredPermissions={['view_designer_skill']}
-              feature="Designer Skill"
-              showUpgradePrompt={true}
-              viewName="skills-designer"
-            />
-          }
-        />
+        {/* Designer now runs as a background agent (auto-designs marketing
+            graphics on new listings) — no manual page. See services/designer.py */}
         <Route
           path="/skills/marketing"
           element={

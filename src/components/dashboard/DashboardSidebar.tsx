@@ -233,15 +233,6 @@ const sidebarItems: SidebarItem[] = [
     path: '/dashboard/estate'
   },
   {
-    id: "skills-designer",
-    label: "Designer Skill",
-    icon: Palette,
-    category: 'business',
-    requiredPermissions: ['view_designer_skill'],
-    isPremium: true,
-    path: '/dashboard/skills/designer'
-  },
-  {
     id: "skills-marketing",
     label: "Marketer Skill",
     icon: Megaphone,
