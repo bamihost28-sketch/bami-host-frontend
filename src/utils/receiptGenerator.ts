@@ -57,9 +57,9 @@ export const generateReceiptPDF = async (data: ReceiptData): Promise<void> => {
       <div style="width: 210mm; height: 297mm; padding: 20mm; font-family: Arial, sans-serif; color: #333; background: white;">
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #27ae60; padding-bottom: 15px;">
-          <h1 style="margin: 0; color: #27ae60; font-size: 28px;">BamiHustle</h1>
+          <h1 style="margin: 0; color: #27ae60; font-size: 28px;">BamiHost</h1>
           <p style="margin: 5px 0; color: #666; font-size: 14px;">Estate & Property Management</p>
-          <p style="margin: 5px 0; color: #999; font-size: 12px;">www.bamihustle.com | support@bamihustle.com</p>
+          <p style="margin: 5px 0; color: #999; font-size: 12px;">www.bamihost.com | support@bamihost.com</p>
         </div>
 
         <!-- Receipt Title -->
@@ -139,7 +139,7 @@ export const generateReceiptPDF = async (data: ReceiptData): Promise<void> => {
         <!-- Footer -->
         <div style="border-top: 2px solid #ecf0f1; padding-top: 15px; text-align: center; color: #999; font-size: 11px;">
           <p style="margin: 5px 0;">This is an automatically generated receipt. For any inquiries, please contact support.</p>
-          <p style="margin: 5px 0;">BamiHustle © ${new Date().getFullYear()} | All rights reserved</p>
+          <p style="margin: 5px 0;">BamiHost © ${new Date().getFullYear()} | All rights reserved</p>
         </div>
       </div>
     `;
@@ -197,7 +197,7 @@ export const generateReceiptImage = async (data: ReceiptData): Promise<void> => 
     const receiptHTML = `
       <div style="width: 800px; padding: 40px; font-family: Arial, sans-serif; color: #333; background: white;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #27ae60; padding-bottom: 15px;">
-          <h1 style="margin: 0; color: #27ae60; font-size: 32px;">BamiHustle</h1>
+          <h1 style="margin: 0; color: #27ae60; font-size: 32px;">BamiHost</h1>
           <p style="margin: 5px 0;">Receipt #${data.receiptNumber}</p>
         </div>
         <table style="width: 100%; margin-bottom: 20px;">

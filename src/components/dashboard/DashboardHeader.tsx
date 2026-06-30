@@ -32,7 +32,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
               <span className="text-white font-bold text-sm">B</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-lg md:text-xl bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">Bami Hustle</span>
+              <span className="font-bold text-lg md:text-xl bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">Bami Host</span>
               {user && (
                 <span className="hidden sm:block text-xs text-muted-foreground -mt-1">
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)} Portal
@@ -72,7 +72,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
             size="sm" 
             onClick={logout}
             className="flex items-center justify-center p-2 sm:px-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 hover:text-red-500 border border-red-500/20 hover:border-red-500/30 transition-all duration-200"
-            title="Logout from Bami Hustle"
+            title="Logout from Bami Host"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline ml-1">Logout</span>

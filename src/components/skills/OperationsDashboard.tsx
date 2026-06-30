@@ -24,7 +24,7 @@ const STATUS_COLOR: Record<string, string> = { active: "bg-green-100 text-green-
 
 const TIPS = [
   { icon: "📋", title: "2 Vendors Per Category", body: "Always have a backup. If your plumber is unavailable, you have 24 hours before a tenant emergency becomes a crisis." },
-  { icon: "⭐", title: "Rate Every Job", body: "Score vendors 1–5 after every job. Pattern of 3s = warning. Pattern of 2s = replace. Document it in BamiHustle." },
+  { icon: "⭐", title: "Rate Every Job", body: "Score vendors 1–5 after every job. Pattern of 3s = warning. Pattern of 2s = replace. Document it in BamiHost." },
   { icon: "⚡", title: "Response SLA: 4 Hours", body: "Vendors should acknowledge issues within 4 hours. Resolution within 72 hours. Set this expectation upfront." },
   { icon: "💰", title: "Track Vendor Spend", body: "Log every payment to vendors. Your top spender by category tells you where to negotiate bulk discounts." },
   { icon: "📄", title: "SOPs Save You", body: "Write the checklist for every recurring job: inspection, cleaning, maintenance. A team follows processes, not vibes." },

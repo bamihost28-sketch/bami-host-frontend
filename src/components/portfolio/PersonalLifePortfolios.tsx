@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BamiHustleLogo } from "@/components/brand";
+import { BamiHostLogo } from "@/components/brand";
 import { AddGoalModal } from "./AddGoalModal";
 import {
   UtensilsCrossed,
@@ -109,7 +109,7 @@ export const PersonalLifePortfolios = () => {
         }
       ],
       recommendations: [
-        "Bami Hustle tip: You're spending 17% less than budgeted - excellent financial discipline!",
+        "Bami Host tip: You're spending 17% less than budgeted - excellent financial discipline!",
         "Consider investing saved money in quality cooking equipment for long-term savings",
         "Pro tip: Track nutritional goals alongside financial ones for complete wellness"
       ]
@@ -148,7 +148,7 @@ export const PersonalLifePortfolios = () => {
         }
       ],
       recommendations: [
-        "Bami Hustle alert: You're over budget by 19% - time to review non-essential health expenses",
+        "Bami Host alert: You're over budget by 19% - time to review non-essential health expenses",
         "Smart move: Consider upgrading to health insurance with better coverage",
         "Investment tip: Preventive care today reduces long-term medical costs significantly"
       ]
@@ -189,7 +189,7 @@ export const PersonalLifePortfolios = () => {
         }
       ],
       recommendations: [
-        "Bami Hustle celebrates: Perfect budget control - you're mastering this category!",
+        "Bami Host celebrates: Perfect budget control - you're mastering this category!",
         "Smart upgrade: Consider energy-efficient improvements to slash utility costs",
         "House fund momentum: You're progressing excellently - maintain this consistency"
       ]
@@ -230,7 +230,7 @@ export const PersonalLifePortfolios = () => {
         }
       ],
       recommendations: [
-        "Bami Hustle gold star: Excellent family financial management - 15% under budget!",
+        "Bami Host gold star: Excellent family financial management - 15% under budget!",
         "Family milestone: Your relationship goals are progressing beautifully",
         "Growth hack: Set up automatic savings for children's education fund"
       ]
@@ -271,7 +271,7 @@ export const PersonalLifePortfolios = () => {
         }
       ],
       recommendations: [
-        "Bami Hustle checkpoint: Transportation costs are 17% over budget - time for optimization",
+        "Bami Host checkpoint: Transportation costs are 17% over budget - time for optimization",
         "Eco-friendly tip: Try carpooling or public transport to reduce costs and carbon footprint",
         "Data-driven approach: Track fuel efficiency and maintenance patterns for better planning"
       ]
@@ -312,7 +312,7 @@ export const PersonalLifePortfolios = () => {
         }
       ],
       recommendations: [
-        "Bami Hustle opportunity: 13% under budget - perfect chance to invest in more skill development",
+        "Bami Host opportunity: 13% under budget - perfect chance to invest in more skill development",
         "Career trajectory: Your professional development is excellently on track",
         "Strategic move: Explore employer-sponsored training to maximize your learning ROI"
       ]
@@ -353,7 +353,7 @@ export const PersonalLifePortfolios = () => {
         }
       ],
       recommendations: [
-        "Bami Hustle momentum: Solid progress on personal branding - keep building your empire!",
+        "Bami Host momentum: Solid progress on personal branding - keep building your empire!",
         "Digital presence: Consider amplifying your social media for greater professional visibility",
         "Hustle strategy: Network strategically within your industry for exponential growth"
       ]
@@ -362,7 +362,7 @@ export const PersonalLifePortfolios = () => {
 
   const handleAddGoal = (newGoal: any) => {
     // This would typically involve API calls to persist the new goal
-    console.log('New Bami Hustle goal added:', newGoal);
+    console.log('New Bami Host goal added:', newGoal);
     // For now, we'll just log it. In a real app, you'd update the state
     // and sync with your backend
   };
@@ -441,7 +441,7 @@ export const PersonalLifePortfolios = () => {
       <div className="flex flex-col gap-4">
         <div className="text-center sm:text-left">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <BamiHustleLogo variant="compact" showTagline={false} className="mx-auto sm:mx-0" />
+            <BamiHostLogo variant="compact" showTagline={false} className="mx-auto sm:mx-0" />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-2xl font-bold">Personal Life Portfolios</h1>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -728,7 +728,7 @@ export const PersonalLifePortfolios = () => {
                 <Alert>
                   <BarChart3 className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Bami Hustle AI Insights for {selectedCategoryData.name}</strong>
+                    <strong>Bami Host AI Insights for {selectedCategoryData.name}</strong>
                   </AlertDescription>
                 </Alert>
                 

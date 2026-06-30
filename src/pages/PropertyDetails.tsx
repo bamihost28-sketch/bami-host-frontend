@@ -72,7 +72,7 @@ const PropertyDetails = () => {
 
     const [copied, setCopied] = useState(false);
     const pageUrl = window.location.href;
-    const shareText = property ? `Check out ${property.label} on BamiHustle` : "Check out this property on BamiHustle";
+    const shareText = property ? `Check out ${property.label} on BamiHost` : "Check out this property on BamiHost";
 
     const handleCopyLink = async () => {
         await navigator.clipboard.writeText(pageUrl);

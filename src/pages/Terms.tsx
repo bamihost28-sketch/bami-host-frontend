@@ -35,7 +35,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">Introduction</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  Welcome to Bami Hustle. These Terms of Service ("Terms") govern your access to and use of our website, mobile application, and services (collectively, the "Service"). By accessing or using Bami Hustle, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you may not use our Service.
+                  Welcome to Bami Host. These Terms of Service ("Terms") govern your access to and use of our website, mobile application, and services (collectively, the "Service"). By accessing or using Bami Host, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you may not use our Service.
                 </p>
               </div>
 
@@ -43,7 +43,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">1. Account Registration</h2>
                 <p className="text-slate-300 leading-relaxed mb-4">
-                  To use certain features of Bami Hustle, you must create an account. You agree to:
+                  To use certain features of Bami Host, you must create an account. You agree to:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
                   <li>Provide accurate, complete, and current information during registration</li>
@@ -76,7 +76,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">3. Intellectual Property Rights</h2>
                 <p className="text-slate-300 leading-relaxed mb-4">
-                  All content on Bami Hustle, including text, graphics, logos, images, and software, is the property of Bami Hustle or its content suppliers and is protected by international copyright laws.
+                  All content on Bami Host, including text, graphics, logos, images, and software, is the property of Bami Host or its content suppliers and is protected by international copyright laws.
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
                   <li>You may not reproduce, distribute, or transmit any content without our permission</li>
@@ -89,7 +89,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">4. User-Generated Content</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  By uploading or submitting content to Bami Hustle, you grant us a non-exclusive, worldwide, royalty-free license to use, reproduce, modify, and distribute your content. You are entirely responsible for the content you upload and assume all risks associated with it. We reserve the right to remove content that violates these Terms or is inappropriate.
+                  By uploading or submitting content to Bami Host, you grant us a non-exclusive, worldwide, royalty-free license to use, reproduce, modify, and distribute your content. You are entirely responsible for the content you upload and assume all risks associated with it. We reserve the right to remove content that violates these Terms or is inappropriate.
                 </p>
               </div>
 
@@ -103,7 +103,7 @@ const Terms = () => {
                   <li>You are responsible for accurate product descriptions and pricing</li>
                   <li>You must comply with all applicable laws and regulations</li>
                   <li>You agree to honest and fair dealings with other users</li>
-                  <li>Bami Hustle is not responsible for disputes between buyers and sellers</li>
+                  <li>Bami Host is not responsible for disputes between buyers and sellers</li>
                   <li>All transactions are subject to our payment processing terms</li>
                 </ul>
               </div>
@@ -112,7 +112,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">6. Payments and Billing</h2>
                 <p className="text-slate-300 leading-relaxed mb-4">
-                  If you purchase services or products through Bami Hustle:
+                  If you purchase services or products through Bami Host:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
                   <li>You agree to pay all fees according to the pricing displayed</li>
@@ -127,7 +127,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">7. Disclaimer of Warranties</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  Bami Hustle is provided "AS IS" without warranties of any kind. We do not warrant that:
+                  Bami Host is provided "AS IS" without warranties of any kind. We do not warrant that:
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-slate-300 ml-4">
                   <li>The Service will be uninterrupted or error-free</li>
@@ -141,7 +141,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">8. Limitation of Liability</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, BAMI HUSTLE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, OR USE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, BAMI HOST SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, OR USE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
                 </p>
               </div>
 
@@ -149,7 +149,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">9. Indemnification</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  You agree to indemnify and hold harmless Bami Hustle, its officers, employees, and agents from any claims, damages, or costs arising from your use of the Service, violation of these Terms, or infringement of any third-party rights.
+                  You agree to indemnify and hold harmless Bami Host, its officers, employees, and agents from any claims, damages, or costs arising from your use of the Service, violation of these Terms, or infringement of any third-party rights.
                 </p>
               </div>
 
@@ -181,7 +181,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">13. Dispute Resolution</h2>
                 <p className="text-slate-300 leading-relaxed mb-4">
-                  Any disputes arising from these Terms or your use of Bami Hustle shall first be attempted to be resolved through informal negotiation. If resolution cannot be reached, disputes shall be resolved through binding arbitration rather than in court, except for injunctive relief.
+                  Any disputes arising from these Terms or your use of Bami Host shall first be attempted to be resolved through informal negotiation. If resolution cannot be reached, disputes shall be resolved through binding arbitration rather than in court, except for injunctive relief.
                 </p>
               </div>
 
@@ -189,7 +189,7 @@ const Terms = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">14. Entire Agreement</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  These Terms constitute the entire agreement between you and Bami Hustle regarding the Service and supersede all previous agreements or understandings.
+                  These Terms constitute the entire agreement between you and Bami Host regarding the Service and supersede all previous agreements or understandings.
                 </p>
               </div>
 

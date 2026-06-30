@@ -15,7 +15,7 @@ export const ReadyToListCta = () => {
                             Ready to list your rental?
                         </h2>
                         <p className="text-lg md:text-xl text-blue-50/90 font-medium">
-                            Join thousands of landlords who find quality tenants fast on Bami Hustle Estate Marketplace.
+                            Join thousands of landlords who find quality tenants fast on Bami Host Estate Marketplace.
                         </p>
                     </div>
 

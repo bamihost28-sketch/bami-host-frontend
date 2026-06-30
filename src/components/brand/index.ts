@@ -1,1 +1,1 @@
-export { BamiHustleLogo } from './BamiHustleLogo';
+export { BamiHostLogo } from './BamiHostLogo';

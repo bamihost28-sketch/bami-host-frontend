@@ -532,11 +532,11 @@ export const CustomerDashboard = () => {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <BamiHustleLogo variant="icon-only" />
+              <BamiHostLogo variant="icon-only" />
               <div>
                 <DialogTitle>Make Payment</DialogTitle>
                 <DialogDescription>
-                  Process your payment securely through Bami Hustle
+                  Process your payment securely through Bami Host
                 </DialogDescription>
               </div>
             </div>

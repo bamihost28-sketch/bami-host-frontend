@@ -379,7 +379,7 @@ const Landing = () => {
           <div className="text-center mb-14">
             <span className="text-xs font-bold tracking-widest text-blue-500 uppercase">Testimonials</span>
             <h2 className="text-2xl md:text-3xl font-black text-white mt-3 mb-3">Trusted by entrepreneurs</h2>
-            <p className="text-slate-400">Hear from people already scaling with BamiHustle.</p>
+            <p className="text-slate-400">Hear from people already scaling with BamiHost.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-14">
@@ -461,7 +461,7 @@ const Landing = () => {
                 <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">right way</span>
               </h2>
               <p className="text-slate-400 text-sm max-w-lg mx-auto mb-10 leading-relaxed">
-                Join hundreds of entrepreneurs who manage their properties, track their finances, and scale their businesses on BamiHustle — all in one place.
+                Join hundreds of entrepreneurs who manage their properties, track their finances, and scale their businesses on BamiHost — all in one place.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">

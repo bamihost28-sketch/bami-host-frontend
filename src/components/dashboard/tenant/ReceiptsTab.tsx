@@ -136,7 +136,7 @@ function generatePrintHTML(r: PaymentReceipt): string {
   </div>
 
   <div class="footer">
-    <p>BamiHustle Property Management System &bull; Ref: ${r.reference}</p>
+    <p>BamiHost Property Management System &bull; Ref: ${r.reference}</p>
   </div>
   <script>window.onload=function(){window.print()}</script>
 </body>

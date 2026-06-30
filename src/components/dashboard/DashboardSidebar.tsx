@@ -676,7 +676,7 @@ export const DashboardSidebar = ({
                   <span className="text-white font-bold text-sm">B</span>
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-100 leading-tight">Bami Hustle</p>
+                  <p className="text-sm font-bold text-slate-100 leading-tight">Bami Host</p>
                   <p className="text-[10px] text-slate-400 leading-tight capitalize">{userRole} Portal</p>
                 </div>
               </div>

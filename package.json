@@ -1,5 +1,5 @@
 {
-  "name": "bami-hustle",
+  "name": "bami-host",
   "description": "Comprehensive personal life and financial management platform tracking 7 key categories for optimal personal growth",
   "version": "1.0.0",
   "private": true,
@@ -12,11 +12,11 @@
     "personal-growth",
     "financial-planning"
   ],
-  "author": "Bami Hustle <hello@bamihustle.com>",
-  "homepage": "https://bamihustle.com",
+  "author": "Bami Host <hello@bamihost.com>",
+  "homepage": "https://bamihost.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bamihustle/platform.git"
+    "url": "https://github.com/bamihost/platform.git"
   },
   "scripts": {
     "dev": "vite",

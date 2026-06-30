@@ -109,7 +109,7 @@ export function AIChatWidget({ floating = false, placeholder, initialMessage }: 
       <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl">
         <div className="flex items-center gap-2 text-white">
           <Bot className="h-5 w-5" />
-          <span className="font-semibold text-sm">BamiHustle AI Coach</span>
+          <span className="font-semibold text-sm">BamiHost AI Coach</span>
           <span className="text-xs opacity-70">remembers everything</span>
         </div>
         {floating && (

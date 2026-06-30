@@ -35,7 +35,7 @@ const Privacy = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">Introduction</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  At Bami Hustle, we are committed to protecting your privacy and ensuring you have a positive experience on our platform. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services.
+                  At Bami Host, we are committed to protecting your privacy and ensuring you have a positive experience on our platform. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services.
                 </p>
               </div>
 
@@ -129,7 +129,7 @@ const Privacy = () => {
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-white">7. Children's Privacy</h2>
                 <p className="text-slate-300 leading-relaxed">
-                  Bami Hustle is not intended for children under 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such information, we will take steps to delete it promptly.
+                  Bami Host is not intended for children under 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected such information, we will take steps to delete it promptly.
                 </p>
               </div>
 

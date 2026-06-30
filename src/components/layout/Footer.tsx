@@ -20,7 +20,7 @@ export const Footer = ({ variant = "dark" }: FooterProps) => {
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
                 <Building2 className="w-4 h-4 text-white" />
               </div>
-              <div className={`text-lg font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>Bami Hustle</div>
+              <div className={`text-lg font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>Bami Host</div>
             </div>
             <p className={`text-sm ${isLight ? "text-slate-500" : "text-slate-300/80"} font-medium`}>
               Manage your life and business portfolios in one place. Built for clarity, control and momentum.
@@ -41,7 +41,7 @@ export const Footer = ({ variant = "dark" }: FooterProps) => {
             <div className={`text-sm font-bold mb-4 uppercase tracking-wider ${isLight ? "text-slate-900" : "text-white"}`}>Company</div>
             <ul className={`space-y-3 text-sm ${isLight ? "text-slate-600" : "text-slate-300/80"} font-medium`}>
               <li><Link to="/about" className="hover:text-blue-600 transition-colors">About</Link></li>
-              <li><a href="mailto:hello@bamihustle.com" className="hover:text-blue-600 transition-colors">Support</a></li>
+              <li><a href="mailto:hello@bamihost.com" className="hover:text-blue-600 transition-colors">Support</a></li>
               <li><a href="#" className="hover:text-blue-600 transition-colors font-medium opacity-50 cursor-not-allowed">Careers</a></li>
               <li><a href="#" className="hover:text-blue-600 transition-colors font-medium opacity-50 cursor-not-allowed">Blog</a></li>
             </ul>
@@ -64,7 +64,7 @@ export const Footer = ({ variant = "dark" }: FooterProps) => {
         <Separator className={`my-8 ${isLight ? "bg-slate-100" : "bg-white/10"}`} />
 
         <div className={`flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] ${isLight ? "text-slate-400" : "text-slate-300/70"} font-bold tracking-wider uppercase`}>
-          <div>© {new Date().getFullYear()} Bami Hustle. All rights reserved.</div>
+          <div>© {new Date().getFullYear()} Bami Host. All rights reserved.</div>
           <div className="flex items-center gap-6">
             <Link to="/privacy" className="hover:text-blue-600 transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>

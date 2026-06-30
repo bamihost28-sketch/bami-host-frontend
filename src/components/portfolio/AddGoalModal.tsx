@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BamiHustleLogo } from "@/components/brand";
+import { BamiHostLogo } from "@/components/brand";
 import { Plus, Target, Calendar, DollarSign, Lightbulb } from "lucide-react";
 
 interface AddGoalModalProps {
@@ -77,7 +77,7 @@ export const AddGoalModal = ({ onAddGoal, categories }: AddGoalModalProps) => {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <BamiHustleLogo variant="icon-only" />
+            <BamiHostLogo variant="icon-only" />
             <div>
               <DialogTitle className="text-xl">Add New Hustle Goal</DialogTitle>
               <DialogDescription>
@@ -111,7 +111,7 @@ export const AddGoalModal = ({ onAddGoal, categories }: AddGoalModalProps) => {
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Lightbulb className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-800">Bami Hustle Suggestion</span>
+                <span className="text-sm font-medium text-green-800">Bami Host Suggestion</span>
               </div>
               <p className="text-sm text-green-700">{selectedCategorySuggestion.suggestion}</p>
             </div>

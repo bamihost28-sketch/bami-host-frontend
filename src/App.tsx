@@ -79,7 +79,7 @@ const AppContent: React.FC = () => {
       <PageLoader isLoading={isLoading} />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="dark" storageKey="bami-hustle-theme">
+          <ThemeProvider defaultTheme="dark" storageKey="bami-host-theme">
             <ToastProvider>
               <TooltipProvider>
                 <AuthProvider>

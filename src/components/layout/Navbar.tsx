@@ -61,7 +61,7 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
             <Building2 className="w-5 h-5 text-white" />
           </div>
           <span className={cn("text-lg font-bold tracking-tight", isLight ? "text-slate-900" : "text-white")}>
-            BamiHustle
+            BamiHost
           </span>
         </Link>
 
@@ -124,7 +124,7 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
                   <Building2 className="w-4 w-4 text-white" />
                 </div>
                 <span className={cn("font-bold tracking-tight", isLight ? "text-slate-900" : "text-white")}>
-                  BamiHustle
+                  BamiHost
                 </span>
               </div>
 

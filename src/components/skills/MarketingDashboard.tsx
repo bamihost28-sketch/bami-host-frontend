@@ -29,7 +29,7 @@ const TIPS = [
   { icon: "📍", title: "Location Is Everything", body: "Always mention the nearest landmark, BRT stop, or school. 'Yaba, 5 mins from UNILAG BRT' converts better than just 'Yaba'." },
   { icon: "💬", title: "WhatsApp Broadcast Lists", body: "Your warm leads are gold. Build a broadcast list of 250 enquiries and send 1 update per week. Costs you nothing." },
   { icon: "🎯", title: "CPL Target: ₦500–₦2,000", body: "Cost per lead for Nigerian property should be under ₦2,000. If you're paying more, adjust your targeting." },
-  { icon: "📊", title: "Track Everything", body: "If you can't measure it, you can't improve it. Log every campaign spend and lead in BamiHustle." },
+  { icon: "📊", title: "Track Everything", body: "If you can't measure it, you can't improve it. Log every campaign spend and lead in BamiHost." },
 ];
 
 export function MarketingDashboard() {
