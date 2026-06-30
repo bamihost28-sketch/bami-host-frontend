@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useGetPersonalFinanceQuery, useSavePersonalFinanceMutation } from "@/services/personalFinanceApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +70,22 @@ export const SplitTracker = () => {
   const [monthlyIncome, setMonthlyIncome] = useState(500000);
   const [isIncomeDialogOpen, setIsIncomeDialogOpen] = useState(false);
   const [newIncomeAmount, setNewIncomeAmount] = useState(monthlyIncome.toString());
+
+  // ── Backend persistence (budget slice): load income on mount, autosave ──
+  const { data: pf, isSuccess: pfLoaded } = useGetPersonalFinanceQuery();
+  const [savePf] = useSavePersonalFinanceMutation();
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (!pfLoaded || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const inc = pf?.exists ? (pf.budget?.monthlyIncome) : null;
+    if (typeof inc === "number" && inc > 0) { setMonthlyIncome(inc); setNewIncomeAmount(String(inc)); }
+  }, [pfLoaded, pf]);
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    const t = setTimeout(() => savePf({ budget: { ...(pf?.budget || {}), monthlyIncome } }), 1000);
+    return () => clearTimeout(t);
+  }, [monthlyIncome]);
 
   // Mock budget data based on 50/30/20 rule
   const budgetData: MonthlyBudget = {

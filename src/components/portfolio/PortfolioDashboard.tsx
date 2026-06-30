@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useGetPersonalFinanceQuery, useSavePersonalFinanceMutation } from "@/services/personalFinanceApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,7 +60,7 @@ export const PortfolioDashboard = () => {
   const [selectedTab, setSelectedTab] = useState("overview");
 
   // Mock investment data
-  const investments: Investment[] = [
+  const [investments, setInvestments] = useState<Investment[]>([
     {
       id: "1",
       name: "Nigerian Treasury Bills 365-day",
@@ -131,7 +132,23 @@ export const PortfolioDashboard = () => {
       performance: 12.0,
       risk: "medium"
     }
-  ];
+  ]);
+
+  // ── Backend persistence (portfolio slice): load on mount, autosave ──
+  const { data: pf, isSuccess: pfLoaded } = useGetPersonalFinanceQuery();
+  const [savePf] = useSavePersonalFinanceMutation();
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (!pfLoaded || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const inv = pf?.exists ? pf.portfolio?.investments : null;
+    if (Array.isArray(inv) && inv.length) setInvestments(inv as Investment[]);
+  }, [pfLoaded, pf]);
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    const t = setTimeout(() => savePf({ portfolio: { ...(pf?.portfolio || {}), investments } }), 1200);
+    return () => clearTimeout(t);
+  }, [investments]);
 
   const totalPortfolioValue = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
   const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
