@@ -12,10 +12,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   useGetScaleOverviewQuery, useGetNpsQuery, useRequestNpsMutation,
-  useGetGrowthScorecardQuery, useGetScorecardQuery, useGetFinancePlanQuery, useUpdateFinancePlanMutation,
+  useGetGrowthScorecardQuery, useGetScorecardQuery, useGetValueEnginesQuery,
+  useGetFinancePlanQuery, useUpdateFinancePlanMutation,
 } from "@/services/scaleApi";
 
 const DOT: Record<string, string> = { green: "bg-green-500", amber: "bg-yellow-500", red: "bg-red-500" };
+const AGENT_EMOJI: Record<string, string> = {
+  designer: "🎨", marketer: "📣", sales: "💼", finance: "💰", operations: "🔧", hr: "👥",
+};
 
 const naira = (n: number) => `₦${(n || 0).toLocaleString()}`;
 
@@ -34,11 +38,13 @@ export function ScaleDashboard() {
       <Tabs defaultValue="scorecard">
         <TabsList>
           <TabsTrigger value="scorecard" className="gap-1"><Target className="h-4 w-4" /> Scorecard</TabsTrigger>
+          <TabsTrigger value="engines" className="gap-1"><Sparkles className="h-4 w-4" /> Value Engines</TabsTrigger>
           <TabsTrigger value="nps" className="gap-1"><Star className="h-4 w-4" /> Level 1 · Promoters</TabsTrigger>
           <TabsTrigger value="growth" className="gap-1"><TrendingUp className="h-4 w-4" /> Level 2 · Growth</TabsTrigger>
           <TabsTrigger value="finance" className="gap-1"><Wallet className="h-4 w-4" /> Level 4 · Pay Yourself</TabsTrigger>
         </TabsList>
         <TabsContent value="scorecard" className="mt-4"><ScorecardPanel /></TabsContent>
+        <TabsContent value="engines" className="mt-4"><ValueEnginesPanel /></TabsContent>
         <TabsContent value="nps" className="mt-4"><NpsPanel /></TabsContent>
         <TabsContent value="growth" className="mt-4"><GrowthPanel /></TabsContent>
         <TabsContent value="finance" className="mt-4"><FinancePanel /></TabsContent>
@@ -92,6 +98,51 @@ function LevelLadder() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ValueEnginesPanel() {
+  const { data, isLoading } = useGetValueEnginesQuery();
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
+  if (!data) return null;
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500">
+        Your business as <strong>value engines</strong> — the flow of how value is created. ⭐ = power stage (critical), with the AI agent that automates it.
+      </p>
+      {data.engines.map((eng) => (
+        <Card key={eng.name}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{eng.name}</CardTitle>
+            <p className="text-xs text-slate-400">{eng.subtitle}</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-stretch gap-1 overflow-x-auto pb-2">
+              {eng.stages.map((s, i) => (
+                <div key={i} className="flex items-center gap-1 flex-shrink-0">
+                  <div className={`rounded-lg border p-3 w-32 text-center ${
+                    s.terminus ? "border-green-300 bg-green-50 dark:bg-green-900/20"
+                    : s.power ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
+                    : "bg-slate-50 dark:bg-slate-800"}`}>
+                    <p className="text-xl font-bold text-slate-900 dark:text-white">{s.metric}</p>
+                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">{s.name}</p>
+                    {(s.agent || s.power) && (
+                      <p className="text-[11px] mt-1">
+                        {s.power && <span title="power stage">⭐</span>}
+                        {s.agent && <span className="ml-0.5">{AGENT_EMOJI[s.agent]}</span>}
+                        {s.agent2 && <span>{AGENT_EMOJI[s.agent2]}</span>}
+                      </p>
+                    )}
+                  </div>
+                  {i < eng.stages.length - 1 && <span className="text-slate-300 text-lg">→</span>}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      <p className="text-xs text-slate-400">The Growth Engine's terminus (Occupied) feeds the Fulfillment Engine — that's your full machine. Your AI agents already run the ⭐ power stages.</p>
+    </div>
   );
 }
 

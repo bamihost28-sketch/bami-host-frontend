@@ -44,6 +44,9 @@ export interface CompanyScorecard {
   teams: { team: string; metric: number }[];
   as_of: string;
 }
+export interface VeStage { name: string; metric: number | string; agent: string | null; agent2?: string; power: boolean; terminus?: boolean; }
+export interface ValueEngine { name: string; subtitle: string; stages: VeStage[]; }
+export interface ValueEnginesData { engines: ValueEngine[]; }
 export interface FinancePlan {
   exists: boolean;
   target_monthly_salary: number; living_expenses: number; target_profit_pct: number;
@@ -74,6 +77,9 @@ export const scaleApi = createApi({
     getScorecard: b.query<CompanyScorecard, void>({
       query: () => "/api/scale/scorecard",
     }),
+    getValueEngines: b.query<ValueEnginesData, void>({
+      query: () => "/api/scale/value-engines",
+    }),
     getFinancePlan: b.query<FinancePlan, void>({
       query: () => "/api/scale/finance-plan",
       providesTags: ["FinancePlan"],
@@ -91,6 +97,7 @@ export const {
   useRequestNpsMutation,
   useGetGrowthScorecardQuery,
   useGetScorecardQuery,
+  useGetValueEnginesQuery,
   useGetFinancePlanQuery,
   useUpdateFinancePlanMutation,
 } = scaleApi;
