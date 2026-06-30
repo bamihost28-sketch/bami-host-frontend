@@ -11,6 +11,13 @@ const baseQuery = fetchBaseQuery({
 });
 
 export interface LevelRow { level: number; name: string; done: boolean; progress: string; }
+export interface StatedPlan {
+  has_plan: boolean;
+  target_revenue: number | null;
+  target_profit: number | null;
+  target_valuation: number | null;
+  why_summary: string | null;
+}
 export interface ScaleOverview {
   current_level: number;
   levels: LevelRow[];
@@ -18,6 +25,7 @@ export interface ScaleOverview {
   promoter_target: number;
   months_above_target: number;
   monthly_target: number;
+  stated_plan?: StatedPlan;
 }
 export interface NpsData {
   promoters: number; passives: number; detractors: number; responses: number;

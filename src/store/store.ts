@@ -18,6 +18,7 @@ import { managerApi } from '../services/managerApi';
 import { brandApi, marketingApi, salesApi, operationsApi, financeApi, hrApi } from '../services/skillsApi';
 import { autopilotApi } from '../services/autopilotApi';
 import { scaleApi } from '../services/scaleApi';
+import { growthApi } from '../services/growthApi';
 import authReducer from './authSlice';
 
 export const store = configureStore({
@@ -48,6 +49,7 @@ export const store = configureStore({
     [hrApi.reducerPath]: hrApi.reducer,
     [autopilotApi.reducerPath]: autopilotApi.reducer,
     [scaleApi.reducerPath]: scaleApi.reducer,
+    [growthApi.reducerPath]: growthApi.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -77,6 +79,7 @@ export const store = configureStore({
       hrApi.middleware,
       autopilotApi.middleware,
       scaleApi.middleware,
+      growthApi.middleware,
     ),
 });
 

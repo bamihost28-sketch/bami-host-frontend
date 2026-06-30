@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useGetGrowthPlanQuery, useSaveGrowthPlanMutation } from '@/services/growthApi';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -251,6 +252,60 @@ const ScalableImpactPlanner: React.FC = () => {
       saveToLocalStorage('scalable_impact_acquisition', acqData);
     }
   }, [currentStep, completedSteps, level1Data, growthFlywheel, startingPoint, startingPointData, endingPoint, endGameData, whyStatement, howStatement, takingActionItems, osData, doubleTakeHome, buildBoard, acqData, user?.id]);
+
+  // ── Server sync: load the saved plan from the backend (source of truth across
+  // devices), then debounce-save the whole bundle so it persists server-side. ──
+  const { data: serverPlan, isSuccess: serverLoaded } = useGetGrowthPlanQuery();
+  const [saveGrowthPlan] = useSaveGrowthPlanMutation();
+  const hydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (!serverLoaded || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const d = serverPlan?.exists ? (serverPlan.data || {}) : null;
+    if (d && Object.keys(d).length) {
+      if (d.current_step) setCurrentStep(d.current_step);
+      if (d.completed_steps) setCompletedSteps(d.completed_steps);
+      if (d.level1_data) setLevel1Data(d.level1_data);
+      if (d.growth_flywheel) setGrowthFlywheel(d.growth_flywheel);
+      if (d.starting) setStartingPoint(d.starting);
+      if (d.starting_data) setStartingPointData(d.starting_data);
+      if (d.ending) setEndingPoint(d.ending);
+      if (d.endgame_data) setEndGameData(d.endgame_data);
+      if (d.why) setWhyStatement(d.why);
+      if (d.how) setHowStatement(d.how);
+      if (d.taking_action) setTakingActionItems(d.taking_action);
+      if (d.os) setOsData(d.os);
+      if (d.double_take_home) setDoubleTakeHome(d.double_take_home);
+      if (d.build_board) setBuildBoard(d.build_board);
+      if (d.acquisition) setAcqData(d.acqData ?? d.acquisition);
+    }
+  }, [serverLoaded, serverPlan]);
+
+  useEffect(() => {
+    if (!hydratedRef.current) return;  // don't overwrite server before hydration
+    const t = setTimeout(() => {
+      const num = (v: string) => { const n = parseFloat(String(v || '').replace(/[^\d.]/g, '')); return isNaN(n) ? undefined : n; };
+      const w = whyStatement;
+      const why_summary = [w?.me?.personalWhy, w?.us?.collectiveWhy || w?.us?.companyMission, w?.them?.externalWhy || w?.them?.customerImpact]
+        .filter(Boolean).join(' · ') || undefined;
+      saveGrowthPlan({
+        data: {
+          current_step: currentStep, completed_steps: completedSteps, level1_data: level1Data,
+          growth_flywheel: growthFlywheel, starting: startingPoint, starting_data: startingPointData,
+          ending: endingPoint, endgame_data: endGameData, why: whyStatement, how: howStatement,
+          taking_action: takingActionItems, os: osData, double_take_home: doubleTakeHome,
+          build_board: buildBoard, acquisition: acqData,
+        },
+        current_step: currentStep,
+        target_revenue: num(endGameData?.targetRevenue) ?? num(endingPoint?.targetRevenue),
+        target_profit: num(endGameData?.targetProfit) ?? num(endingPoint?.targetProfit),
+        target_valuation: num(endGameData?.targetValuation) ?? num(endingPoint?.targetValuation),
+        why_summary,
+      });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [currentStep, completedSteps, level1Data, growthFlywheel, startingPoint, startingPointData, endingPoint, endGameData, whyStatement, howStatement, takingActionItems, osData, doubleTakeHome, buildBoard, acqData]);
 
   // Step navigation handlers
   const handleStepChange = (step: number) => {

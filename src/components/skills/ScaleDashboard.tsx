@@ -47,9 +47,21 @@ function LevelLadder() {
   const { data, isLoading } = useGetScaleOverviewQuery();
   if (isLoading) return <Skeleton className="h-28 w-full" />;
   if (!data) return null;
+  const plan = data.stated_plan;
   return (
     <Card className="border-emerald-200">
       <CardContent className="p-4">
+        {plan?.has_plan && plan.target_revenue ? (
+          <div className="mb-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3 flex flex-wrap items-center gap-x-6 gap-y-1">
+            <span className="text-sm"><span className="text-slate-500">Your Number (3-yr): </span><strong className="text-emerald-700">{naira(plan.target_revenue)}</strong> revenue
+              {plan.target_profit ? <> · {naira(plan.target_profit)} profit</> : null}</span>
+            {plan.why_summary && <span className="text-xs text-slate-500 italic">Why: {plan.why_summary}</span>}
+          </div>
+        ) : (
+          <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700">
+            You haven't set your Number yet — define it in the <strong>Scalable Impact Planner</strong> (Defining Your Number).
+          </div>
+        )}
         <p className="text-sm text-slate-500 mb-3">
           You're at <span className="font-bold text-emerald-700">Level {data.current_level}</span>. Focus only on this level — you can't skip ahead.
         </p>
