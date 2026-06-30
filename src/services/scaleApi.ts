@@ -37,6 +37,13 @@ export interface GrowthScorecard {
   monthly_revenue: { month: string; revenue: number }[];
   occupancy_pct: number; conversion_pct: number; bottleneck: string; monthly_target: number;
 }
+export interface ScorecardMetric { label: string; value: string | number; status: "green" | "amber" | "red"; }
+export interface CompanyScorecard {
+  evergreen: ScorecardMetric[];
+  north_star: ScorecardMetric[];
+  teams: { team: string; metric: number }[];
+  as_of: string;
+}
 export interface FinancePlan {
   exists: boolean;
   target_monthly_salary: number; living_expenses: number; target_profit_pct: number;
@@ -64,6 +71,9 @@ export const scaleApi = createApi({
     getGrowthScorecard: b.query<GrowthScorecard, void>({
       query: () => "/api/scale/growth-scorecard",
     }),
+    getScorecard: b.query<CompanyScorecard, void>({
+      query: () => "/api/scale/scorecard",
+    }),
     getFinancePlan: b.query<FinancePlan, void>({
       query: () => "/api/scale/finance-plan",
       providesTags: ["FinancePlan"],
@@ -80,6 +90,7 @@ export const {
   useGetNpsQuery,
   useRequestNpsMutation,
   useGetGrowthScorecardQuery,
+  useGetScorecardQuery,
   useGetFinancePlanQuery,
   useUpdateFinancePlanMutation,
 } = scaleApi;

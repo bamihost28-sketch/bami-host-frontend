@@ -12,8 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   useGetScaleOverviewQuery, useGetNpsQuery, useRequestNpsMutation,
-  useGetGrowthScorecardQuery, useGetFinancePlanQuery, useUpdateFinancePlanMutation,
+  useGetGrowthScorecardQuery, useGetScorecardQuery, useGetFinancePlanQuery, useUpdateFinancePlanMutation,
 } from "@/services/scaleApi";
+
+const DOT: Record<string, string> = { green: "bg-green-500", amber: "bg-yellow-500", red: "bg-red-500" };
 
 const naira = (n: number) => `₦${(n || 0).toLocaleString()}`;
 
@@ -29,12 +31,14 @@ export function ScaleDashboard() {
 
       <LevelLadder />
 
-      <Tabs defaultValue="nps">
+      <Tabs defaultValue="scorecard">
         <TabsList>
+          <TabsTrigger value="scorecard" className="gap-1"><Target className="h-4 w-4" /> Scorecard</TabsTrigger>
           <TabsTrigger value="nps" className="gap-1"><Star className="h-4 w-4" /> Level 1 · Promoters</TabsTrigger>
-          <TabsTrigger value="growth" className="gap-1"><Target className="h-4 w-4" /> Level 2 · Growth</TabsTrigger>
+          <TabsTrigger value="growth" className="gap-1"><TrendingUp className="h-4 w-4" /> Level 2 · Growth</TabsTrigger>
           <TabsTrigger value="finance" className="gap-1"><Wallet className="h-4 w-4" /> Level 4 · Pay Yourself</TabsTrigger>
         </TabsList>
+        <TabsContent value="scorecard" className="mt-4"><ScorecardPanel /></TabsContent>
         <TabsContent value="nps" className="mt-4"><NpsPanel /></TabsContent>
         <TabsContent value="growth" className="mt-4"><GrowthPanel /></TabsContent>
         <TabsContent value="finance" className="mt-4"><FinancePanel /></TabsContent>
@@ -88,6 +92,49 @@ function LevelLadder() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ScorecardPanel() {
+  const { data, isLoading } = useGetScorecardQuery();
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
+  if (!data) return null;
+  const Metric = ({ m }: { m: { label: string; value: string | number; status: string } }) => (
+    <div className="rounded-lg border p-3 bg-white dark:bg-slate-800">
+      <div className="flex items-center justify-between">
+        <span className={`h-2.5 w-2.5 rounded-full ${DOT[m.status] ?? "bg-slate-300"}`} />
+        <span className="text-lg font-bold text-slate-900 dark:text-white">{m.value}</span>
+      </div>
+      <p className="text-xs text-slate-500 mt-1">{m.label}</p>
+    </div>
+  );
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500">
+        Your <strong>Company Scorecard</strong> — the OS "dashboard of truth", live from your data ({data.as_of}). Green = on track, amber = watch, red = act.
+      </p>
+      <Card>
+        <CardHeader><CardTitle className="text-sm text-slate-500 uppercase tracking-wide">Evergreen (the truth)</CardTitle></CardHeader>
+        <CardContent><div className="grid grid-cols-2 md:grid-cols-3 gap-3">{data.evergreen.map((m, i) => <Metric key={i} m={m} />)}</div></CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle className="text-sm text-slate-500 uppercase tracking-wide">North Star (leading)</CardTitle></CardHeader>
+        <CardContent><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{data.north_star.map((m, i) => <Metric key={i} m={m} />)}</div></CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle className="text-sm text-slate-500 uppercase tracking-wide">Team output — agent actions (30d)</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-center">
+            {data.teams.map((t, i) => (
+              <div key={i} className="rounded-lg border p-3 bg-slate-50 dark:bg-slate-800">
+                <p className="text-xl font-bold text-slate-900 dark:text-white">{t.metric}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{t.team}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
