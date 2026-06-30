@@ -36,7 +36,7 @@ function getToken() {
 }
 
 async function callSkillTrigger(skill: Skill, event: string, context: Record<string, string | number>) {
-  const res = await fetch(`${BASE_API_URL}/api/v1/coach/skill-trigger`, {
+  const res = await fetch(`${BASE_API_URL}/api/coach/skill-trigger`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -50,7 +50,7 @@ async function callSkillTrigger(skill: Skill, event: string, context: Record<str
 }
 
 async function callWebChat(message: string, history: Message[]) {
-  const res = await fetch(`${BASE_API_URL}/api/v1/coach/chat`, {
+  const res = await fetch(`${BASE_API_URL}/api/coach/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -142,7 +142,7 @@ export function SkillsAssistant({ overview, className }: Props) {
     setAiHint(null);
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      const res = await fetch(`${BASE_API_URL}/api/v1/coach/chat`, {
+      const res = await fetch(`${BASE_API_URL}/api/coach/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

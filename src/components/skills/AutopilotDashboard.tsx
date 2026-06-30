@@ -3,7 +3,7 @@ import {
   Bot, Zap, Play, X, Copy, CheckCircle, Loader2, RefreshCw,
   Megaphone, DollarSign, Settings2, TrendingUp, Users, Palette,
   MessageCircle, Instagram, Facebook, Mail, Smartphone, FileText,
-  ChevronDown, ChevronUp, Send, Clock, BarChart3, Plus
+  ChevronDown, ChevronUp, Send, Clock, BarChart3, Plus, SlidersHorizontal
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,13 @@ import {
   useExecuteActionMutation,
   useDismissActionMutation,
   useGenerateContentMutation,
+  useGetEmailProspectsQuery,
+  useSendEmailCampaignMutation,
+  useGetAutopilotSettingsQuery,
+  useUpdateAutopilotSettingsMutation,
+  useRunAutoExecuteMutation,
+  useSendTenantBroadcastMutation,
+  useSendPaymentLinksMutation,
   type AutopilotAction,
 } from "@/services/autopilotApi";
 
@@ -53,7 +60,8 @@ const PRIORITY_COLOR: Record<string, string> = {
 };
 
 const PLATFORM_ICON: Record<string, React.ElementType> = {
-  whatsapp:  MessageCircle,
+  telegram:  MessageCircle,
+  whatsapp:  MessageCircle,   // legacy compat
   instagram: Instagram,
   facebook:  Facebook,
   email:     Mail,
@@ -63,7 +71,8 @@ const PLATFORM_ICON: Record<string, React.ElementType> = {
 };
 
 const PLATFORM_LABEL: Record<string, string> = {
-  whatsapp:  "WhatsApp",
+  telegram:  "Telegram",
+  whatsapp:  "Telegram",     // legacy compat
   instagram: "Instagram",
   facebook:  "Facebook",
   email:     "Email",
@@ -73,7 +82,8 @@ const PLATFORM_LABEL: Record<string, string> = {
 };
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
-  whatsapp_blast:   "WhatsApp Blast",
+  telegram_blast:   "Telegram Blast",
+  whatsapp_blast:   "Telegram Blast",   // legacy compat
   instagram_post:   "Instagram Post",
   facebook_post:    "Facebook Post",
   payment_reminder: "Payment Reminder",
@@ -108,7 +118,7 @@ function ActionCard({ action, onExecute, onDismiss }: {
   const [copied, setCopied] = useState(false);
   const SkillIcon = SKILL_ICON[action.skill] ?? Bot;
   const PlatformIcon = PLATFORM_ICON[action.platform ?? "internal"] ?? FileText;
-  const isMessaging = ["whatsapp", "sms"].includes(action.platform ?? "");
+  const isMessaging = ["telegram", "whatsapp", "sms"].includes(action.platform ?? "");
   const isDone = action.status === "done";
 
   const copy = () => {
@@ -237,7 +247,7 @@ function ActionCard({ action, onExecute, onDismiss }: {
 
 function ContentGenerator() {
   const { toast } = useToast();
-  const [platform, setPlatform] = useState("whatsapp");
+  const [platform, setPlatform] = useState("telegram");
   const [topic, setTopic] = useState("");
   const [context, setContext] = useState("");
   const [result, setResult] = useState("");
@@ -283,7 +293,7 @@ function ContentGenerator() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["whatsapp", "instagram", "facebook", "twitter", "email", "sms"].map(p => (
+                {["telegram", "instagram", "facebook", "twitter", "email", "sms"].map(p => (
                   <SelectItem key={p} value={p}>{PLATFORM_LABEL[p]}</SelectItem>
                 ))}
               </SelectContent>
@@ -339,6 +349,316 @@ function ContentGenerator() {
 }
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
+
+function BroadcastTab() {
+  const { toast } = useToast();
+  const [message, setMessage] = useState("");
+  const [sendBroadcast, { isLoading: broadcasting }] = useSendTenantBroadcastMutation();
+  const [sendPaymentLinks, { isLoading: sendingLinks }] = useSendPaymentLinksMutation();
+
+  const handleBroadcast = async () => {
+    if (!message.trim()) { toast({ title: "Enter a message", variant: "destructive" }); return; }
+    try {
+      const res = await sendBroadcast({ message }).unwrap();
+      toast({ title: `Sent to ${res.sent} tenants via Telegram` });
+      setMessage("");
+    } catch {
+      toast({ title: "Broadcast failed", variant: "destructive" });
+    }
+  };
+
+  const handlePaymentLinks = async () => {
+    try {
+      const res = await sendPaymentLinks().unwrap();
+      toast({ title: `Payment links sent to ${res.telegram_sent} overdue tenants` });
+    } catch {
+      toast({ title: "Failed to send payment links", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Telegram blast */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <MessageCircle className="h-4 w-4 text-blue-600" /> Telegram Broadcast to All Tenants
+          </CardTitle>
+          <p className="text-xs text-slate-500">Sends to all tenants who have connected the Telegram bot (/tenant)</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Textarea
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            rows={5}
+            placeholder="Type your message here. Supports *bold* and _italic_ Markdown.&#10;&#10;Example: 🏠 Dear tenants, our office will be closed on 25 Dec. Happy holidays!"
+          />
+          <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+            onClick={handleBroadcast} disabled={broadcasting || !message.trim()}>
+            {broadcasting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+            Send Telegram Broadcast
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Payment links */}
+      <Card className="border-amber-100">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-amber-600" /> Send Payment Links to Overdue Tenants
+          </CardTitle>
+          <p className="text-xs text-slate-500">
+            Generates a Paystack payment link for each overdue tenant and sends it via Telegram.
+            Requires PAYSTACK_SECRET_KEY in environment.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50 w-full"
+            onClick={handlePaymentLinks} disabled={sendingLinks}>
+            {sendingLinks ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <DollarSign className="h-4 w-4 mr-2" />}
+            Send Payment Links Now
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+
+const AUTO_EXECUTE_OPTIONS = [
+  { type: "follow_up",          label: "Sales Follow-Up (Telegram)",     desc: "Auto-send follow-up messages to new enquiries via Telegram" },
+  { type: "rent_reminder",      label: "Rent Reminder (Telegram)",       desc: "Auto-send rent reminders to overdue tenants via Telegram" },
+  { type: "vacancy_blast",      label: "Vacancy Telegram Blast",         desc: "Auto-blast vacancies to prospects when a unit becomes vacant" },
+  { type: "vendor_notification",label: "Vendor Notifications",           desc: "Auto-notify vendors when a matching issue is reported" },
+  { type: "welcome_message",    label: "Tenant Welcome (Telegram)",      desc: "Auto-send welcome Telegram message when a new tenant is added" },
+  { type: "lease_renewal",      label: "Lease Renewal Reminder",         desc: "Auto-send renewal offer when lease expires within 30 days" },
+];
+
+function AutopilotSettingsTab() {
+  const { toast } = useToast();
+  const { data: settingsData, isLoading } = useGetAutopilotSettingsQuery();
+  const [updateSettings, { isLoading: saving }] = useUpdateAutopilotSettingsMutation();
+  const [runAutoExecute, { isLoading: running }] = useRunAutoExecuteMutation();
+
+  const currentTypes: string[] = settingsData?.auto_execute_types ?? [];
+
+  const toggle = async (type: string) => {
+    const next = currentTypes.includes(type)
+      ? currentTypes.filter(t => t !== type)
+      : [...currentTypes, type];
+    await updateSettings({ auto_execute_types: next });
+  };
+
+  const handleRun = async () => {
+    try {
+      const res = await runAutoExecute().unwrap();
+      toast({ title: `Auto-executed ${res.executed} of ${res.total_eligible} eligible actions` });
+    } catch {
+      toast({ title: "Auto-run failed", variant: "destructive" });
+    }
+  };
+
+  if (isLoading) return <div className="py-10 text-center text-slate-400">Loading settings...</div>;
+
+  return (
+    <div className="space-y-6">
+      {/* Master toggle */}
+      <Card>
+        <CardContent className="p-5 flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-slate-800">Autopilot Enabled</p>
+            <p className="text-xs text-slate-500">Turns on/off all AI action generation</p>
+          </div>
+          <button
+            onClick={() => updateSettings({ enabled: !settingsData?.enabled })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settingsData?.enabled ? "bg-blue-600" : "bg-slate-300"}`}
+          >
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settingsData?.enabled ? "translate-x-6" : "translate-x-1"}`} />
+          </button>
+        </CardContent>
+      </Card>
+
+      {/* Auto-execute types */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Zap className="h-4 w-4 text-yellow-500" /> Auto-Execute Without Approval
+          </CardTitle>
+          <p className="text-xs text-slate-500">These actions will execute automatically when triggered — no human review needed.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {AUTO_EXECUTE_OPTIONS.map(opt => (
+            <div key={opt.type} className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer"
+              onClick={() => toggle(opt.type)}>
+              <button
+                className={`mt-0.5 relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${currentTypes.includes(opt.type) ? "bg-blue-600" : "bg-slate-300"}`}
+              >
+                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${currentTypes.includes(opt.type) ? "translate-x-5" : "translate-x-1"}`} />
+              </button>
+              <div>
+                <p className="text-sm font-medium text-slate-800">{opt.label}</p>
+                <p className="text-xs text-slate-500">{opt.desc}</p>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Notification preferences */}
+      <Card>
+        <CardHeader className="pb-3"><CardTitle className="text-sm">Notification Preferences</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          {[
+            { key: "notify_high_priority" as const, label: "Notify me for high-priority actions", desc: "Get in-app alerts for urgent items" },
+            { key: "notify_all" as const, label: "Notify me for all actions", desc: "Get alerts for every AI action generated" },
+            { key: "daily_scan_enabled" as const, label: "Daily 7am scan", desc: "AI scans your business every morning and generates fresh actions" },
+          ].map(item => (
+            <div key={item.key} className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 cursor-pointer"
+              onClick={() => updateSettings({ [item.key]: !settingsData?.[item.key] })}>
+              <button className={`mt-0.5 relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${settingsData?.[item.key] ? "bg-blue-600" : "bg-slate-300"}`}>
+                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${settingsData?.[item.key] ? "translate-x-5" : "translate-x-1"}`} />
+              </button>
+              <div>
+                <p className="text-sm font-medium text-slate-800">{item.label}</p>
+                <p className="text-xs text-slate-500">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Manual run */}
+      <div className="flex gap-3">
+        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white" onClick={handleRun} disabled={running}>
+          {running ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Play className="h-4 w-4 mr-2" />}
+          Run Auto-Execute Now
+        </Button>
+        <Button variant="outline" onClick={() => updateSettings({ auto_execute_types: currentTypes })} disabled={saving}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+          Save Settings
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+
+function EmailCampaignTab() {
+  const { toast } = useToast();
+  const { data: prospectsData } = useGetEmailProspectsQuery();
+  const [sendCampaign, { isLoading: sending }] = useSendEmailCampaignMutation();
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [aiPersonalize, setAiPersonalize] = useState(false);
+  const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
+  const [result, setResult] = useState<{sent:number;failed:number;total:number} | null>(null);
+
+  const prospects = prospectsData?.prospects ?? [];
+
+  const toggleAll = () => {
+    if (selectedEmails.size === prospects.length) setSelectedEmails(new Set());
+    else setSelectedEmails(new Set(prospects.map(p => p.email)));
+  };
+
+  const handleSend = async () => {
+    if (!subject || !body || selectedEmails.size === 0) {
+      toast({ title: "Fill in subject, body, and select recipients", variant: "destructive" });
+      return;
+    }
+    const recipients = prospects
+      .filter(p => selectedEmails.has(p.email))
+      .map(p => ({ name: p.name, email: p.email }));
+
+    try {
+      const res = await sendCampaign({ subject, body, recipients, ai_personalize: aiPersonalize }).unwrap();
+      setResult(res);
+      toast({ title: `Campaign sent! ${res.sent} delivered, ${res.failed} failed.` });
+    } catch {
+      toast({ title: "Campaign failed. Check email configuration.", variant: "destructive" });
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {result && (
+        <div className="rounded-lg bg-green-50 border border-green-200 p-4 flex gap-4">
+          <div className="text-center"><p className="text-2xl font-bold text-green-700">{result.sent}</p><p className="text-xs text-green-600">Delivered</p></div>
+          <div className="text-center"><p className="text-2xl font-bold text-red-600">{result.failed}</p><p className="text-xs text-slate-500">Failed</p></div>
+          <div className="text-center"><p className="text-2xl font-bold text-slate-700">{result.total}</p><p className="text-xs text-slate-500">Total</p></div>
+          <button onClick={() => setResult(null)} className="ml-auto text-slate-400 text-xs">Dismiss</button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Compose */}
+        <Card>
+          <CardHeader className="pb-3"><CardTitle className="text-sm">Compose Campaign</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-xs">Subject</Label>
+              <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g. Available 3-bedroom apartment in Lekki" />
+            </div>
+            <div>
+              <Label className="text-xs">Message</Label>
+              <Textarea value={body} onChange={e => setBody(e.target.value)} rows={6}
+                placeholder="Write your message. AI will personalize it per recipient if enabled." />
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="ai-personalize" checked={aiPersonalize}
+                onChange={e => setAiPersonalize(e.target.checked)} className="rounded" />
+              <label htmlFor="ai-personalize" className="text-xs text-slate-600">
+                AI personalize each email (slower but higher open rate)
+              </label>
+            </div>
+            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              onClick={handleSend} disabled={sending}>
+              {sending ? "Sending..." : `Send to ${selectedEmails.size} recipients`}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Recipients */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">Prospects ({prospects.length})</CardTitle>
+              <button onClick={toggleAll} className="text-xs text-blue-600 hover:underline">
+                {selectedEmails.size === prospects.length ? "Deselect all" : "Select all"}
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {prospects.length === 0 && (
+                <p className="text-xs text-slate-500 py-4 text-center">No prospects yet. Enquiries with emails appear here.</p>
+              )}
+              {prospects.map((p: any) => (
+                <div key={p.email} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer"
+                  onClick={() => {
+                    const s = new Set(selectedEmails);
+                    s.has(p.email) ? s.delete(p.email) : s.add(p.email);
+                    setSelectedEmails(s);
+                  }}>
+                  <input type="checkbox" readOnly checked={selectedEmails.has(p.email)} className="rounded" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{p.name}</p>
+                    <p className="text-xs text-slate-500 truncate">{p.email}</p>
+                  </div>
+                  {p.lead_score != null && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${p.lead_score >= 7 ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                      {p.lead_score}/10
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 
 export function AutopilotDashboard() {
   const { toast } = useToast();
@@ -453,6 +773,13 @@ export function AutopilotDashboard() {
                 Done <Badge className="ml-1 text-xs bg-green-100 text-green-700">{done.length}</Badge>
               </TabsTrigger>
               <TabsTrigger value="generate">Content Studio</TabsTrigger>
+              <TabsTrigger value="email">Email Campaigns</TabsTrigger>
+              <TabsTrigger value="broadcast">
+                <MessageCircle className="h-3 w-3 mr-1" />Broadcast
+              </TabsTrigger>
+              <TabsTrigger value="settings">
+                <SlidersHorizontal className="h-3 w-3 mr-1" />Settings
+              </TabsTrigger>
             </TabsList>
 
             {/* Skill filter */}
@@ -495,6 +822,15 @@ export function AutopilotDashboard() {
 
           <TabsContent value="generate" className="mt-4">
             <ContentGenerator />
+          </TabsContent>
+          <TabsContent value="email" className="mt-4">
+            <EmailCampaignTab />
+          </TabsContent>
+          <TabsContent value="broadcast" className="mt-4">
+            <BroadcastTab />
+          </TabsContent>
+          <TabsContent value="settings" className="mt-4">
+            <AutopilotSettingsTab />
           </TabsContent>
         </Tabs>
       )}

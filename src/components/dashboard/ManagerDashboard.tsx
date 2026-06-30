@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SkillsAssistant } from "@/components/skills/SkillsAssistant";
 import { SkillContextPanel } from "@/components/skills/SkillContextPanel";
+import { BusinessHealthWidget } from "@/components/dashboard/BusinessHealthWidget";
 import {
   Building, Users, Home, Wrench, AlertCircle, Shield,
   UserPlus, FileText, DollarSign, Search, Plus, CheckCircle,
@@ -354,6 +355,9 @@ export const ManagerDashboard: React.FC = () => {
               </Card>
             </div>
           )}
+
+          {/* AI Business Health Score */}
+          <BusinessHealthWidget />
 
           {/* Business Skills Active Signals */}
           <SkillsAssistant overview={overview} />
@@ -737,7 +741,12 @@ export const ManagerDashboard: React.FC = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-medium text-slate-900 dark:text-white">{enq.name}</p>
                           <Badge className={getStatusColor(enq.status)}>{enq.status}</Badge>
-                        </div>
+                          {enq.leadScore != null && (
+                            <Badge className={`text-xs ${enq.leadScore >= 7 ? "bg-green-100 text-green-700" : enq.leadScore >= 4 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
+                              🎯 {enq.leadScore}/10
+                            </Badge>
+                          )}
+</div>
                         <p className="text-sm text-slate-500">{enq.phone || enq.email} · {enq.enquiryType}</p>
                         {enq.message && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 italic">"{enq.message}"</p>}
                         <p className="text-xs text-slate-400 mt-1">{formatDate(enq.createdAt)}</p>

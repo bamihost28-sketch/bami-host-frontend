@@ -1,8 +1,16 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+// Shadcn-style config object accepted by toast()
+interface ToastConfig {
+  title?: string;
+  description?: string;
+  variant?: 'default' | 'destructive' | string;
+  duration?: number;
+}
 
 interface Toast {
   id: string;
@@ -11,8 +19,11 @@ interface Toast {
   duration?: number;
 }
 
+// Accept either the plain-string API or the shadcn {title,description,variant} API
+type ToastArg = string | ToastConfig;
+
 interface ToastContextType {
-  toast: (message: string, type?: ToastType, duration?: number) => void;
+  toast: (arg: ToastArg, type?: ToastType, duration?: number) => void;
   success: (message: string, duration?: number) => void;
   error: (message: string, duration?: number) => void;
   info: (message: string, duration?: number) => void;
@@ -28,9 +39,23 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const addToast = useCallback((message: string, type: ToastType = 'info', duration: number = 3000) => {
+  const addToast = useCallback((arg: ToastArg, type: ToastType = 'info', duration: number = 3000) => {
+    let message: string;
+    let resolvedType = type;
+    let resolvedDuration = duration;
+
+    if (typeof arg === 'object' && arg !== null) {
+      // shadcn-style: { title, description, variant, duration }
+      const parts = [arg.title, arg.description].filter(Boolean);
+      message = parts.join(' — ') || 'Notification';
+      if (arg.variant === 'destructive') resolvedType = 'error';
+      if (arg.duration !== undefined) resolvedDuration = arg.duration;
+    } else {
+      message = arg as string;
+    }
+
     const id = Math.random().toString(36).substr(2, 9);
-    setToasts((prev) => [...prev, { id, message, type, duration }]);
+    setToasts((prev) => [...prev, { id, message, type: resolvedType, duration: resolvedDuration }]);
 
     if (duration !== Infinity) {
       setTimeout(() => removeToast(id), duration);

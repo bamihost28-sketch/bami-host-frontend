@@ -548,7 +548,8 @@ export const EstateDetailPage = () => {
                       const phone = t.whatsapp || t.whatsappNumber || t.tenantPhone;
                       const status = (t.status || '').toLowerCase();
                       const total = t.totalMonthlyFees || 0;
-                      const unitId = (t.unit && t.unit._id) || t.unitId;
+                      // Backend returns `unit` as the unit-ID string; legacy data may nest it as an object.
+                      const unitId = (typeof t.unit === 'object' ? t.unit?._id || t.unit?.id : t.unit) || t.unitId;
 
                       const statusBadge = status === 'occupied'
                         ? <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0 font-medium">Occupied</Badge>

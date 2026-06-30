@@ -188,14 +188,14 @@ export const managerApi = createApi({
   endpoints: (builder) => ({
 
     getManagerOverview: builder.query<ManagerOverview, void>({
-      query: () => '/api/v1/dashboard/overview',
+      query: () => '/api/dashboard/overview',
       transformResponse: (res: any) => res?.data?.data,
       providesTags: ['Overview'],
     }),
 
     getManagerTenants: builder.query<{ data: ManagerTenant[]; total: number }, { estate_id?: string; page?: number; limit?: number }>({
       query: ({ estate_id, page = 1, limit = 50 }) => ({
-        url: '/api/v1/tenants',
+        url: '/api/tenants',
         params: { estate_id, page, limit },
       }),
       providesTags: ['Tenants'],
@@ -203,7 +203,7 @@ export const managerApi = createApi({
 
     getManagerIssues: builder.query<{ data: ManagerIssue[] }, { estate_id?: string; status?: string }>({
       query: ({ estate_id, status }) => ({
-        url: '/api/v1/issues',
+        url: '/api/issues',
         params: { estate_id, status },
       }),
       providesTags: ['Issues'],
@@ -211,7 +211,7 @@ export const managerApi = createApi({
 
     updateIssueStatus: builder.mutation<void, { issueId: string; status: string }>({
       query: ({ issueId, status }) => ({
-        url: `/api/v1/issues/${issueId}`,
+        url: `/api/issues/${issueId}`,
         method: 'PUT',
         body: { status },
       }),
@@ -220,7 +220,7 @@ export const managerApi = createApi({
 
     createIssue: builder.mutation<void, CreateIssuePayload>({
       query: (body) => ({
-        url: '/api/v1/issues',
+        url: '/api/issues',
         method: 'POST',
         body,
       }),
@@ -229,7 +229,7 @@ export const managerApi = createApi({
 
     getManagerPayments: builder.query<{ data: ManagerPayment[]; total: number }, { estate_id?: string; page?: number }>({
       query: ({ estate_id, page = 1 }) => ({
-        url: '/api/v1/payments',
+        url: '/api/payments',
         params: { estate_id, page, limit: 20 },
       }),
       providesTags: ['Payments'],
@@ -237,7 +237,7 @@ export const managerApi = createApi({
 
     recordPayment: builder.mutation<void, RecordPaymentPayload>({
       query: (body) => ({
-        url: '/api/v1/payments',
+        url: '/api/payments',
         method: 'POST',
         body,
       }),
@@ -246,7 +246,7 @@ export const managerApi = createApi({
 
     updatePaymentStatus: builder.mutation<void, { paymentId: string; status: string }>({
       query: ({ paymentId, status }) => ({
-        url: `/api/v1/payments/${paymentId}/status`,
+        url: `/api/payments/${paymentId}/status`,
         method: 'PUT',
         body: { status },
       }),
@@ -255,14 +255,14 @@ export const managerApi = createApi({
 
     sendRentReminder: builder.mutation<void, string>({
       query: (tenantId) => ({
-        url: `/api/v1/payments/tenant/${tenantId}/receipt`,
+        url: `/api/payments/tenant/${tenantId}/receipt`,
         method: 'POST',
       }),
     }),
 
     sendNotification: builder.mutation<void, SendNotificationPayload>({
       query: (body) => ({
-        url: '/api/v1/notifications',
+        url: '/api/notifications',
         method: 'POST',
         body,
       }),
@@ -271,7 +271,7 @@ export const managerApi = createApi({
     // ── Enquiries ─────────────────────────────────────────────────────────────
     getManagerEnquiries: builder.query<{ data: ManagerEnquiry[]; total: number }, { estate_id?: string; status?: string }>({
       query: ({ estate_id, status }) => ({
-        url: '/api/v1/enquiries',
+        url: '/api/enquiries',
         params: { estate_id, status },
       }),
       providesTags: ['Enquiries'],
@@ -279,7 +279,7 @@ export const managerApi = createApi({
 
     updateEnquiryStatus: builder.mutation<void, { enquiryId: string; status: string }>({
       query: ({ enquiryId, status }) => ({
-        url: `/api/v1/enquiries/${enquiryId}/status`,
+        url: `/api/enquiries/${enquiryId}/status`,
         method: 'PATCH',
         body: { status },
       }),
@@ -289,7 +289,7 @@ export const managerApi = createApi({
     // ── Rental Applications ───────────────────────────────────────────────────
     getManagerApplications: builder.query<{ data: ManagerApplication[]; total: number }, { estate_id?: string; status?: string }>({
       query: ({ estate_id, status }) => ({
-        url: '/api/v1/estates/applications',
+        url: '/api/estates/applications',
         params: { estate_id, status },
       }),
       providesTags: ['Applications'],
@@ -297,7 +297,7 @@ export const managerApi = createApi({
 
     updateApplicationStatus: builder.mutation<void, { appId: string; status: string }>({
       query: ({ appId, status }) => ({
-        url: `/api/v1/estates/applications/${appId}/status`,
+        url: `/api/estates/applications/${appId}/status`,
         method: 'PATCH',
         body: { status },
       }),
@@ -307,7 +307,7 @@ export const managerApi = createApi({
     // ── Billing ───────────────────────────────────────────────────────────────
     getManagerBilling: builder.query<{ data: ManagerBillingItem[]; total: number }, { estate_id?: string; is_paid?: boolean }>({
       query: ({ estate_id, is_paid }) => ({
-        url: '/api/v1/billing',
+        url: '/api/billing',
         params: { estate_id, is_paid },
       }),
       providesTags: ['Billing'],
@@ -315,7 +315,7 @@ export const managerApi = createApi({
 
     addBillingItem: builder.mutation<void, AddBillingItemPayload>({
       query: (body) => ({
-        url: '/api/v1/billing/tenants/' + body.tenant + '/billing',
+        url: '/api/billing/tenants/' + body.tenant + '/billing',
         method: 'POST',
         body,
       }),
@@ -324,7 +324,7 @@ export const managerApi = createApi({
 
     markBillPaid: builder.mutation<void, string>({
       query: (itemId) => ({
-        url: `/api/v1/billing/${itemId}`,
+        url: `/api/billing/${itemId}`,
         method: 'PUT',
         body: { is_paid: true },
       }),
@@ -334,7 +334,7 @@ export const managerApi = createApi({
     // ── Service Requests ──────────────────────────────────────────────────────
     getManagerServiceRequests: builder.query<{ data: ManagerServiceRequest[] }, { estate_id?: string; status?: string }>({
       query: ({ estate_id, status }) => ({
-        url: '/api/v1/service-requests',
+        url: '/api/service-requests',
         params: { estate_id, status },
       }),
       providesTags: ['ServiceRequests'],
@@ -342,7 +342,7 @@ export const managerApi = createApi({
 
     updateServiceRequestStatus: builder.mutation<void, { srId: string; status: string }>({
       query: ({ srId, status }) => ({
-        url: `/api/v1/service-requests/${srId}/status`,
+        url: `/api/service-requests/${srId}/status`,
         method: 'PATCH',
         body: { status },
       }),
@@ -352,7 +352,7 @@ export const managerApi = createApi({
     // ── Vacant Units ──────────────────────────────────────────────────────────
     getVacantUnits: builder.query<{ data: VacantUnit[]; total: number }, { estate_id?: string }>({
       query: ({ estate_id }) => ({
-        url: '/api/v1/units',
+        url: '/api/units',
         params: { estate_id, status: 'vacant' },
       }),
       providesTags: ['VacantUnits'],

@@ -1,4 +1,6 @@
 import { useParams } from 'react-router-dom';
+import { BASE_API_URL } from '@/services/api';
+import { FileDown } from 'lucide-react';
 import { useGetTenantQuery, useGetTenantBillingQuery } from '@/services/estatesApi';
 import { SkillContextPanel } from '@/components/skills/SkillContextPanel';
 import { TenantDetailSkeleton } from '@/components/ui/skeletons';
@@ -72,6 +74,21 @@ export const TenantDetailPage = () => {
         tenant={tenant}
         billingData={billingData}
       />
+
+      {/* PDF Statement Download */}
+      {tenantId && (
+        <div className="flex justify-end">
+          <a
+            href={`${BASE_API_URL}/api/tenants/${tenantId}/statement.pdf`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg px-4 py-2 hover:bg-blue-50 transition-colors"
+          >
+            <FileDown className="h-4 w-4" />
+            Download Statement (PDF)
+          </a>
+        </div>
+      )}
 
       {/* Business Skills — contextual AI panels based on tenant status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -7,6 +7,7 @@ import {
   useGetFinanceOverviewQuery,
   useGetCashflowQuery,
   useGetUnpaidBillsQuery,
+  useGetFinanceForecastQuery,
 } from "@/services/skillsApi";
 
 function fmtN(n: number) { return `₦${(n ?? 0).toLocaleString()}`; }
@@ -23,6 +24,7 @@ export function FinanceDashboard() {
   const { data: overview, isLoading: ovLoading } = useGetFinanceOverviewQuery();
   const { data: cashflowData, isLoading: cfLoading } = useGetCashflowQuery({ months: 6 });
   const { data: billsData, isLoading: billsLoading } = useGetUnpaidBillsQuery();
+  const { data: forecastData, isLoading: fcLoading } = useGetFinanceForecastQuery();
 
   const ov = overview ?? {};
   const cashflow = cashflowData?.data ?? [];
@@ -84,6 +86,7 @@ export function FinanceDashboard() {
         <TabsList>
           <TabsTrigger value="cashflow">Cash Flow (6mo)</TabsTrigger>
           <TabsTrigger value="bills">Unpaid Bills</TabsTrigger>
+          <TabsTrigger value="forecast">AI Forecast</TabsTrigger>
           <TabsTrigger value="tips">Finance Tips</TabsTrigger>
         </TabsList>
 
@@ -148,6 +151,71 @@ export function FinanceDashboard() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* AI Forecast */}
+        <TabsContent value="forecast" className="mt-4 space-y-4">
+          {fcLoading ? (
+            <div className="space-y-3">{Array.from({length:3}).map((_,i)=><Skeleton key={i} className="h-24"/>)}</div>
+          ) : !forecastData ? (
+            <Card><CardContent className="py-10 text-center text-slate-500">Loading forecast...</CardContent></Card>
+          ) : (
+            <>
+              {/* Snapshot */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {[
+                  { label: "Monthly Rent Roll", value: fmtN(forecastData.snapshot?.monthly_rent_roll ?? 0) },
+                  { label: "Avg Monthly Collected", value: fmtN(forecastData.snapshot?.avg_monthly_collected ?? 0) },
+                  { label: "Outstanding", value: fmtN(forecastData.snapshot?.total_outstanding ?? 0) },
+                  { label: "Active Tenants", value: forecastData.snapshot?.active_tenants ?? 0 },
+                  { label: "Overdue Tenants", value: forecastData.snapshot?.overdue_count ?? 0 },
+                  { label: "Leases Expiring (90d)", value: forecastData.snapshot?.leases_expiring_90_days ?? 0 },
+                ].map(s => (
+                  <Card key={s.label}><CardContent className="p-3 text-center">
+                    <p className="text-xl font-bold text-emerald-700">{s.value}</p>
+                    <p className="text-xs text-slate-500">{s.label}</p>
+                  </CardContent></Card>
+                ))}
+              </div>
+              {/* 3-month projection */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {(forecastData.forecast?.months ?? []).map((m: any) => (
+                  <Card key={m.month} className="border-emerald-100">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm text-emerald-700">{m.month}</CardTitle></CardHeader>
+                    <CardContent className="space-y-1">
+                      <p className="text-lg font-bold">{fmtN(m.projected_revenue)}</p>
+                      <p className="text-xs text-slate-500">Projected Revenue</p>
+                      <p className="text-sm text-slate-600">{fmtN(m.projected_collections)} collected</p>
+                      {m.risk_notes && <p className="text-xs text-amber-600 mt-2">⚠️ {m.risk_notes}</p>}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {/* Summary & recommendations */}
+              {forecastData.forecast?.summary && (
+                <Card className="border-blue-100">
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-blue-700 mb-2">AI Summary</p>
+                    <p className="text-sm text-slate-600">{forecastData.forecast.summary}</p>
+                  </CardContent>
+                </Card>
+              )}
+              {(forecastData.forecast?.recommendations ?? []).length > 0 && (
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium mb-2">Recommendations</p>
+                    <ul className="space-y-1">
+                      {forecastData.forecast.recommendations.map((r: string, i: number) => (
+                        <li key={i} className="text-sm text-slate-600 flex gap-2">
+                          <span className="text-emerald-500 flex-shrink-0">✓</span>{r}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
         </TabsContent>
 
         {/* Tips */}

@@ -43,31 +43,72 @@ export const autopilotApi = createApi({
   tagTypes: ["AutopilotActions", "AutopilotStats"],
   endpoints: (builder) => ({
     getQueue: builder.query<{ data: AutopilotAction[] }, { status?: string }>({
-      query: ({ status = "pending" } = {}) => `/api/v1/autopilot/queue?status=${status}`,
+      query: ({ status = "pending" } = {}) => `/api/autopilot/queue?status=${status}`,
       providesTags: ["AutopilotActions"],
     }),
     getStats: builder.query<AutopilotStats, void>({
-      query: () => "/api/v1/autopilot/stats",
+      query: () => "/api/autopilot/stats",
       providesTags: ["AutopilotStats"],
     }),
     generateActions: builder.mutation<{ generated: number; actions: AutopilotAction[] }, void>({
-      query: () => ({ url: "/api/v1/autopilot/generate", method: "POST" }),
+      query: () => ({ url: "/api/autopilot/generate", method: "POST" }),
       invalidatesTags: ["AutopilotActions", "AutopilotStats"],
     }),
     executeAction: builder.mutation<{ success: boolean; result: any }, { id: string; recipients?: any[] }>({
       query: ({ id, recipients }) => ({
-        url: `/api/v1/autopilot/execute/${id}`,
+        url: `/api/autopilot/execute/${id}`,
         method: "POST",
         body: { recipients },
       }),
       invalidatesTags: ["AutopilotActions", "AutopilotStats"],
     }),
     dismissAction: builder.mutation<{ dismissed: boolean }, string>({
-      query: (id) => ({ url: `/api/v1/autopilot/dismiss/${id}`, method: "PUT" }),
+      query: (id) => ({ url: `/api/autopilot/dismiss/${id}`, method: "PUT" }),
       invalidatesTags: ["AutopilotActions", "AutopilotStats"],
     }),
     generateContent: builder.mutation<{ platform: string; content: string }, { platform: string; topic: string; context?: string }>({
-      query: (body) => ({ url: "/api/v1/autopilot/generate-content", method: "POST", body }),
+      query: (body) => ({ url: "/api/autopilot/generate-content", method: "POST", body }),
+    }),
+    getChatHistory: builder.query<{ history: Array<{role: string; content: string; created_at?: string}> }, void>({
+      query: () => "/api/coach/history",
+    }),
+    getEmailProspects: builder.query<{ count: number; prospects: any[] }, void>({
+      query: () => "/api/autopilot/email-campaign/prospects",
+    }),
+    sendEmailCampaign: builder.mutation<{ sent: number; failed: number; total: number; results: any[] }, {
+      subject: string; body: string; recipients: any[]; ai_personalize?: boolean;
+    }>({
+      query: (body) => ({ url: "/api/autopilot/email-campaign", method: "POST", body }),
+    }),
+    getAutopilotSettings: builder.query<{
+      auto_execute_types: string[]; enabled: boolean; daily_scan_enabled: boolean;
+      notify_high_priority: boolean; notify_all: boolean;
+    }, void>({
+      query: () => "/api/autopilot/settings",
+      providesTags: ["AutopilotActions"],
+    }),
+    updateAutopilotSettings: builder.mutation<{ success: boolean }, {
+      auto_execute_types?: string[]; enabled?: boolean; daily_scan_enabled?: boolean;
+      notify_high_priority?: boolean; notify_all?: boolean;
+    }>({
+      query: (body) => ({ url: "/api/autopilot/settings", method: "PUT", body }),
+      invalidatesTags: ["AutopilotActions"],
+    }),
+    runAutoExecute: builder.mutation<{ executed: number; total_eligible: number }, void>({
+      query: () => ({ url: "/api/autopilot/auto-run", method: "POST" }),
+      invalidatesTags: ["AutopilotActions", "AutopilotStats"],
+    }),
+    getHealthScore: builder.query<{ metrics: any; score: any }, void>({
+      query: () => "/api/dashboard/health-score",
+    }),
+    sendTenantBroadcast: builder.mutation<{ sent: number; failed: number }, {
+      message: string; tenant_ids?: string[];
+    }>({
+      query: (body) => ({ url: "/api/autopilot/broadcast", method: "POST", body }),
+    }),
+    sendPaymentLinks: builder.mutation<{ sent: number; failed: number }, void>({
+      query: () => ({ url: "/api/autopilot/payment-links", method: "POST" }),
+      invalidatesTags: ["AutopilotActions"],
     }),
   }),
 });
@@ -79,4 +120,13 @@ export const {
   useExecuteActionMutation,
   useDismissActionMutation,
   useGenerateContentMutation,
+  useGetChatHistoryQuery,
+  useGetEmailProspectsQuery,
+  useSendEmailCampaignMutation,
+  useGetAutopilotSettingsQuery,
+  useUpdateAutopilotSettingsMutation,
+  useRunAutoExecuteMutation,
+  useGetHealthScoreQuery,
+  useSendTenantBroadcastMutation,
+  useSendPaymentLinksMutation,
 } = autopilotApi;
