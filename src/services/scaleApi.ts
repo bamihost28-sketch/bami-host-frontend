@@ -47,6 +47,13 @@ export interface CompanyScorecard {
 export interface VeStage { name: string; metric: number | string; agent: string | null; agent2?: string; power: boolean; terminus?: boolean; }
 export interface ValueEngine { name: string; subtitle: string; stages: VeStage[]; }
 export interface ValueEnginesData { engines: ValueEngine[]; }
+export interface TeamCanvasData {
+  agents: { key: string; name: string; emoji: string; accountability: string; output_30d: number }[];
+  humans: { name: string; role: string; is_owner: boolean; estates: number }[];
+  hiring: { active_tenants: number; threshold: number; should_hire: boolean; message: string };
+  candidate_pipeline: Record<string, number>;
+  candidate_total: number;
+}
 export interface FinancePlan {
   exists: boolean;
   target_monthly_salary: number; living_expenses: number; target_profit_pct: number;
@@ -80,6 +87,9 @@ export const scaleApi = createApi({
     getValueEngines: b.query<ValueEnginesData, void>({
       query: () => "/api/scale/value-engines",
     }),
+    getTeamCanvas: b.query<TeamCanvasData, void>({
+      query: () => "/api/scale/team-canvas",
+    }),
     getFinancePlan: b.query<FinancePlan, void>({
       query: () => "/api/scale/finance-plan",
       providesTags: ["FinancePlan"],
@@ -98,6 +108,7 @@ export const {
   useGetGrowthScorecardQuery,
   useGetScorecardQuery,
   useGetValueEnginesQuery,
+  useGetTeamCanvasQuery,
   useGetFinancePlanQuery,
   useUpdateFinancePlanMutation,
 } = scaleApi;

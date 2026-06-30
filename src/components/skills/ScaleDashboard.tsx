@@ -13,7 +13,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import {
   useGetScaleOverviewQuery, useGetNpsQuery, useRequestNpsMutation,
   useGetGrowthScorecardQuery, useGetScorecardQuery, useGetValueEnginesQuery,
-  useGetFinancePlanQuery, useUpdateFinancePlanMutation,
+  useGetTeamCanvasQuery, useGetFinancePlanQuery, useUpdateFinancePlanMutation,
 } from "@/services/scaleApi";
 
 const DOT: Record<string, string> = { green: "bg-green-500", amber: "bg-yellow-500", red: "bg-red-500" };
@@ -39,12 +39,14 @@ export function ScaleDashboard() {
         <TabsList>
           <TabsTrigger value="scorecard" className="gap-1"><Target className="h-4 w-4" /> Scorecard</TabsTrigger>
           <TabsTrigger value="engines" className="gap-1"><Sparkles className="h-4 w-4" /> Value Engines</TabsTrigger>
+          <TabsTrigger value="team" className="gap-1"><Users2 className="h-4 w-4" /> Team Canvas</TabsTrigger>
           <TabsTrigger value="nps" className="gap-1"><Star className="h-4 w-4" /> Level 1 · Promoters</TabsTrigger>
           <TabsTrigger value="growth" className="gap-1"><TrendingUp className="h-4 w-4" /> Level 2 · Growth</TabsTrigger>
           <TabsTrigger value="finance" className="gap-1"><Wallet className="h-4 w-4" /> Level 4 · Pay Yourself</TabsTrigger>
         </TabsList>
         <TabsContent value="scorecard" className="mt-4"><ScorecardPanel /></TabsContent>
         <TabsContent value="engines" className="mt-4"><ValueEnginesPanel /></TabsContent>
+        <TabsContent value="team" className="mt-4"><TeamCanvasPanel /></TabsContent>
         <TabsContent value="nps" className="mt-4"><NpsPanel /></TabsContent>
         <TabsContent value="growth" className="mt-4"><GrowthPanel /></TabsContent>
         <TabsContent value="finance" className="mt-4"><FinancePanel /></TabsContent>
@@ -98,6 +100,67 @@ function LevelLadder() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function TeamCanvasPanel() {
+  const { data, isLoading } = useGetTeamCanvasQuery();
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
+  if (!data) return null;
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500">
+        Your <strong>High Output Team Canvas</strong> — who's accountable for each critical function. In Bami Host your AI agents are team members owning the power stages.
+      </p>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base">🤖 AI agent team</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {data.agents.map((a) => (
+              <div key={a.key} className="flex items-center justify-between border rounded-lg p-3 bg-slate-50 dark:bg-slate-800">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{a.emoji}</span>
+                  <div>
+                    <p className="font-medium text-sm">{a.name}</p>
+                    <p className="text-xs text-slate-500">{a.accountability}</p>
+                  </div>
+                </div>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{a.output_30d} / 30d</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">👤 Human team</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {data.humans.map((h, i) => (
+              <div key={i} className="flex items-center justify-between text-sm border-b py-1.5">
+                <span className="font-medium">{h.name} {h.is_owner && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">owner</span>}</span>
+                <span className="text-slate-400 text-xs">{h.role} · {h.estates} estate{h.estates !== 1 ? "s" : ""}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className={data.hiring.should_hire ? "border-amber-300" : ""}>
+          <CardHeader className="pb-2"><CardTitle className="text-base">📈 Hiring signal (HR agent)</CardTitle></CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-slate-900 dark:text-white">{data.hiring.active_tenants}</span>
+              <span className="text-slate-400">/ {data.hiring.threshold} tenants</span>
+            </div>
+            <p className={`text-sm mt-2 ${data.hiring.should_hire ? "text-amber-700 font-medium" : "text-slate-500"}`}>{data.hiring.message}</p>
+            {data.candidate_total > 0 && (
+              <p className="text-xs text-slate-400 mt-2">{data.candidate_total} candidate{data.candidate_total !== 1 ? "s" : ""} in your pipeline.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 
