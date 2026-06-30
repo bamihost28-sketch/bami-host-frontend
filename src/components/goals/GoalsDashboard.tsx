@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useGetPersonalFinanceQuery, useSavePersonalFinanceMutation } from "@/services/personalFinanceApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,8 +76,8 @@ export const GoalsDashboard = () => {
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("active");
 
-  // Mock goals data
-  const goals: FinancialGoal[] = [
+  // Goals — seeded with examples, then hydrated from + saved to the backend.
+  const [goals, setGoals] = useState<FinancialGoal[]>([
     {
       id: "1",
       title: "Emergency Fund",
@@ -161,7 +162,42 @@ export const GoalsDashboard = () => {
       createdDate: "2024-01-01",
       tags: ["debt", "freedom"]
     }
-  ];
+  ]);
+
+  // ── Backend persistence: load on mount, debounced autosave ──
+  const { data: pf, isSuccess: pfLoaded } = useGetPersonalFinanceQuery();
+  const [savePf] = useSavePersonalFinanceMutation();
+  const hydratedRef = useRef(false);
+  useEffect(() => {
+    if (!pfLoaded || hydratedRef.current) return;
+    hydratedRef.current = true;
+    if (pf?.exists && Array.isArray(pf.goals) && pf.goals.length) setGoals(pf.goals as FinancialGoal[]);
+  }, [pfLoaded, pf]);
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    const t = setTimeout(() => savePf({ goals }), 1200);
+    return () => clearTimeout(t);
+  }, [goals]);
+
+  // New-goal form state
+  const [newGoal, setNewGoal] = useState({
+    title: "", description: "", targetAmount: "", monthlyContribution: "",
+    category: "other", priority: "medium", targetDate: "",
+  });
+  const handleCreateGoal = () => {
+    if (!newGoal.title.trim() || !newGoal.targetAmount) { setIsAddGoalDialogOpen(false); return; }
+    const g: FinancialGoal = {
+      id: Date.now().toString(), title: newGoal.title, description: newGoal.description,
+      category: newGoal.category as FinancialGoal["category"],
+      targetAmount: Number(newGoal.targetAmount), currentAmount: 0,
+      targetDate: newGoal.targetDate, priority: newGoal.priority as FinancialGoal["priority"],
+      status: "active", monthlyContribution: Number(newGoal.monthlyContribution) || 0,
+      createdDate: new Date().toISOString().slice(0, 10), tags: [],
+    };
+    setGoals(prev => [...prev, g]);
+    setNewGoal({ title: "", description: "", targetAmount: "", monthlyContribution: "", category: "other", priority: "medium", targetDate: "" });
+    setIsAddGoalDialogOpen(false);
+  };
 
   const totalTargetAmount = goals.filter(g => g.status === 'active').reduce((sum, goal) => sum + goal.targetAmount, 0);
   const totalCurrentAmount = goals.filter(g => g.status === 'active').reduce((sum, goal) => sum + goal.currentAmount, 0);
@@ -401,26 +437,26 @@ export const GoalsDashboard = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="goal-title">Goal Title</Label>
-                  <Input id="goal-title" placeholder="e.g., Emergency Fund" />
+                  <Input id="goal-title" placeholder="e.g., Emergency Fund" value={newGoal.title} onChange={(e) => setNewGoal(p => ({ ...p, title: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="goal-description">Description</Label>
-                  <Textarea id="goal-description" placeholder="Brief description of your goal" />
+                  <Textarea id="goal-description" placeholder="Brief description of your goal" value={newGoal.description} onChange={(e) => setNewGoal(p => ({ ...p, description: e.target.value }))} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="target-amount">Target Amount (₦)</Label>
-                    <Input id="target-amount" type="number" placeholder="1000000" />
+                    <Input id="target-amount" type="number" placeholder="1000000" value={newGoal.targetAmount} onChange={(e) => setNewGoal(p => ({ ...p, targetAmount: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="monthly-contribution">Monthly Contribution (₦)</Label>
-                    <Input id="monthly-contribution" type="number" placeholder="50000" />
+                    <Input id="monthly-contribution" type="number" placeholder="50000" value={newGoal.monthlyContribution} onChange={(e) => setNewGoal(p => ({ ...p, monthlyContribution: e.target.value }))} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Category</Label>
-                    <Select>
+                    <Select value={newGoal.category} onValueChange={(v) => setNewGoal(p => ({ ...p, category: v }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -438,7 +474,7 @@ export const GoalsDashboard = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Priority</Label>
-                    <Select>
+                    <Select value={newGoal.priority} onValueChange={(v) => setNewGoal(p => ({ ...p, priority: v }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
@@ -452,14 +488,14 @@ export const GoalsDashboard = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="target-date">Target Date</Label>
-                  <Input id="target-date" type="date" />
+                  <Input id="target-date" type="date" value={newGoal.targetDate} onChange={(e) => setNewGoal(p => ({ ...p, targetDate: e.target.value }))} />
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddGoalDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={() => setIsAddGoalDialogOpen(false)}>
+                <Button onClick={handleCreateGoal}>
                   Create Goal
                 </Button>
               </DialogFooter>
