@@ -19,6 +19,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import {
   useGetQueueQuery,
   useGetStatsQuery,
+  useGetAgentsQuery,
   useGenerateActionsMutation,
   useExecuteActionMutation,
   useDismissActionMutation,
@@ -674,6 +675,40 @@ function EmailCampaignTab() {
 }
 
 
+function AgentRoster() {
+  const { data, isLoading } = useGetAgentsQuery();
+  const agents = data?.agents ?? [];
+
+  if (isLoading || agents.length === 0) return null;
+
+  return (
+    <div>
+      <p className="text-sm font-semibold text-slate-500 mb-2">Your AI Agent Team</p>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {agents.map((a) => (
+          <Card key={a.key} className="border-slate-200 dark:border-slate-700">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl">{a.emoji}</div>
+              <p className="font-semibold text-sm mt-1 text-slate-900 dark:text-white">{a.name}</p>
+              <p className="text-[11px] text-slate-400 leading-tight mt-0.5 line-clamp-2">{a.description}</p>
+              <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px]">
+                {a.pending > 0 && <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">{a.pending} pending</span>}
+                {a.done > 0 && <span className="px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">{a.done} done</span>}
+                {a.total === 0 && <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">idle</span>}
+              </div>
+              {a.auto_safe.length > 0 && (
+                <p className="mt-1 text-[10px] text-purple-500 flex items-center justify-center gap-0.5">
+                  <Zap className="h-2.5 w-2.5" /> auto
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AutopilotDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("queue");
@@ -728,9 +763,9 @@ export function AutopilotDashboard() {
             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
               <Bot className="h-7 w-7 text-white" />
             </div>
-            Business Autopilot
+            AI Agents
           </h1>
-          <p className="text-slate-500 mt-1">Your AI runs your business — posts, reminders, follow-ups, and more</p>
+          <p className="text-slate-500 mt-1">Your team of AI agents runs your business in the background — designing, posting, following up, collecting & more</p>
         </div>
         <Button
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-6"
@@ -738,18 +773,21 @@ export function AutopilotDashboard() {
           disabled={generating}
         >
           {generating
-            ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> AI is scanning your business...</>
-            : <><Zap className="h-4 w-4 mr-2" /> Run Autopilot Now</>
+            ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Agents are scanning your business...</>
+            : <><Zap className="h-4 w-4 mr-2" /> Run Agents Now</>
           }
         </Button>
       </div>
+
+      {/* The agent team */}
+      <AgentRoster />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard icon={Clock}     label="Pending Actions" value={stats?.pending ?? 0}   color="bg-blue-100 text-blue-600" />
         <StatCard icon={CheckCircle} label="Completed"    value={stats?.done ?? 0}       color="bg-green-100 text-green-600" />
         <StatCard icon={BarChart3} label="Total Generated" value={stats?.total ?? 0}    color="bg-purple-100 text-purple-600" />
-        <StatCard icon={Zap}       label="Skills Active"  value={Object.keys(stats?.by_skill ?? {}).length} color="bg-orange-100 text-orange-600" />
+        <StatCard icon={Zap}       label="Agents Active"  value={Object.keys(stats?.by_skill ?? {}).length} color="bg-orange-100 text-orange-600" />
       </div>
 
       {/* Empty state */}

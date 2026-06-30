@@ -57,7 +57,7 @@ function buildSuggestions(overview: any): SkillSuggestion[] {
       color: "marketer",
       trigger: `${vacant} vacant unit${vacant > 1 ? "s" : ""} need filling`,
       action: "Create a campaign to attract enquiries for your vacant units",
-      path: "/dashboard/skills/marketing",
+      path: "/dashboard/autopilot",
     });
   }
 
@@ -69,7 +69,7 @@ function buildSuggestions(overview: any): SkillSuggestion[] {
       color: "sales",
       trigger: `${pendingEnquiries} pending enquir${pendingEnquiries > 1 ? "ies" : "y"} waiting`,
       action: "Follow up on enquiries — move them through your sales pipeline",
-      path: "/dashboard/skills/sales",
+      path: "/dashboard/autopilot",
     });
   }
 
@@ -81,7 +81,7 @@ function buildSuggestions(overview: any): SkillSuggestion[] {
       color: "finance",
       trigger: `Collection rate at ${collectionRate}% — ${overdueCount} overdue tenant${overdueCount > 1 ? "s" : ""}`,
       action: "Review your cash flow and plan arrears recovery strategy",
-      path: "/dashboard/skills/finance",
+      path: "/dashboard/autopilot",
     });
   }
 
@@ -93,7 +93,7 @@ function buildSuggestions(overview: any): SkillSuggestion[] {
       color: "operations",
       trigger: `${openIssues} open maintenance issues need attention`,
       action: "Assign vendors to resolve outstanding issues",
-      path: "/dashboard/skills/operations",
+      path: "/dashboard/autopilot",
     });
   }
 

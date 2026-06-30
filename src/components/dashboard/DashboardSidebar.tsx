@@ -233,53 +233,10 @@ const sidebarItems: SidebarItem[] = [
     path: '/dashboard/estate'
   },
   {
-    id: "skills-marketing",
-    label: "Marketer Skill",
-    icon: Megaphone,
-    category: 'business',
-    requiredPermissions: ['view_marketing_skill'],
-    isPremium: true,
-    path: '/dashboard/skills/marketing'
-  },
-  {
-    id: "skills-sales",
-    label: "Sales Skill",
-    icon: TrendingUp,
-    category: 'business',
-    requiredPermissions: ['view_sales_skill'],
-    isPremium: true,
-    path: '/dashboard/skills/sales'
-  },
-  {
-    id: "skills-finance",
-    label: "Finance Director",
-    icon: DollarSign,
-    category: 'financial',
-    requiredPermissions: ['view_finance_skill'],
-    isPremium: true,
-    path: '/dashboard/skills/finance'
-  },
-  {
-    id: "skills-operations",
-    label: "Operations Skill",
-    icon: Settings2,
-    category: 'business',
-    requiredPermissions: ['view_operations_skill'],
-    isPremium: true,
-    path: '/dashboard/skills/operations'
-  },
-  {
-    id: "skills-hr",
-    label: "HR Director",
-    icon: Users,
-    category: 'business',
-    requiredPermissions: ['view_hr_skill'],
-    isPremium: true,
-    path: '/dashboard/skills/hr'
-  },
-  {
+    // The 6 business skills (Designer, Marketer, Sales, Finance, Operations, HR)
+    // now run as autonomous background agents — surfaced in this one AI Agents hub.
     id: "autopilot",
-    label: "Business Autopilot",
+    label: "AI Agents",
     icon: Zap,
     category: 'business',
     requiredPermissions: ['view_autopilot'],

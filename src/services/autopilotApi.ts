@@ -30,6 +30,17 @@ export interface AutopilotAction {
   created_at: string;
 }
 
+export interface AgentInfo {
+  key: string;
+  name: string;
+  emoji: string;
+  description: string;
+  auto_safe: string[];
+  pending: number;
+  done: number;
+  total: number;
+}
+
 export interface AutopilotStats {
   pending: number;
   done: number;
@@ -72,6 +83,10 @@ export const autopilotApi = createApi({
     }),
     getChatHistory: builder.query<{ history: Array<{role: string; content: string; created_at?: string}> }, void>({
       query: () => "/api/coach/history",
+    }),
+    getAgents: builder.query<{ agents: AgentInfo[] }, void>({
+      query: () => "/api/autopilot/agents",
+      providesTags: ["AutopilotActions"],
     }),
     getEmailProspects: builder.query<{ count: number; prospects: any[] }, void>({
       query: () => "/api/autopilot/email-campaign/prospects",
@@ -122,6 +137,7 @@ export const {
   useDismissActionMutation,
   useGenerateContentMutation,
   useGetChatHistoryQuery,
+  useGetAgentsQuery,
   useGetEmailProspectsQuery,
   useSendEmailCampaignMutation,
   useGetAutopilotSettingsQuery,
