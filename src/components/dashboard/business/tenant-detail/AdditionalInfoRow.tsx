@@ -39,9 +39,9 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {moveInDate ? formatDate(moveInDate.toISOString()) : 'N/A'}
+                {entryDateRaw ? formatDate(entryDateRaw) : (moveInDate ? formatDate(moveInDate.toISOString()) : 'N/A')}
               </p>
-              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">1 year before next due</p>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">{entryDateRaw ? 'Entry date' : 'Estimated (1 year before next due)'}</p>
             </div>
           </div>
         </CardContent>
