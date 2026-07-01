@@ -37,6 +37,9 @@ export function ScaleDashboard() {
           <TrendingUp className="h-8 w-8 text-emerald-600" /> Scale — Your 7 Levels
         </h1>
         <p className="text-slate-500 mt-1">Your roadmap from where you are to hitting your number — diagnosed from live data.</p>
+        <a href="/dashboard/ScalableImpactPlanner" className="inline-flex items-center gap-1 mt-2 text-sm text-emerald-700 hover:underline">
+          <Target className="h-3.5 w-3.5" /> Open the Scalable Impact Planner (define / edit your Number)
+        </a>
       </div>
 
       <LevelLadder />
@@ -79,7 +82,7 @@ function LevelLadder() {
           </div>
         ) : (
           <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700">
-            You haven't set your Number yet — define it in the <strong>Scalable Impact Planner</strong> (Defining Your Number).
+            You haven't set your Number yet — <a href="/dashboard/ScalableImpactPlanner" className="underline font-medium">open the Scalable Impact Planner</a> to define it.
           </div>
         )}
         <p className="text-sm text-slate-500 mb-3">

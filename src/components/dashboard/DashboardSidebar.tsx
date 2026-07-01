@@ -95,15 +95,6 @@ const sidebarItems: SidebarItem[] = [
     path: '/dashboard/defining-your-number'
   },
   {
-    id: "scalable-impact-planner",
-    label: "Scalable Impact Planner",
-    icon: Scale,
-    category: 'core',
-    requiredPermissions: ['view_scalable_impact'],
-    isPremium: true,
-    path: '/dashboard/ScalableImpactPlanner'
-  },
-  {
     id: "wallet",
     label: "Wallet",
     icon: Wallet,
