@@ -740,5 +740,7 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'skills-operations': ['view_operations_skill'],
   'skills-hr':         ['view_hr_skill'],
   // Autopilot
-  'autopilot':         ['view_autopilot']
+  'autopilot':         ['view_autopilot'],
+  // Scale — 7 Levels (owner/business feature; hidden from tenants & residents)
+  'scale':             ['view_autopilot']
 };
