@@ -506,19 +506,9 @@ function ScorecardPanel() {
         <CardHeader><CardTitle className="text-sm text-slate-500 uppercase tracking-wide">North Star (leading)</CardTitle></CardHeader>
         <CardContent><div className="grid grid-cols-2 md:grid-cols-4 gap-3">{data.north_star.map((m, i) => <Metric key={i} m={m} />)}</div></CardContent>
       </Card>
-      <Card>
-        <CardHeader><CardTitle className="text-sm text-slate-500 uppercase tracking-wide">Team output — agent actions (30d)</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-center">
-            {data.teams.map((t, i) => (
-              <div key={i} className="rounded-lg border p-3 bg-slate-50 dark:bg-slate-800">
-                <p className="text-xl font-bold text-slate-900 dark:text-white">{t.metric}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{t.team}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Per-agent 30-day output lives in the Team Canvas tab (with each agent's
+          accountability) — not duplicated here, so the Scorecard stays focused on
+          business truth (Evergreen + North Star). */}
     </div>
   );
 }
