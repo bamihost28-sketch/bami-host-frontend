@@ -13,6 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   TrendingUp,
   TrendingDown,
@@ -150,6 +153,25 @@ export const PortfolioDashboard = () => {
     return () => clearTimeout(t);
   }, [investments]);
 
+  // Add-investment dialog
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newInv, setNewInv] = useState({ name: "", type: "stocks", symbol: "", amount: "", currentValue: "", risk: "medium", purchaseDate: new Date().toISOString().slice(0, 10) });
+  const handleAddInvestment = () => {
+    if (!newInv.name.trim() || !newInv.amount) { setIsAddOpen(false); return; }
+    const amount = Number(newInv.amount);
+    const currentValue = Number(newInv.currentValue) || amount;
+    const inv: Investment = {
+      id: Date.now().toString(), name: newInv.name, type: newInv.type as Investment["type"],
+      symbol: newInv.symbol || newInv.name.slice(0, 4).toUpperCase(), amount,
+      currentValue, purchasePrice: amount, quantity: 1, purchaseDate: newInv.purchaseDate,
+      performance: amount ? Number((((currentValue - amount) / amount) * 100).toFixed(1)) : 0,
+      risk: newInv.risk as Investment["risk"],
+    };
+    setInvestments(prev => [...prev, inv]);
+    setNewInv({ name: "", type: "stocks", symbol: "", amount: "", currentValue: "", risk: "medium", purchaseDate: new Date().toISOString().slice(0, 10) });
+    setIsAddOpen(false);
+  };
+
   const totalPortfolioValue = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
   const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
   const totalGains = totalPortfolioValue - totalInvested;
@@ -247,11 +269,76 @@ export const PortfolioDashboard = () => {
             </SelectContent>
           </Select>
           
-          <Button size="sm" className="flex items-center justify-center gap-2 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
-            <span className="hidden xs:inline">Add Investment</span>
-            <span className="xs:hidden">Add</span>
-          </Button>
+          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="flex items-center justify-center gap-2 w-full sm:w-auto">
+                <Plus className="h-4 w-4" />
+                <span className="hidden xs:inline">Add Investment</span>
+                <span className="xs:hidden">Add</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add Investment</DialogTitle>
+                <DialogDescription>Add a holding to your portfolio.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input placeholder="e.g. MTN Nigeria" value={newInv.name} onChange={(e) => setNewInv(p => ({ ...p, name: e.target.value }))} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Type</Label>
+                    <Select value={newInv.type} onValueChange={(v) => setNewInv(p => ({ ...p, type: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="stocks">Stocks</SelectItem>
+                        <SelectItem value="tbills">T-Bills</SelectItem>
+                        <SelectItem value="bonds">Bonds</SelectItem>
+                        <SelectItem value="mutual_funds">Mutual Funds</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Risk</Label>
+                    <Select value={newInv.risk} onValueChange={(v) => setNewInv(p => ({ ...p, risk: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Amount invested (₦)</Label>
+                    <Input type="number" placeholder="500000" value={newInv.amount} onChange={(e) => setNewInv(p => ({ ...p, amount: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Current value (₦)</Label>
+                    <Input type="number" placeholder="550000" value={newInv.currentValue} onChange={(e) => setNewInv(p => ({ ...p, currentValue: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Symbol (optional)</Label>
+                    <Input placeholder="MTNN" value={newInv.symbol} onChange={(e) => setNewInv(p => ({ ...p, symbol: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Purchase date</Label>
+                    <Input type="date" value={newInv.purchaseDate} onChange={(e) => setNewInv(p => ({ ...p, purchaseDate: e.target.value }))} />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
+                <Button onClick={handleAddInvestment}>Add</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
