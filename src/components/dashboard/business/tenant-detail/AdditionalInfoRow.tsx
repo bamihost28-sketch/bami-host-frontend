@@ -15,7 +15,11 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
     return d;
   })() : null;
 
-  const entryYear = moveInDate ? moveInDate.getFullYear() : new Date(tenant?.entryDate || tenant?.createdAt).getFullYear();
+  // Total Stay is measured from the ACTUAL move-in (entry) date, not a value
+  // derived from the next-due date — otherwise a tenant who moved in in 2024
+  // wrongly shows as "Since 2025".
+  const entryDateRaw = tenant?.entryDate || tenant?.createdAt;
+  const entryYear = entryDateRaw ? new Date(entryDateRaw).getFullYear() : new Date().getFullYear();
   const currentYear = new Date().getFullYear();
   const totalYears = currentYear - entryYear;
   const totalStayLabel = totalYears <= 0 ? 'Less than 1 year' : totalYears === 1 ? '1 Year' : `${totalYears} Years`;
@@ -35,9 +39,9 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {moveInDate ? formatDate(moveInDate.toISOString()) : formatDate(tenant?.entryDate || tenant?.createdAt)}
+                {entryDateRaw ? formatDate(entryDateRaw) : (moveInDate ? formatDate(moveInDate.toISOString()) : 'N/A')}
               </p>
-              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">1 year before next due</p>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">{entryDateRaw ? 'Entry date' : 'Estimated (1 year before next due)'}</p>
             </div>
           </div>
         </CardContent>
