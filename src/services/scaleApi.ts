@@ -68,6 +68,14 @@ export interface FinancePlan {
   target_monthly_salary: number; living_expenses: number; target_profit_pct: number;
   emergency_fund_target: number; emergency_fund_current: number; expense_ratios: Record<string, number>;
   avg_monthly_revenue: number; recommended_salary: number; salary_gap?: number; emergency_fund_pct: number;
+  monthly_opex: number; operating_reserve_current: number; tax_pct: number; tax_current: number;
+  sweep_current: number; sinking_funds: { name: string; target: number; current: number }[];
+}
+export interface WaterfallStage { key: string; label: string; current: number; target: number | null; done: boolean; }
+export interface CashWaterfall {
+  has_plan: boolean; monthly_opex: number; stages: WaterfallStage[]; next_destination: string;
+  sinking_funds: { name: string; target: number; current: number }[];
+  accounts: { operating: number; tax: number; emergency: number; sweep: number };
 }
 
 export const scaleApi = createApi({
@@ -119,6 +127,10 @@ export const scaleApi = createApi({
       query: () => "/api/scale/finance-plan",
       providesTags: ["FinancePlan"],
     }),
+    getCashWaterfall: b.query<CashWaterfall, void>({
+      query: () => "/api/scale/cash-waterfall",
+      providesTags: ["FinancePlan"],
+    }),
     updateFinancePlan: b.mutation<{ success: boolean }, Partial<FinancePlan>>({
       query: (body) => ({ url: "/api/scale/finance-plan", method: "PUT", body }),
       invalidatesTags: ["FinancePlan", "Scale"],
@@ -139,5 +151,6 @@ export const {
   useUpdatePlaybookMutation,
   useDeletePlaybookMutation,
   useGetFinancePlanQuery,
+  useGetCashWaterfallQuery,
   useUpdateFinancePlanMutation,
 } = scaleApi;

@@ -15,6 +15,7 @@ import {
   useGetGrowthScorecardQuery, useGetScorecardQuery, useGetValueEnginesQuery,
   useGetTeamCanvasQuery, useGetFinancePlanQuery, useUpdateFinancePlanMutation,
   useGetPlaybooksQuery, useCreatePlaybookMutation, useUpdatePlaybookMutation, useDeletePlaybookMutation,
+  useGetCashWaterfallQuery,
 } from "@/services/scaleApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
@@ -485,13 +486,15 @@ function FinancePanel() {
   const { toast } = useToast();
   const { data, isLoading } = useGetFinancePlanQuery();
   const [save, { isLoading: saving }] = useUpdateFinancePlanMutation();
-  const [form, setForm] = useState({ living_expenses: 0, target_monthly_salary: 0, target_profit_pct: 20, emergency_fund_target: 0, emergency_fund_current: 0 });
+  const [form, setForm] = useState({ living_expenses: 0, target_monthly_salary: 0, target_profit_pct: 20, emergency_fund_target: 0, emergency_fund_current: 0, monthly_opex: 0, operating_reserve_current: 0, tax_pct: 0, tax_current: 0, sweep_current: 0 });
 
   useEffect(() => {
     if (data) setForm({
       living_expenses: data.living_expenses, target_monthly_salary: data.target_monthly_salary,
       target_profit_pct: data.target_profit_pct, emergency_fund_target: data.emergency_fund_target,
       emergency_fund_current: data.emergency_fund_current,
+      monthly_opex: data.monthly_opex || 0, operating_reserve_current: data.operating_reserve_current || 0,
+      tax_pct: data.tax_pct || 0, tax_current: data.tax_current || 0, sweep_current: data.sweep_current || 0,
     });
   }, [data]);
 
@@ -505,6 +508,7 @@ function FinancePanel() {
   };
 
   return (
+   <div className="space-y-4">
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><Wallet className="h-4 w-4 text-emerald-600" /> Pay Yourself First</CardTitle></CardHeader>
@@ -553,8 +557,63 @@ function FinancePanel() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Cash accounts (for the waterfall)</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Monthly opex (₦)</Label><Input type="number" value={form.monthly_opex} onChange={(e) => setForm(p => ({ ...p, monthly_opex: +e.target.value }))} /></div>
+              <div><Label>Operating reserve (₦)</Label><Input type="number" value={form.operating_reserve_current} onChange={(e) => setForm(p => ({ ...p, operating_reserve_current: +e.target.value }))} /></div>
+              <div><Label>Tax set-aside (%)</Label><Input type="number" value={form.tax_pct} onChange={(e) => setForm(p => ({ ...p, tax_pct: +e.target.value }))} /></div>
+              <div><Label>Tax account (₦)</Label><Input type="number" value={form.tax_current} onChange={(e) => setForm(p => ({ ...p, tax_current: +e.target.value }))} /></div>
+              <div><Label>Sweep account (₦)</Label><Input type="number" value={form.sweep_current} onChange={(e) => setForm(p => ({ ...p, sweep_current: +e.target.value }))} /></div>
+            </div>
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white w-full" onClick={onSave} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save accounts"}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
+    <CashWaterfallCard />
+   </div>
+  );
+}
+
+function CashWaterfallCard() {
+  const { data } = useGetCashWaterfallQuery();
+  if (!data) return null;
+  return (
+    <Card className="border-emerald-200">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2"><CircleDollarSign className="h-4 w-4 text-emerald-600" /> Cash Sweep Waterfall</CardTitle>
+        <p className="text-xs text-slate-400">Where every ₦ flows, in priority order. Next ₦ → <span className="text-emerald-700 font-medium">{data.next_destination}</span></p>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {data.stages.map((s, i) => {
+            const pct = s.target ? Math.min(100, Math.round((s.current / s.target) * 100)) : (s.done ? 100 : 0);
+            const isNext = data.stages.findIndex(x => !x.done) === i;
+            return (
+              <div key={s.key} className={`rounded-lg border p-2.5 ${s.done ? "bg-green-50 dark:bg-green-900/20 border-green-200" : isNext ? "border-emerald-400 ring-1 ring-emerald-300" : "bg-slate-50 dark:bg-slate-800"}`}>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2">
+                    <span className="text-xs w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">{i + 1}</span>
+                    {s.done ? "✅ " : ""}{s.label}
+                  </span>
+                  <span className="text-xs text-slate-500">{s.target ? `${naira(s.current)} / ${naira(s.target)}` : naira(s.current)}</span>
+                </div>
+                {s.target ? (
+                  <div className="w-full h-1.5 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                    <div className={`h-full ${s.done ? "bg-green-500" : "bg-emerald-500"}`} style={{ width: `${pct}%` }} />
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-slate-400 mt-3">Set your monthly operating expenses, tax %, and account balances in the fields above to drive this waterfall.</p>
+      </CardContent>
+    </Card>
   );
 }
 
