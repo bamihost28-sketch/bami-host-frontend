@@ -614,21 +614,30 @@ function GrowthPanel() {
   const maxRev = Math.max(1, ...data.monthly_revenue.map((m) => m.revenue));
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4 text-emerald-600" /> Growth Scorecard (the funnel)</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {data.stages.map((s, i) => (
-              <div key={i} className={`rounded-lg border p-3 ${s.stage === data.bottleneck ? "border-red-300 bg-red-50 dark:bg-red-900/20" : "bg-slate-50 dark:bg-slate-800"}`}>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">{s.metric}</p>
-                <p className="text-xs font-medium mt-1">{s.stage}</p>
-                <p className="text-[10px] text-slate-400">{s.sub}</p>
-                {s.stage === data.bottleneck && <p className="text-[10px] text-red-600 font-semibold mt-1">⚠ bottleneck</p>}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Rate diagnostics — the numbers the Value Engines "Growth Engine" doesn't show
+          (that view has the raw funnel counts + agents). This keeps L2 distinct. */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="rounded-lg border p-3 bg-white dark:bg-slate-800">
+          <p className="text-2xl font-bold text-slate-900 dark:text-white">{data.conversion_pct}%</p>
+          <p className="text-xs text-slate-500 mt-0.5">Conversion — enquiries → tenants</p>
+        </div>
+        <div className="rounded-lg border p-3 bg-white dark:bg-slate-800">
+          <p className="text-2xl font-bold text-slate-900 dark:text-white">{data.occupancy_pct}%</p>
+          <p className="text-xs text-slate-500 mt-0.5">Occupancy — units filled</p>
+        </div>
+        <div className="rounded-lg border p-3 bg-white dark:bg-slate-800">
+          <p className="text-2xl font-bold text-emerald-700">{naira(data.monthly_target)}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Flywheel target — /mo × 3 → unlock L3</p>
+        </div>
+      </div>
+
+      {data.bottleneck && (
+        <div className="rounded-lg border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/20 p-3 text-sm">
+          <span className="font-semibold text-red-700 dark:text-red-300">⚠ Bottleneck: {data.bottleneck}</span>
+          <span className="text-slate-500 dark:text-slate-400"> — the tightest stage throttling growth. See the full funnel in the <strong>Value Engines</strong> tab.</span>
+        </div>
+      )}
+
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><CircleDollarSign className="h-4 w-4 text-emerald-600" /> Monthly revenue</CardTitle></CardHeader>
         <CardContent>
