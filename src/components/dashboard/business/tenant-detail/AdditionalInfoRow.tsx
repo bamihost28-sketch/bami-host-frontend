@@ -79,7 +79,7 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {tenant?.estate?.name || 'N/A'}
+                {overview?.estateName || tenant?.estate?.name || tenant?.estateName || 'N/A'}
               </p>
               <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">Property</p>
             </div>
