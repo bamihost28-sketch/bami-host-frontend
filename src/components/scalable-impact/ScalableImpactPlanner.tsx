@@ -40,7 +40,7 @@ import type {
   TakingActionItems
 } from './types';
 
-const ScalableImpactPlanner: React.FC = () => {
+const ScalableImpactPlanner: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -452,14 +452,16 @@ const ScalableImpactPlanner: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-background min-h-screen">
-      {/* Header */}
-      <div className="sticky top-0 z-30 -mx-6 mb-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-6 py-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-semibold">Scalable Impact Planner</CardTitle>
-          <span className="text-sm text-muted-foreground">Steps 1–7</span>
+    <div className={embedded ? "" : "max-w-7xl mx-auto p-6 bg-background min-h-screen"}>
+      {/* Header (hidden when embedded inside the Scale dashboard tab) */}
+      {!embedded && (
+        <div className="sticky top-0 z-30 -mx-6 mb-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-6 py-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-semibold">Scalable Impact Planner</CardTitle>
+            <span className="text-sm text-muted-foreground">Steps 1–7</span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Step Navigator */}
       <StepNavigator
@@ -527,9 +529,11 @@ const ScalableImpactPlanner: React.FC = () => {
       )}
 
       {/* Footer */}
-      <div className="mt-8 text-center text-sm text-gray-500">
-        <p>© The Scalable Company - Helping entrepreneurs scale systematically</p>
-      </div>
+      {!embedded && (
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>© The Scalable Company - Helping entrepreneurs scale systematically</p>
+        </div>
+      )}
     </div>
   );
 };

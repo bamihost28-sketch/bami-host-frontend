@@ -43,6 +43,10 @@ const SKILL_ICON: Record<string, React.ElementType> = {
   sales: TrendingUp,
   hr: Users,
   designer: Palette,
+  retention: RefreshCw,
+  collections: Clock,
+  analyst: BarChart3,
+  compliance: FileText,
 };
 
 const SKILL_COLOR: Record<string, string> = {
@@ -52,6 +56,10 @@ const SKILL_COLOR: Record<string, string> = {
   sales:      "bg-green-100 text-green-700 border-green-200",
   hr:         "bg-indigo-100 text-indigo-700 border-indigo-200",
   designer:   "bg-purple-100 text-purple-700 border-purple-200",
+  retention:  "bg-teal-100 text-teal-700 border-teal-200",
+  collections:"bg-red-100 text-red-700 border-red-200",
+  analyst:    "bg-blue-100 text-blue-700 border-blue-200",
+  compliance: "bg-amber-100 text-amber-700 border-amber-200",
 };
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -92,6 +100,11 @@ const ACTION_TYPE_LABEL: Record<string, string> = {
   maintenance_plan: "Maintenance Plan",
   daily_briefing:   "Daily Briefing",
   email_campaign:   "Email Campaign",
+  renewal_offer:    "Renewal Offer",
+  collections_notice: "Collections Notice",
+  weekly_report:    "Weekly Report",
+  compliance_alert: "Compliance Alert",
+  hiring_recommendation: "Hiring Recommendation",
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -841,7 +854,7 @@ export function AutopilotDashboard() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All skills</SelectItem>
-                {["marketer", "finance", "sales", "operations", "hr", "designer"].map(s => (
+                {["marketer", "finance", "sales", "operations", "hr", "designer", "retention", "collections", "analyst", "compliance"].map(s => (
                   <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>
                 ))}
               </SelectContent>

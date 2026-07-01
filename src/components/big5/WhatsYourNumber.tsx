@@ -123,8 +123,8 @@ export const WhatsYourNumber: React.FC = () => {
   };
 
   const openScalableImpactPlanner = () => {
-    // Navigate to the Scalable Impact Planner route within the dashboard
-    navigate('/dashboard/ScalableImpactPlanner');
+    // Planner is now merged into the Scale dashboard as the "Your Number" tab
+    navigate('/dashboard/scale#planner');
   };
 
   return (

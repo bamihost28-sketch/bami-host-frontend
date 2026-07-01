@@ -21,15 +21,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Trash2, Plus } from "lucide-react";
+import ScalableImpactPlanner from "@/components/scalable-impact/ScalableImpactPlanner";
 
 const DOT: Record<string, string> = { green: "bg-green-500", amber: "bg-yellow-500", red: "bg-red-500" };
 const AGENT_EMOJI: Record<string, string> = {
   designer: "🎨", marketer: "📣", sales: "💼", finance: "💰", operations: "🔧", hr: "👥",
+  retention: "🔁", collections: "⏰", analyst: "📊", compliance: "📋",
 };
 
 const naira = (n: number) => `₦${(n || 0).toLocaleString()}`;
 
 export function ScaleDashboard() {
+  const [tab, setTab] = useState(
+    typeof window !== "undefined" && window.location.hash === "#planner" ? "planner" : "scorecard"
+  );
   return (
     <div className="space-y-6">
       <div>
@@ -37,14 +42,18 @@ export function ScaleDashboard() {
           <TrendingUp className="h-8 w-8 text-emerald-600" /> Scale — Your 7 Levels
         </h1>
         <p className="text-slate-500 mt-1">Your roadmap from where you are to hitting your number — diagnosed from live data.</p>
-        <a href="/dashboard/ScalableImpactPlanner" className="inline-flex items-center gap-1 mt-2 text-sm text-emerald-700 hover:underline">
-          <Target className="h-3.5 w-3.5" /> Open the Scalable Impact Planner (define / edit your Number)
-        </a>
+        <button
+          type="button"
+          onClick={() => setTab("planner")}
+          className="inline-flex items-center gap-1 mt-2 text-sm text-emerald-700 hover:underline"
+        >
+          <Target className="h-3.5 w-3.5" /> Define / edit your Number (Impact Planner)
+        </button>
       </div>
 
-      <LevelLadder />
+      <LevelLadder onOpenPlanner={() => setTab("planner")} />
 
-      <Tabs defaultValue="scorecard">
+      <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="scorecard" className="gap-1"><Target className="h-4 w-4" /> Scorecard</TabsTrigger>
           <TabsTrigger value="engines" className="gap-1"><Sparkles className="h-4 w-4" /> Value Engines</TabsTrigger>
@@ -53,6 +62,7 @@ export function ScaleDashboard() {
           <TabsTrigger value="nps" className="gap-1"><Star className="h-4 w-4" /> Level 1 · Promoters</TabsTrigger>
           <TabsTrigger value="growth" className="gap-1"><TrendingUp className="h-4 w-4" /> Level 2 · Growth</TabsTrigger>
           <TabsTrigger value="finance" className="gap-1"><Wallet className="h-4 w-4" /> Level 4 · Pay Yourself</TabsTrigger>
+          <TabsTrigger value="planner" className="gap-1"><Sparkles className="h-4 w-4" /> Your Number · Planner</TabsTrigger>
         </TabsList>
         <TabsContent value="scorecard" className="mt-4"><ScorecardPanel /></TabsContent>
         <TabsContent value="engines" className="mt-4"><ValueEnginesPanel /></TabsContent>
@@ -61,12 +71,13 @@ export function ScaleDashboard() {
         <TabsContent value="nps" className="mt-4"><NpsPanel /></TabsContent>
         <TabsContent value="growth" className="mt-4"><GrowthPanel /></TabsContent>
         <TabsContent value="finance" className="mt-4"><FinancePanel /></TabsContent>
+        <TabsContent value="planner" className="mt-4"><ScalableImpactPlanner embedded /></TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function LevelLadder() {
+function LevelLadder({ onOpenPlanner }: { onOpenPlanner: () => void }) {
   const { data, isLoading } = useGetScaleOverviewQuery();
   if (isLoading) return <Skeleton className="h-28 w-full" />;
   if (!data) return null;
@@ -82,7 +93,7 @@ function LevelLadder() {
           </div>
         ) : (
           <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700">
-            You haven't set your Number yet — <a href="/dashboard/ScalableImpactPlanner" className="underline font-medium">open the Scalable Impact Planner</a> to define it.
+            You haven't set your Number yet — <button type="button" onClick={onOpenPlanner} className="underline font-medium">open the Impact Planner</button> to define it.
           </div>
         )}
         <p className="text-sm text-slate-500 mb-3">

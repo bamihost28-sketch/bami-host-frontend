@@ -39,7 +39,6 @@ import { BusinessTypeManagement } from '@/components/dashboard/BusinessTypeManag
 import { SuperAdminTransactions } from '@/components/dashboard/SuperAdminTransactions';
 import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
 import BillionaireOS from '@/components/billionaire/BillionaireOS';
-import ScalableImpactPlanner from '@/components/scalable-impact/ScalableImpactPlanner';
 import { Subscription } from '@/components/dashboard/Subscription';
 import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
 import { ScaleDashboard } from '@/components/skills/ScaleDashboard';
@@ -150,18 +149,10 @@ const DashboardRouter: React.FC = () => {
         <Route path="/" element={renderDashboard()} />
         <Route path="/overview" element={renderDashboard()} />
 
-        {/* Scalable Impact Planner */}
+        {/* Scalable Impact Planner — now merged into the Scale dashboard as the "Your Number" tab */}
         <Route
           path="/ScalableImpactPlanner"
-          element={
-            <ProtectedRoute
-              element={<ScalableImpactPlanner />}
-              requiredPermissions={['view_scalable_impact']}
-              feature="Scalable Impact Planner"
-              showUpgradePrompt={true}
-              viewName="scalable-impact-planner"
-            />
-          }
+          element={<Navigate to="/dashboard/scale#planner" replace />}
         />
 
         {/* Wallet */}
