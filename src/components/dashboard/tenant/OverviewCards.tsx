@@ -23,6 +23,11 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
   const isOverdue = daysUntilRentDue < 0;
   const overdueMonths = isOverdue ? Math.floor(Math.abs(daysUntilRentDue) / 30) : 0;
 
+  // Move-in date is shown as one year (less a day) before the next rent due date.
+  const moveInDate = new Date(tenantInfo.nextPaymentDue);
+  moveInDate.setFullYear(moveInDate.getFullYear() - 1);
+  moveInDate.setDate(moveInDate.getDate() - 1);
+
   const leaseStartYear = new Date(tenantInfo.leaseStartDate).getFullYear();
   const currentYear = new Date().getFullYear();
   const totalYears = currentYear - leaseStartYear;
@@ -66,8 +71,8 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
           <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
           <span className="text-xs sm:text-sm truncate">Move In Date</span>
         </div>
-        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{formatDate(tenantInfo.leaseStartDate)}</p>
-        <p className="text-xs text-slate-600 dark:text-slate-400">Entry date</p>
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{formatDate(moveInDate.toISOString())}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">1yr before due</p>
       </div>
 
       <div className={`rounded-lg p-2.5 sm:p-3 border min-w-0 ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-100 dark:bg-slate-800'}`}>
