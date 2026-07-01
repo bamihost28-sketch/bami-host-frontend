@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ElementType } from "react";
 import {
   TrendingUp, Star, Target, Wallet, Loader2, Send, Check, Lock,
   CircleDollarSign, Users2, Sparkles,
@@ -81,32 +81,95 @@ const LEVEL_LIVE_PANEL: Record<number, () => JSX.Element> = {
   4: () => <FinancePanel />,
 };
 
+// Per-level narrative: a tagline, the goal in one line, and an icon.
+const LEVEL_META: Record<number, { tagline: string; goal: string; Icon: ElementType }> = {
+  1: { tagline: "Prove it", goal: "Win 10 real customers and turn them into promoters — your proof the offer works.", Icon: Target },
+  2: { tagline: "Grow it", goal: "Turn ad-hoc wins into a predictable growth flywheel that compounds every month.", Icon: TrendingUp },
+  3: { tagline: "Systemize it", goal: "Document your playbooks and let your AI agents run the day-to-day.", Icon: Sparkles },
+  4: { tagline: "Pay yourself", goal: "Install cash discipline so the business pays you first — profitably.", Icon: Wallet },
+  5: { tagline: "Advise it", goal: "Surround yourself with mentors and peers who pull you up a level.", Icon: Users2 },
+  6: { tagline: "Expand it", goal: "Add scale by acquiring, not just building — integrate your first deal.", Icon: CircleDollarSign },
+  7: { tagline: "Arrive", goal: "Everything compounds into the revenue, profit and valuation you set.", Icon: Star },
+};
+
+function SectionLabel({ icon: Icon, title, hint }: { icon: ElementType; title: string; hint?: string }) {
+  return (
+    <div className="flex items-center gap-2 px-0.5">
+      <Icon className="h-4 w-4 text-emerald-600" />
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{title}</h3>
+      {hint && <span className="text-xs text-slate-400 dark:text-slate-500">· {hint}</span>}
+    </div>
+  );
+}
+
+function LevelHero({ level, name, progress, status }: {
+  level: number; name: string; progress?: string; status: "done" | "current" | "locked";
+}) {
+  const meta = LEVEL_META[level];
+  const HeroIcon = meta?.Icon ?? Target;
+  const pill = status === "done"
+    ? { label: "Completed", cls: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300", Icon: Check }
+    : status === "current"
+    ? { label: "In progress", cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", Icon: Sparkles }
+    : { label: "Locked", cls: "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300", Icon: Lock };
+  const PillIcon = pill.Icon;
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50 via-white to-white dark:from-emerald-950/40 dark:via-slate-900 dark:to-slate-900 p-5">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-emerald-400/10 blur-2xl" />
+      <div className="relative flex items-start gap-4">
+        <div className="flex-shrink-0 flex flex-col items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg shadow-emerald-600/25">
+          <span className="text-[9px] font-semibold uppercase tracking-widest opacity-80">Level</span>
+          <span className="text-2xl font-extrabold leading-none">{level}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">{name}</h2>
+            {meta && <span className="rounded-full bg-white/80 dark:bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50">{meta.tagline}</span>}
+            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${pill.cls}`}>
+              <PillIcon className="h-3 w-3" /> {pill.label}
+            </span>
+          </div>
+          {meta && <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">{meta.goal}</p>}
+          {progress && progress !== "—" && (
+            <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-white/70 dark:bg-slate-800/60 border border-emerald-100 dark:border-emerald-900/40 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+              <HeroIcon className="h-3.5 w-3.5" /> {progress}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LevelDetail({ level }: { level: number }) {
   const { data } = useGetScaleOverviewQuery();
   const row = data?.levels.find((l) => l.level === level);
   const LivePanel = LEVEL_LIVE_PANEL[level];
+  const current = data?.current_level ?? 1;
+  const status: "done" | "current" | "locked" = row?.done ? "done" : level <= current ? "current" : "locked";
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center justify-center h-7 w-12 rounded-md bg-emerald-600 text-white text-sm font-bold">L{level}</span>
-        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{row?.name ?? `Level ${level}`}</h2>
-        {row?.progress && <span className="text-sm text-slate-400">· {row.progress}</span>}
-      </div>
+    <div className="space-y-5">
+      <LevelHero level={level} name={row?.name ?? `Level ${level}`} progress={row?.progress} status={status} />
 
       {/* Live tracker for this level (Promoters / Growth / Pay Yourself), if any */}
-      {LivePanel && <LivePanel />}
+      {LivePanel && (
+        <section className="space-y-2.5">
+          <SectionLabel icon={TrendingUp} title="Live status" hint="pulled from your real data" />
+          <LivePanel />
+        </section>
+      )}
 
       {/* Workbook for this level. L1–L6 map 1:1 to the planner steps; L7 is the finish line. */}
       {level <= 6 ? (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2"><Sparkles className="h-4 w-4 text-emerald-600" /> Work this level — planner</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScalableImpactPlanner embedded hideChrome controlledStep={level} />
-          </CardContent>
-        </Card>
+        <section className="space-y-2.5">
+          <SectionLabel icon={Sparkles} title="Workbook" hint="fill this in — it saves automatically" />
+          <Card className="border-slate-200 dark:border-slate-800 shadow-sm rounded-xl overflow-hidden">
+            <CardContent className="p-4 md:p-6">
+              <ScalableImpactPlanner embedded hideChrome controlledStep={level} />
+            </CardContent>
+          </Card>
+        </section>
       ) : (
         <L7Summary />
       )}
@@ -118,21 +181,34 @@ function L7Summary() {
   const { data } = useGetScaleOverviewQuery();
   const plan = data?.stated_plan;
   return (
-    <Card className="border-emerald-200">
-      <CardContent className="p-5">
-        <h3 className="text-lg font-semibold mb-1">🎯 Hit Your Number</h3>
-        {plan?.has_plan && plan.target_revenue ? (
-          <p className="text-sm text-slate-600 dark:text-slate-300">
-            Everything below Level 7 compounds toward <strong className="text-emerald-700">{naira(plan.target_revenue)}</strong> revenue
-            {plan.target_profit ? <> · {naira(plan.target_profit)} profit</> : null}
-            {plan.target_valuation ? <> · {naira(plan.target_valuation)} valuation</> : null}.
-            {plan.why_summary && <> Your why: <em>{plan.why_summary}</em>.</>}
-          </p>
-        ) : (
-          <p className="text-sm text-amber-700">Set your Number on Level 1's planner so this finish line has a target.</p>
-        )}
-      </CardContent>
-    </Card>
+    <section className="space-y-2.5">
+      <SectionLabel icon={Star} title="Your finish line" hint="the number everything compounds toward" />
+      <Card className="border-emerald-200 dark:border-emerald-900/40 rounded-xl bg-gradient-to-br from-emerald-50/60 to-white dark:from-emerald-950/30 dark:to-slate-900">
+        <CardContent className="p-5">
+          {plan?.has_plan && plan.target_revenue ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-900 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-slate-400">Revenue</p>
+                <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{naira(plan.target_revenue)}</p>
+              </div>
+              <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-900 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-slate-400">Profit</p>
+                <p className="text-lg font-bold text-slate-900 dark:text-white">{plan.target_profit ? naira(plan.target_profit) : "—"}</p>
+              </div>
+              <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/40 bg-white dark:bg-slate-900 p-3">
+                <p className="text-[11px] uppercase tracking-wide text-slate-400">Valuation</p>
+                <p className="text-lg font-bold text-slate-900 dark:text-white">{plan.target_valuation ? naira(plan.target_valuation) : "—"}</p>
+              </div>
+              {plan.why_summary && (
+                <p className="sm:col-span-3 text-sm text-slate-600 dark:text-slate-300 pt-1">Your why: <em>{plan.why_summary}</em></p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-amber-700 dark:text-amber-400">Set your Number on Level 1's workbook so this finish line has a target.</p>
+          )}
+        </CardContent>
+      </Card>
+    </section>
   );
 }
 

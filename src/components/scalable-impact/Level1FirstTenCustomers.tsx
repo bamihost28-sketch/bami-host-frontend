@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -43,39 +42,32 @@ export const Level1FirstTenCustomers: React.FC<Level1FirstTenCustomersProps> = (
 }) => {
   return (
     <div className="space-y-4">
-      {/* Main Header */}
-      <Card className="border border-slate-200 bg-slate-50/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl text-slate-900">
-            <Target className="w-7 h-7 md:w-8 md:h-8 text-slate-700" />
-            Level 1: Get Your First 10 Customers
-            <Badge className="bg-slate-600 text-white text-xs md:text-sm">MANDATORY</Badge>
-          </CardTitle>
-          <p className="text-slate-600 text-sm md:text-base mt-2">
-            Navigate through the tabs below to understand, complete, and verify Level 1 requirements.
-          </p>
-        </CardHeader>
-      </Card>
+      {/* Slim intro — the level hero above already sets the context */}
+      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+        <Target className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        <span>Work through each tab to understand, complete and verify this level.</span>
+        <Badge variant="outline" className="ml-auto border-emerald-300 text-emerald-700 dark:text-emerald-300 text-[10px]">MANDATORY</Badge>
+      </div>
 
       {/* Tabs Navigation */}
       <Tabs defaultValue="do-this-first" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 gap-1 h-auto p-1">
-          <TabsTrigger value="do-this-first" className="text-xs md:text-sm py-2 px-2">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 gap-1 h-auto p-1 bg-slate-100 dark:bg-slate-800/60 rounded-xl">
+          <TabsTrigger value="do-this-first" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Do This First
           </TabsTrigger>
-          <TabsTrigger value="problem" className="text-xs md:text-sm py-2 px-2">
+          <TabsTrigger value="problem" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Product-Market Fit
           </TabsTrigger>
-          <TabsTrigger value="first-10" className="text-xs md:text-sm py-2 px-2">
+          <TabsTrigger value="first-10" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Getting First 10
           </TabsTrigger>
-          <TabsTrigger value="survey" className="text-xs md:text-sm py-2 px-2">
+          <TabsTrigger value="survey" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
             One Question Survey
           </TabsTrigger>
-          <TabsTrigger value="model-10" className="text-xs md:text-sm py-2 px-2">
+          <TabsTrigger value="model-10" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Your Model 10
           </TabsTrigger>
-          <TabsTrigger value="ready" className="text-xs md:text-sm py-2 px-2">
+          <TabsTrigger value="ready" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
             Ready to Level Up
           </TabsTrigger>
         </TabsList>
