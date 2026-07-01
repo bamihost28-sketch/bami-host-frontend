@@ -40,7 +40,13 @@ import type {
   TakingActionItems
 } from './types';
 
-const ScalableImpactPlanner: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
+const ScalableImpactPlanner: React.FC<{
+  embedded?: boolean;
+  /** When set, the planner shows only this step and hides its own step navigator + prev/next
+   *  controls — navigation is driven externally (e.g. by the Scale ladder). */
+  controlledStep?: number;
+  hideChrome?: boolean;
+}> = ({ embedded = false, controlledStep, hideChrome = false }) => {
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -378,7 +384,8 @@ const ScalableImpactPlanner: React.FC<{ embedded?: boolean }> = ({ embedded = fa
 
   // Render step content based on current step
   const renderStepContent = () => {
-    switch (currentStep) {
+    const step = controlledStep ?? currentStep;
+    switch (step) {
       case 1:
         return (
           <Level1FirstTenCustomers
@@ -463,12 +470,14 @@ const ScalableImpactPlanner: React.FC<{ embedded?: boolean }> = ({ embedded = fa
         </div>
       )}
 
-      {/* Step Navigator */}
-      <StepNavigator
-        currentStep={currentStep}
-        onStepChange={handleStepChange}
-        completedSteps={completedSteps}
-      />
+      {/* Step Navigator (hidden when the Scale ladder drives navigation) */}
+      {!hideChrome && (
+        <StepNavigator
+          currentStep={currentStep}
+          onStepChange={handleStepChange}
+          completedSteps={completedSteps}
+        />
+      )}
 
       {/* Current Step Content */}
       <div className="mb-6">
@@ -476,6 +485,7 @@ const ScalableImpactPlanner: React.FC<{ embedded?: boolean }> = ({ embedded = fa
       </div>
 
       {/* Navigation Controls */}
+      {!hideChrome && (
       <Card className="bg-card border">
         <CardContent className="p-4">
           <div className="flex justify-between items-center">
@@ -516,9 +526,10 @@ const ScalableImpactPlanner: React.FC<{ embedded?: boolean }> = ({ embedded = fa
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Completion Alert */}
-      {completedSteps.every(Boolean) && (
+      {!hideChrome && completedSteps.every(Boolean) && (
         <Alert className="mt-6 border-green-200 bg-green-50">
           <CheckCircle2 className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-700">

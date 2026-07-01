@@ -32,52 +32,111 @@ const AGENT_EMOJI: Record<string, string> = {
 const naira = (n: number) => `₦${(n || 0).toLocaleString()}`;
 
 export function ScaleDashboard() {
-  const [tab, setTab] = useState(
-    typeof window !== "undefined" && window.location.hash === "#planner" ? "planner" : "scorecard"
-  );
+  const { data: overview } = useGetScaleOverviewQuery();
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+
+  // Default the open level to wherever the owner currently is, once diagnosed.
+  useEffect(() => {
+    if (selectedLevel === null && overview?.current_level) {
+      setSelectedLevel(overview.current_level);
+    }
+  }, [overview?.current_level, selectedLevel]);
+
+  const activeLevel = selectedLevel ?? overview?.current_level ?? 1;
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <TrendingUp className="h-8 w-8 text-emerald-600" /> Scale — Your 7 Levels
         </h1>
-        <p className="text-slate-500 mt-1">Your roadmap from where you are to hitting your number — diagnosed from live data.</p>
-        <button
-          type="button"
-          onClick={() => setTab("planner")}
-          className="inline-flex items-center gap-1 mt-2 text-sm text-emerald-700 hover:underline"
-        >
-          <Target className="h-3.5 w-3.5" /> Define / edit your Number (Impact Planner)
-        </button>
+        <p className="text-slate-500 mt-1">Your roadmap from where you are to hitting your number. Click a level to work on it.</p>
       </div>
 
-      <LevelLadder onOpenPlanner={() => setTab("planner")} />
+      <LevelLadder selectedLevel={activeLevel} onSelect={setSelectedLevel} />
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <LevelDetail level={activeLevel} />
+
+      {/* Cross-cutting tools that apply across every level */}
+      <Tabs defaultValue="scorecard">
         <TabsList>
           <TabsTrigger value="scorecard" className="gap-1"><Target className="h-4 w-4" /> Scorecard</TabsTrigger>
           <TabsTrigger value="engines" className="gap-1"><Sparkles className="h-4 w-4" /> Value Engines</TabsTrigger>
           <TabsTrigger value="team" className="gap-1"><Users2 className="h-4 w-4" /> Team Canvas</TabsTrigger>
           <TabsTrigger value="playbooks" className="gap-1"><BookOpen className="h-4 w-4" /> Playbooks</TabsTrigger>
-          <TabsTrigger value="nps" className="gap-1"><Star className="h-4 w-4" /> Level 1 · Promoters</TabsTrigger>
-          <TabsTrigger value="growth" className="gap-1"><TrendingUp className="h-4 w-4" /> Level 2 · Growth</TabsTrigger>
-          <TabsTrigger value="finance" className="gap-1"><Wallet className="h-4 w-4" /> Level 4 · Pay Yourself</TabsTrigger>
-          <TabsTrigger value="planner" className="gap-1"><Sparkles className="h-4 w-4" /> Your Number · Planner</TabsTrigger>
         </TabsList>
         <TabsContent value="scorecard" className="mt-4"><ScorecardPanel /></TabsContent>
         <TabsContent value="engines" className="mt-4"><ValueEnginesPanel /></TabsContent>
         <TabsContent value="team" className="mt-4"><TeamCanvasPanel /></TabsContent>
         <TabsContent value="playbooks" className="mt-4"><PlaybooksPanel /></TabsContent>
-        <TabsContent value="nps" className="mt-4"><NpsPanel /></TabsContent>
-        <TabsContent value="growth" className="mt-4"><GrowthPanel /></TabsContent>
-        <TabsContent value="finance" className="mt-4"><FinancePanel /></TabsContent>
-        <TabsContent value="planner" className="mt-4"><ScalableImpactPlanner embedded /></TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function LevelLadder({ onOpenPlanner }: { onOpenPlanner: () => void }) {
+// Which levels have a live-data tracker panel (the rest are workbook-only).
+const LEVEL_LIVE_PANEL: Record<number, () => JSX.Element> = {
+  1: () => <NpsPanel />,
+  2: () => <GrowthPanel />,
+  4: () => <FinancePanel />,
+};
+
+function LevelDetail({ level }: { level: number }) {
+  const { data } = useGetScaleOverviewQuery();
+  const row = data?.levels.find((l) => l.level === level);
+  const LivePanel = LEVEL_LIVE_PANEL[level];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center justify-center h-7 w-12 rounded-md bg-emerald-600 text-white text-sm font-bold">L{level}</span>
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{row?.name ?? `Level ${level}`}</h2>
+        {row?.progress && <span className="text-sm text-slate-400">· {row.progress}</span>}
+      </div>
+
+      {/* Live tracker for this level (Promoters / Growth / Pay Yourself), if any */}
+      {LivePanel && <LivePanel />}
+
+      {/* Workbook for this level. L1–L6 map 1:1 to the planner steps; L7 is the finish line. */}
+      {level <= 6 ? (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2"><Sparkles className="h-4 w-4 text-emerald-600" /> Work this level — planner</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScalableImpactPlanner embedded hideChrome controlledStep={level} />
+          </CardContent>
+        </Card>
+      ) : (
+        <L7Summary />
+      )}
+    </div>
+  );
+}
+
+function L7Summary() {
+  const { data } = useGetScaleOverviewQuery();
+  const plan = data?.stated_plan;
+  return (
+    <Card className="border-emerald-200">
+      <CardContent className="p-5">
+        <h3 className="text-lg font-semibold mb-1">🎯 Hit Your Number</h3>
+        {plan?.has_plan && plan.target_revenue ? (
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Everything below Level 7 compounds toward <strong className="text-emerald-700">{naira(plan.target_revenue)}</strong> revenue
+            {plan.target_profit ? <> · {naira(plan.target_profit)} profit</> : null}
+            {plan.target_valuation ? <> · {naira(plan.target_valuation)} valuation</> : null}.
+            {plan.why_summary && <> Your why: <em>{plan.why_summary}</em>.</>}
+          </p>
+        ) : (
+          <p className="text-sm text-amber-700">Set your Number on Level 1's planner so this finish line has a target.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LevelLadder({ selectedLevel, onSelect }: { selectedLevel: number; onSelect: (level: number) => void }) {
   const { data, isLoading } = useGetScaleOverviewQuery();
   if (isLoading) return <Skeleton className="h-28 w-full" />;
   if (!data) return null;
@@ -93,20 +152,22 @@ function LevelLadder({ onOpenPlanner }: { onOpenPlanner: () => void }) {
           </div>
         ) : (
           <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700">
-            You haven't set your Number yet — <button type="button" onClick={onOpenPlanner} className="underline font-medium">open the Impact Planner</button> to define it.
+            You haven't set your Number yet — <button type="button" onClick={() => onSelect(1)} className="underline font-medium">work Level 1's planner</button> to define it.
           </div>
         )}
         <p className="text-sm text-slate-500 mb-3">
-          You're at <span className="font-bold text-emerald-700">Level {data.current_level}</span>. Focus only on this level — you can't skip ahead.
+          You're at <span className="font-bold text-emerald-700">Level {data.current_level}</span>. Focus only on this level — you can't skip ahead. Click any level to open it below.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
           {data.levels.map((l) => {
             const isCurrent = l.level === data.current_level;
+            const isSelected = l.level === selectedLevel;
             return (
-              <div key={l.level}
-                className={`rounded-lg border p-2 text-center ${
-                  l.done ? "border-green-300 bg-green-50 dark:bg-green-900/20"
-                  : isCurrent ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 ring-2 ring-emerald-400"
+              <button key={l.level} type="button" onClick={() => onSelect(l.level)}
+                className={`rounded-lg border p-2 text-center transition hover:shadow-md hover:opacity-100 ${
+                  isSelected ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 ring-2 ring-emerald-500"
+                  : l.done ? "border-green-300 bg-green-50 dark:bg-green-900/20"
+                  : isCurrent ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
                   : "border-slate-200 bg-slate-50 dark:bg-slate-800 opacity-70"}`}>
                 <div className="flex items-center justify-center gap-1">
                   {l.done ? <Check className="h-3.5 w-3.5 text-green-600" />
@@ -116,7 +177,7 @@ function LevelLadder({ onOpenPlanner }: { onOpenPlanner: () => void }) {
                 </div>
                 <p className="text-[11px] font-medium mt-1 leading-tight">{l.name}</p>
                 <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{l.progress}</p>
-              </div>
+              </button>
             );
           })}
         </div>
