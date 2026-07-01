@@ -23,10 +23,31 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
   const isOverdue = daysUntilRentDue < 0;
   const overdueMonths = isOverdue ? Math.floor(Math.abs(daysUntilRentDue) / 30) : 0;
 
-  // Move-in date is shown as one year (less a day) before the next rent due date.
-  const moveInDate = new Date(tenantInfo.nextPaymentDue);
-  moveInDate.setFullYear(moveInDate.getFullYear() - 1);
-  moveInDate.setDate(moveInDate.getDate() - 1);
+  // Move-in = start of the CURRENT lease period: the entry-date anniversary
+  // on/before the next due date (keeps the entry's day & month, e.g. entry
+  // 1 Jun 2024 + next due 30 May 2026 -> 1 Jun 2025). Falls back to
+  // (next due - 1yr) only when there's no entry date.
+  const moveInDate = (() => {
+    const entry = tenantInfo.leaseStartDate ? new Date(tenantInfo.leaseStartDate) : null;
+    const due = tenantInfo.nextPaymentDue ? new Date(tenantInfo.nextPaymentDue) : null;
+    if (entry && !isNaN(entry.getTime())) {
+      if (due && !isNaN(due.getTime())) {
+        while (true) {
+          const nextAnniv = new Date(entry);
+          nextAnniv.setFullYear(nextAnniv.getFullYear() + 1);
+          if (nextAnniv <= due) entry.setFullYear(entry.getFullYear() + 1);
+          else break;
+        }
+      }
+      return entry;
+    }
+    if (due && !isNaN(due.getTime())) {
+      due.setFullYear(due.getFullYear() - 1);
+      due.setDate(due.getDate() - 1);
+      return due;
+    }
+    return null;
+  })();
 
   const leaseStartYear = new Date(tenantInfo.leaseStartDate).getFullYear();
   const currentYear = new Date().getFullYear();
@@ -71,8 +92,8 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
           <LogIn className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
           <span className="text-xs sm:text-sm truncate">Move In Date</span>
         </div>
-        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{tenantInfo.leaseStartDate ? formatDate(tenantInfo.leaseStartDate) : formatDate(moveInDate.toISOString())}</p>
-        <p className="text-xs text-slate-600 dark:text-slate-400">{tenantInfo.leaseStartDate ? 'Entry date' : '1yr before due'}</p>
+        <p className="text-sm sm:text-base font-semibold text-slate-900 dark:text-slate-100">{moveInDate ? formatDate(moveInDate.toISOString()) : '—'}</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400">{tenantInfo.leaseStartDate ? 'Current lease period' : '1yr before due'}</p>
       </div>
 
       <div className={`rounded-lg p-2.5 sm:p-3 border min-w-0 ${isOverdue ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-100 dark:bg-slate-800'}`}>

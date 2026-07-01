@@ -8,17 +8,36 @@ interface AdditionalInfoRowProps {
 
 export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) => {
   const nextDueRaw = overview?.nextDue || tenant?.nextDueDate;
-  const moveInDate = nextDueRaw ? (() => {
-    const d = new Date(nextDueRaw);
-    d.setFullYear(d.getFullYear() - 1);
-    d.setDate(d.getDate() - 1);
-    return d;
-  })() : null;
-
-  // Total Stay is measured from the ACTUAL move-in (entry) date, not a value
-  // derived from the next-due date — otherwise a tenant who moved in in 2024
-  // wrongly shows as "Since 2025".
   const entryDateRaw = tenant?.entryDate || tenant?.createdAt;
+
+  // Move-in = the start of the CURRENT lease period: the entry-date anniversary
+  // that falls on/before the next due date, keeping the entry's day & month.
+  // e.g. entry 1 Jun 2024 + next due 30 May 2026 -> 1 Jun 2025.
+  // Falls back to (next due - 1yr) only when there's no entry date on file.
+  const moveInDate = (() => {
+    if (entryDateRaw) {
+      const start = new Date(entryDateRaw);
+      if (nextDueRaw) {
+        const due = new Date(nextDueRaw);
+        while (true) {
+          const nextAnniv = new Date(start);
+          nextAnniv.setFullYear(nextAnniv.getFullYear() + 1);
+          if (nextAnniv <= due) start.setFullYear(start.getFullYear() + 1);
+          else break;
+        }
+      }
+      return start;
+    }
+    if (nextDueRaw) {
+      const d = new Date(nextDueRaw);
+      d.setFullYear(d.getFullYear() - 1);
+      d.setDate(d.getDate() - 1);
+      return d;
+    }
+    return null;
+  })();
+
+  // Total Stay is measured from the ACTUAL entry date (not the current period).
   const entryYear = entryDateRaw ? new Date(entryDateRaw).getFullYear() : new Date().getFullYear();
   const currentYear = new Date().getFullYear();
   const totalYears = currentYear - entryYear;
@@ -39,9 +58,9 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {entryDateRaw ? formatDate(entryDateRaw) : (moveInDate ? formatDate(moveInDate.toISOString()) : 'N/A')}
+                {moveInDate ? formatDate(moveInDate.toISOString()) : 'N/A'}
               </p>
-              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">{entryDateRaw ? 'Entry date' : 'Estimated (1 year before next due)'}</p>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">{entryDateRaw ? 'Current lease period' : 'Estimated (1 year before next due)'}</p>
             </div>
           </div>
         </CardContent>
