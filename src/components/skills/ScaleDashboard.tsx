@@ -102,11 +102,10 @@ function SectionLabel({ icon: Icon, title, hint }: { icon: ElementType; title: s
   );
 }
 
-function LevelHero({ level, name, progress, status }: {
-  level: number; name: string; progress?: string; status: "done" | "current" | "locked";
+function LevelHero({ level, name, status }: {
+  level: number; name: string; status: "done" | "current" | "locked";
 }) {
   const meta = LEVEL_META[level];
-  const HeroIcon = meta?.Icon ?? Target;
   const pill = status === "done"
     ? { label: "Completed", cls: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300", Icon: Check }
     : status === "current"
@@ -130,11 +129,6 @@ function LevelHero({ level, name, progress, status }: {
             </span>
           </div>
           {meta && <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">{meta.goal}</p>}
-          {progress && progress !== "—" && (
-            <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-white/70 dark:bg-slate-800/60 border border-emerald-100 dark:border-emerald-900/40 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-              <HeroIcon className="h-3.5 w-3.5" /> {progress}
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -150,7 +144,7 @@ function LevelDetail({ level }: { level: number }) {
 
   return (
     <div className="space-y-5">
-      <LevelHero level={level} name={row?.name ?? `Level ${level}`} progress={row?.progress} status={status} />
+      <LevelHero level={level} name={row?.name ?? `Level ${level}`} status={status} />
 
       {/* Live tracker for this level (Promoters / Growth / Pay Yourself), if any */}
       {LivePanel && (
