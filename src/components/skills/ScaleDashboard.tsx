@@ -14,7 +14,12 @@ import {
   useGetScaleOverviewQuery, useGetNpsQuery, useRequestNpsMutation,
   useGetGrowthScorecardQuery, useGetScorecardQuery, useGetValueEnginesQuery,
   useGetTeamCanvasQuery, useGetFinancePlanQuery, useUpdateFinancePlanMutation,
+  useGetPlaybooksQuery, useCreatePlaybookMutation, useUpdatePlaybookMutation, useDeletePlaybookMutation,
 } from "@/services/scaleApi";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BookOpen, Trash2, Plus } from "lucide-react";
 
 const DOT: Record<string, string> = { green: "bg-green-500", amber: "bg-yellow-500", red: "bg-red-500" };
 const AGENT_EMOJI: Record<string, string> = {
@@ -40,6 +45,7 @@ export function ScaleDashboard() {
           <TabsTrigger value="scorecard" className="gap-1"><Target className="h-4 w-4" /> Scorecard</TabsTrigger>
           <TabsTrigger value="engines" className="gap-1"><Sparkles className="h-4 w-4" /> Value Engines</TabsTrigger>
           <TabsTrigger value="team" className="gap-1"><Users2 className="h-4 w-4" /> Team Canvas</TabsTrigger>
+          <TabsTrigger value="playbooks" className="gap-1"><BookOpen className="h-4 w-4" /> Playbooks</TabsTrigger>
           <TabsTrigger value="nps" className="gap-1"><Star className="h-4 w-4" /> Level 1 · Promoters</TabsTrigger>
           <TabsTrigger value="growth" className="gap-1"><TrendingUp className="h-4 w-4" /> Level 2 · Growth</TabsTrigger>
           <TabsTrigger value="finance" className="gap-1"><Wallet className="h-4 w-4" /> Level 4 · Pay Yourself</TabsTrigger>
@@ -47,6 +53,7 @@ export function ScaleDashboard() {
         <TabsContent value="scorecard" className="mt-4"><ScorecardPanel /></TabsContent>
         <TabsContent value="engines" className="mt-4"><ValueEnginesPanel /></TabsContent>
         <TabsContent value="team" className="mt-4"><TeamCanvasPanel /></TabsContent>
+        <TabsContent value="playbooks" className="mt-4"><PlaybooksPanel /></TabsContent>
         <TabsContent value="nps" className="mt-4"><NpsPanel /></TabsContent>
         <TabsContent value="growth" className="mt-4"><GrowthPanel /></TabsContent>
         <TabsContent value="finance" className="mt-4"><FinancePanel /></TabsContent>
@@ -100,6 +107,118 @@ function LevelLadder() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function PlaybooksPanel() {
+  const { toast } = useToast();
+  const { data, isLoading } = useGetPlaybooksQuery();
+  const [createPb] = useCreatePlaybookMutation();
+  const [updatePb] = useUpdatePlaybookMutation();
+  const [deletePb] = useDeletePlaybookMutation();
+  const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [form, setForm] = useState({ title: "", engine: "growth", stage: "", playbook_owner: "", stepsText: "", notes: "" });
+
+  const reset = () => setForm({ title: "", engine: "growth", stage: "", playbook_owner: "", stepsText: "", notes: "" });
+  const openNew = () => { reset(); setEditId(null); setOpen(true); };
+  const openEdit = (p: any) => {
+    setEditId(p.id);
+    setForm({ title: p.title, engine: p.engine, stage: p.stage || "", playbook_owner: p.playbook_owner || "", stepsText: (p.steps || []).join("\n"), notes: p.notes || "" });
+    setOpen(true);
+  };
+  const save = async () => {
+    if (!form.title.trim()) { setOpen(false); return; }
+    const body = {
+      title: form.title, engine: form.engine, stage: form.stage || null,
+      playbook_owner: form.playbook_owner || null, notes: form.notes || null,
+      steps: form.stepsText.split("\n").map(s => s.trim()).filter(Boolean),
+    };
+    try {
+      if (editId) await updatePb({ id: editId, body }).unwrap();
+      else await createPb(body).unwrap();
+      toast({ title: editId ? "Playbook updated" : "Playbook created" });
+      setOpen(false); reset();
+    } catch { toast({ title: "Error", description: "Could not save", variant: "destructive" }); }
+  };
+
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
+  const playbooks = data?.playbooks ?? [];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-500">
+          <strong>Business Playbooks</strong> — step-by-step checklists for your power stages. One owner each, reviewed every 90 days ("always open").
+        </p>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> New</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader><DialogTitle>{editId ? "Edit" : "New"} Playbook</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div><Label>Title</Label><Input placeholder="e.g. Collect overdue rent" value={form.title} onChange={(e) => setForm(p => ({ ...p, title: e.target.value }))} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>Value engine</Label>
+                  <Select value={form.engine} onValueChange={(v) => setForm(p => ({ ...p, engine: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="growth">Growth</SelectItem>
+                      <SelectItem value="fulfillment">Fulfillment</SelectItem>
+                      <SelectItem value="innovation">Innovation</SelectItem>
+                      <SelectItem value="internal">Internal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Power stage</Label><Input placeholder="e.g. Rent overdue" value={form.stage} onChange={(e) => setForm(p => ({ ...p, stage: e.target.value }))} /></div>
+              </div>
+              <div><Label>Owner (who runs it — not the CEO)</Label><Input placeholder="e.g. Finance agent / manager name" value={form.playbook_owner} onChange={(e) => setForm(p => ({ ...p, playbook_owner: e.target.value }))} /></div>
+              <div><Label>Steps (one per line)</Label><Textarea rows={5} placeholder={"1. …\n2. …\n3. …"} value={form.stepsText} onChange={(e) => setForm(p => ({ ...p, stepsText: e.target.value }))} /></div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={save}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {playbooks.length === 0 ? (
+        <Card><CardContent className="py-12 text-center text-slate-400">
+          <BookOpen className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+          No playbooks yet. Document the 2–3 critical "power stages" of each value engine.
+        </CardContent></Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {playbooks.map((p) => (
+            <Card key={p.id} className={p.review_overdue ? "border-amber-300" : ""}>
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-base">{p.title}</CardTitle>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      <span className="capitalize">{p.engine}</span>{p.stage ? ` · ${p.stage}` : ""}{p.playbook_owner ? ` · 👤 ${p.playbook_owner}` : ""}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(p)}><BookOpen className="h-3.5 w-3.5" /></Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500" onClick={() => deletePb(p.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ol className="text-sm text-slate-600 dark:text-slate-300 list-decimal list-inside space-y-0.5">
+                  {p.steps.slice(0, 6).map((s, i) => <li key={i}>{s}</li>)}
+                  {p.steps.length > 6 && <li className="list-none text-slate-400">+{p.steps.length - 6} more…</li>}
+                </ol>
+                {p.review_overdue && <p className="text-xs text-amber-600 mt-2">⚠ Review overdue (90-day cycle)</p>}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

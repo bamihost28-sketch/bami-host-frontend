@@ -54,6 +54,15 @@ export interface TeamCanvasData {
   candidate_pipeline: Record<string, number>;
   candidate_total: number;
 }
+export interface Playbook {
+  id: string; title: string; engine: string; stage: string | null;
+  playbook_owner: string | null; steps: string[]; notes: string | null;
+  updated_at: string | null; review_overdue: boolean;
+}
+export interface PlaybookBody {
+  title: string; engine: string; stage?: string | null;
+  playbook_owner?: string | null; steps: string[]; notes?: string | null;
+}
 export interface FinancePlan {
   exists: boolean;
   target_monthly_salary: number; living_expenses: number; target_profit_pct: number;
@@ -64,7 +73,7 @@ export interface FinancePlan {
 export const scaleApi = createApi({
   reducerPath: "scaleApi",
   baseQuery,
-  tagTypes: ["Scale", "Nps", "FinancePlan"],
+  tagTypes: ["Scale", "Nps", "FinancePlan", "Playbooks"],
   endpoints: (b) => ({
     getScaleOverview: b.query<ScaleOverview, void>({
       query: () => "/api/scale/overview",
@@ -90,6 +99,22 @@ export const scaleApi = createApi({
     getTeamCanvas: b.query<TeamCanvasData, void>({
       query: () => "/api/scale/team-canvas",
     }),
+    getPlaybooks: b.query<{ playbooks: Playbook[] }, void>({
+      query: () => "/api/scale/playbooks",
+      providesTags: ["Playbooks"],
+    }),
+    createPlaybook: b.mutation<{ id: string }, PlaybookBody>({
+      query: (body) => ({ url: "/api/scale/playbooks", method: "POST", body }),
+      invalidatesTags: ["Playbooks"],
+    }),
+    updatePlaybook: b.mutation<{ success: boolean }, { id: string; body: PlaybookBody }>({
+      query: ({ id, body }) => ({ url: `/api/scale/playbooks/${id}`, method: "PUT", body }),
+      invalidatesTags: ["Playbooks"],
+    }),
+    deletePlaybook: b.mutation<{ success: boolean }, string>({
+      query: (id) => ({ url: `/api/scale/playbooks/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Playbooks"],
+    }),
     getFinancePlan: b.query<FinancePlan, void>({
       query: () => "/api/scale/finance-plan",
       providesTags: ["FinancePlan"],
@@ -109,6 +134,10 @@ export const {
   useGetScorecardQuery,
   useGetValueEnginesQuery,
   useGetTeamCanvasQuery,
+  useGetPlaybooksQuery,
+  useCreatePlaybookMutation,
+  useUpdatePlaybookMutation,
+  useDeletePlaybookMutation,
   useGetFinancePlanQuery,
   useUpdateFinancePlanMutation,
 } = scaleApi;
