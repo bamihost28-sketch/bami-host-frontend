@@ -420,6 +420,31 @@ function NpsPanel() {
         </CardContent>
       </Card>
 
+      {data.model_10 && data.model_10.count > 0 && (
+        <Card className="border-purple-200">
+          <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Sparkles className="h-4 w-4 text-purple-600" /> Model 10 — your best tenants, analysed</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {data.model_10.insights.length > 0 && (
+              <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                {data.model_10.insights.map((s, i) => <li key={i}>💡 {s}</li>)}
+              </ul>
+            )}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-slate-400 mb-1">By estate</p>
+                {Object.entries(data.model_10.by_estate).map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span>{k}</span><span className="font-semibold">{v}</span></div>
+                ))}
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 mb-1">Avg rent (promoters)</p>
+                <p className="text-lg font-bold text-purple-700">{naira(data.model_10.avg_rent)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle className="text-base">Tenant scores</CardTitle></CardHeader>
         <CardContent>
