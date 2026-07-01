@@ -21,6 +21,7 @@ import {
   useGetCandidatesQuery, useCreateCandidateMutation,
   useUpdateCandidateMutation, useDeleteCandidateMutation,
 } from "@/services/skillsApi";
+import { useGetGrowthPlanQuery, useSaveGrowthPlanMutation } from "@/services/growthApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -176,7 +177,7 @@ function LevelDetail({ level }: { level: number }) {
 }
 
 function L7Summary() {
-  const { data } = useGetScaleOverviewQuery();
+  const { data, refetch } = useGetScaleOverviewQuery();
   const plan = data?.stated_plan;
   return (
     <section className="space-y-2.5">
@@ -202,7 +203,7 @@ function L7Summary() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-amber-700 dark:text-amber-400">Set your Number on Level 1's workbook so this finish line has a target.</p>
+            <p className="text-sm text-amber-700 dark:text-amber-400">This finish line has no target yet — <NumberDialog onSaved={refetch} trigger={<button type="button" className="underline font-medium">set your Number</button>} />.</p>
           )}
         </CardContent>
       </Card>
@@ -210,8 +211,63 @@ function L7Summary() {
   );
 }
 
+function NumberDialog({ trigger, onSaved }: { trigger: React.ReactNode; onSaved?: () => void }) {
+  const { toast } = useToast();
+  const { data: plan, refetch } = useGetGrowthPlanQuery();
+  const [saveGrowthPlan, { isLoading }] = useSaveGrowthPlanMutation();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ target_revenue: "", target_profit: "", target_valuation: "", why_summary: "" });
+
+  useEffect(() => {
+    if (plan) setForm({
+      target_revenue: plan.target_revenue != null ? String(plan.target_revenue) : "",
+      target_profit: plan.target_profit != null ? String(plan.target_profit) : "",
+      target_valuation: plan.target_valuation != null ? String(plan.target_valuation) : "",
+      why_summary: plan.why_summary ?? "",
+    });
+  }, [plan, open]);
+
+  const save = async () => {
+    if (!form.target_revenue) { toast({ title: "Enter at least a target revenue", variant: "destructive" }); return; }
+    try {
+      await saveGrowthPlan({
+        target_revenue: form.target_revenue ? +form.target_revenue : undefined,
+        target_profit: form.target_profit ? +form.target_profit : undefined,
+        target_valuation: form.target_valuation ? +form.target_valuation : undefined,
+        why_summary: form.why_summary || undefined,
+      }).unwrap();
+      toast({ title: "Your Number is set 🎯", description: "It now drives your roadmap and the AI Coach." });
+      setOpen(false);
+      refetch();
+      onSaved?.();
+    } catch { toast({ title: "Couldn't save", description: "Please try again.", variant: "destructive" }); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Set your Number — your 3-year target</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <p className="text-xs text-slate-500">Where do you want the business in 3 years? This is your destination — it drives your whole 7-level roadmap and what the AI Coach advises.</p>
+          <div><Label>Target revenue (₦ / year) *</Label><Input type="number" value={form.target_revenue} onChange={(e) => setForm(p => ({ ...p, target_revenue: e.target.value }))} placeholder="e.g. 50000000" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><Label>Target profit (₦ / year)</Label><Input type="number" value={form.target_profit} onChange={(e) => setForm(p => ({ ...p, target_profit: e.target.value }))} placeholder="e.g. 10000000" /></div>
+            <div><Label>Target valuation (₦)</Label><Input type="number" value={form.target_valuation} onChange={(e) => setForm(p => ({ ...p, target_valuation: e.target.value }))} placeholder="optional" /></div>
+          </div>
+          <div><Label>Your why</Label><Textarea rows={3} value={form.why_summary} onChange={(e) => setForm(p => ({ ...p, why_summary: e.target.value }))} placeholder="Why does this number matter to you? (e.g. travel a month a year, fund a cause)" /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={save} disabled={isLoading}>{isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Number"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function LevelLadder({ selectedLevel, onSelect }: { selectedLevel: number; onSelect: (level: number) => void }) {
-  const { data, isLoading } = useGetScaleOverviewQuery();
+  const { data, isLoading, refetch } = useGetScaleOverviewQuery();
   if (isLoading) return <Skeleton className="h-28 w-full" />;
   if (!data) return null;
   const plan = data.stated_plan;
@@ -219,14 +275,15 @@ function LevelLadder({ selectedLevel, onSelect }: { selectedLevel: number; onSel
     <Card className="border-emerald-200">
       <CardContent className="p-4">
         {plan?.has_plan && plan.target_revenue ? (
-          <div className="mb-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3 flex flex-wrap items-center gap-x-6 gap-y-1">
+          <div className="mb-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-3 flex flex-wrap items-center gap-x-4 gap-y-1">
             <span className="text-sm"><span className="text-slate-500">Your Number (3-yr): </span><strong className="text-emerald-700">{naira(plan.target_revenue)}</strong> revenue
               {plan.target_profit ? <> · {naira(plan.target_profit)} profit</> : null}</span>
             {plan.why_summary && <span className="text-xs text-slate-500 italic">Why: {plan.why_summary}</span>}
+            <NumberDialog onSaved={refetch} trigger={<button type="button" className="text-xs underline font-medium text-emerald-700 ml-auto">Edit</button>} />
           </div>
         ) : (
           <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-700">
-            You haven't set your Number yet — <button type="button" onClick={() => onSelect(1)} className="underline font-medium">work Level 1's planner</button> to define it.
+            You haven't set your Number yet — <NumberDialog onSaved={refetch} trigger={<button type="button" className="underline font-medium">set your Number now</button>} /> to define your 3-year target.
           </div>
         )}
         <p className="text-sm text-slate-500 mb-3">
