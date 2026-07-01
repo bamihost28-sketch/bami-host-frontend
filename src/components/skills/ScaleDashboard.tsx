@@ -707,7 +707,7 @@ function FinancePanel() {
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users2 className="h-4 w-4 text-emerald-600" /> Reality check</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
             <Row label="Avg monthly revenue (3mo)" value={naira(data.avg_monthly_revenue)} />
-            <Row label="Recommended salary" value={naira(recommended)} />
+            <Row label="Your current salary" value={naira(form.target_monthly_salary)} />
             <Row label="Target profit" value={`${form.target_profit_pct}%`} />
           </CardContent>
         </Card>
