@@ -28,7 +28,6 @@ import StrategicHiringPlanner from "@/components/hiring/StrategicHiringPlanner";
 import CandidateManagement from "@/components/hiring/CandidateManagement";
 import { AdminPeople } from "@/components/dashboard/AdminPeople";
 import { SuperAdminTransactions } from "@/components/dashboard/SuperAdminTransactions";
-import ScalableImpactPlanner from "@/components/scalable-impact/ScalableImpactPlanner";
 import DashboardRouter from "@/components/dashboard/DashboardRouter";
 
 const Index = () => {
@@ -191,17 +190,9 @@ const Index = () => {
             <Big5Dashboard />
           </ProtectedComponent>
         );
-      case "scalable-impact-planner":
-        return (
-          <ProtectedComponent 
-            requiredPermissions={['view_scalable_impact']}
-            feature="Scalable Impact Planner"
-            showUpgradePrompt={true}
-          >
-            <ScalableImpactPlanner />
-          </ProtectedComponent>
-        );
-     
+      // "scalable-impact-planner" removed — the planner now lives inside the Scale
+      // dashboard (/dashboard/scale). This standalone case was unreachable and duplicated it.
+
       case "strategic-hiring-planner":
         return (
           <ProtectedComponent 
