@@ -567,14 +567,6 @@ export const TenantDashboard: React.FC = () => {
                 {/* Meta info */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t text-sm">
                   <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Entry Date</span>
-                      <span className="font-medium text-slate-800 dark:text-slate-200">{formatDate(apiApartment.entryDate)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Next Due</span>
-                      <span className="font-medium text-slate-800 dark:text-slate-200">{formatDate(apiApartment.nextDueDate)}</span>
-                    </div>
                     {apiApartment.meterNumber && (
                       <div className="flex justify-between">
                         <span className="text-slate-500 dark:text-slate-400">Meter No.</span>
