@@ -17,6 +17,10 @@ import {
   useGetPlaybooksQuery, useCreatePlaybookMutation, useUpdatePlaybookMutation, useDeletePlaybookMutation,
   useGetCashWaterfallQuery,
 } from "@/services/scaleApi";
+import {
+  useGetCandidatesQuery, useCreateCandidateMutation,
+  useUpdateCandidateMutation, useDeleteCandidateMutation,
+} from "@/services/skillsApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -425,7 +429,113 @@ function TeamCanvasPanel() {
           </CardContent>
         </Card>
       </div>
+
+      <HiringPipelineCard />
     </div>
+  );
+}
+
+const HIRE_STAGES = ["sourced", "screened", "interview", "offer", "hired", "rejected", "withdrawn"];
+const STAGE_LABEL: Record<string, string> = {
+  sourced: "Sourced", screened: "Screened", interview: "Interview", offer: "Offer",
+  hired: "Hired", rejected: "Rejected", withdrawn: "Withdrawn",
+};
+const STAGE_COLOR: Record<string, string> = {
+  sourced: "bg-slate-100 text-slate-700", screened: "bg-blue-100 text-blue-700",
+  interview: "bg-amber-100 text-amber-700", offer: "bg-violet-100 text-violet-700",
+  hired: "bg-green-100 text-green-700", rejected: "bg-red-100 text-red-700",
+  withdrawn: "bg-slate-100 text-slate-500",
+};
+
+function HiringPipelineCard() {
+  const { toast } = useToast();
+  const { data, isLoading } = useGetCandidatesQuery({});
+  const [createCandidate, { isLoading: adding }] = useCreateCandidateMutation();
+  const [updateCandidate] = useUpdateCandidateMutation();
+  const [deleteCandidate] = useDeleteCandidateMutation();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", role: "", stage: "sourced", department: "", email: "", phone: "" });
+  const candidates: any[] = data?.data ?? [];
+
+  const add = async () => {
+    if (!form.name.trim() || !form.role.trim()) { toast({ title: "Name and role are required", variant: "destructive" }); return; }
+    try {
+      await createCandidate({ ...form }).unwrap();
+      toast({ title: "Candidate added", description: `${form.name} → ${STAGE_LABEL[form.stage]}` });
+      setForm({ name: "", role: "", stage: "sourced", department: "", email: "", phone: "" });
+      setOpen(false);
+    } catch { toast({ title: "Couldn't add candidate", variant: "destructive" }); }
+  };
+  const move = async (id: string, stage: string) => {
+    try { await updateCandidate({ id, body: { stage } }).unwrap(); }
+    catch { toast({ title: "Couldn't update stage", variant: "destructive" }); }
+  };
+  const remove = async (id: string) => {
+    try { await deleteCandidate(id).unwrap(); }
+    catch { toast({ title: "Couldn't remove", variant: "destructive" }); }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">🧑‍💼 Hiring pipeline</CardTitle>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white"><Plus className="h-4 w-4 mr-1" /> Add candidate</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader><DialogTitle>Add candidate</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <div><Label>Name *</Label><Input value={form.name} onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Ada Obi" /></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Role *</Label><Input value={form.role} onChange={(e) => setForm(p => ({ ...p, role: e.target.value }))} placeholder="e.g. Property manager" /></div>
+                  <div><Label>Stage</Label>
+                    <Select value={form.stage} onValueChange={(v) => setForm(p => ({ ...p, stage: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{HIRE_STAGES.map(s => <SelectItem key={s} value={s}>{STAGE_LABEL[s]}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Department</Label><Input value={form.department} onChange={(e) => setForm(p => ({ ...p, department: e.target.value }))} placeholder="optional" /></div>
+                  <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="optional" /></div>
+                </div>
+                <div><Label>Email</Label><Input value={form.email} onChange={(e) => setForm(p => ({ ...p, email: e.target.value }))} placeholder="optional" /></div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={add} disabled={adding}>{adding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <p className="text-xs text-slate-400">When your HR agent flags it's time to hire, track candidates here from sourced → hired.</p>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? <Skeleton className="h-16 w-full" /> : candidates.length === 0 ? (
+          <p className="py-6 text-center text-sm text-slate-400">No candidates yet. Add your first hire above.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {candidates.map((c) => (
+              <div key={c.id} className="flex items-center justify-between gap-2 border-b py-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{c.name} <span className="text-slate-400 font-normal">· {c.role}</span></p>
+                  {c.department && <p className="text-[11px] text-slate-400">{c.department}</p>}
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Select value={c.stage} onValueChange={(v) => move(c.id, v)}>
+                    <SelectTrigger className={`h-7 w-28 text-xs ${STAGE_COLOR[c.stage] ?? ""}`}><SelectValue /></SelectTrigger>
+                    <SelectContent>{HIRE_STAGES.map(s => <SelectItem key={s} value={s}>{STAGE_LABEL[s]}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500" onClick={() => remove(c.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
