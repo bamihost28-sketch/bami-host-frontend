@@ -48,6 +48,10 @@ export const EstateManagement = () => {
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editUnits, setEditUnits] = useState("");
+  // Rent-increase policy
+  const [editPct, setEditPct] = useState("26");
+  const [editCycle, setEditCycle] = useState("2");        // "0" = no increase
+  const [editStart, setEditStart] = useState("");          // YYYY-MM-DD; blank = per-tenant entry date
   const [updateEstate, { isLoading: updating }] = useUpdateEstateMutation();
 
   // Estates options from API
@@ -161,6 +165,35 @@ export const EstateManagement = () => {
               <Label htmlFor="edit-estate-units">Total units</Label>
               <Input id="edit-estate-units" type="number" min={1} value={editUnits} onChange={(e) => setEditUnits(e.target.value)} />
             </div>
+
+            {/* Rent-increase policy */}
+            <div className="rounded-lg border p-3 space-y-3 bg-muted/30">
+              <p className="text-sm font-medium">Rent increase policy</p>
+              <p className="text-xs text-muted-foreground -mt-2">How rent & service charge step up over a tenancy in this estate.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="edit-pct">Increase (%)</Label>
+                  <Input id="edit-pct" type="number" min={0} step="0.5" value={editPct} onChange={(e) => setEditPct(e.target.value)} placeholder="26" />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="edit-cycle">Every</Label>
+                  <select id="edit-cycle" className="h-10 rounded-md border bg-background px-3 text-sm" value={editCycle} onChange={(e) => setEditCycle(e.target.value)}>
+                    <option value="0">No increase</option>
+                    <option value="1">1 year</option>
+                    <option value="2">2 years</option>
+                    <option value="3">3 years</option>
+                    <option value="4">4 years</option>
+                    <option value="5">5 years</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="edit-start">Increases start from (optional)</Label>
+                <Input id="edit-start" type="date" value={editStart} onChange={(e) => setEditStart(e.target.value)} />
+                <p className="text-[11px] text-muted-foreground">Leave blank to count from each tenant's own move-in date.</p>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
               <Button onClick={async () => {
@@ -169,7 +202,12 @@ export const EstateManagement = () => {
                 const unitsNum = Number(editUnits);
                 if (!name || !Number.isFinite(unitsNum) || unitsNum <= 0) return;
                 try {
-                  await updateEstate({ id: editId, name, description: editDesc || undefined, totalUnits: unitsNum }).unwrap();
+                  await updateEstate({
+                    id: editId, name, description: editDesc || undefined, totalUnits: unitsNum,
+                    rentIncreasePercent: Number(editPct) || 0,
+                    rentIncreaseCycleYears: Number(editCycle),
+                    rentIncreaseStart: editStart ? new Date(editStart).toISOString() : null,
+                  } as any).unwrap();
                   toast({ title: 'Estate updated' });
                   setEditOpen(false);
                 } catch (e) {
@@ -245,6 +283,10 @@ export const EstateManagement = () => {
                                 setEditName(est.name);
                                 setEditDesc(est.description || "");
                                 setEditUnits(typeof est.totalUnits === 'number' ? String(est.totalUnits) : "");
+                                const e2 = est as any;
+                                setEditPct(e2.rentIncreasePercent != null ? String(e2.rentIncreasePercent) : "26");
+                                setEditCycle(e2.rentIncreaseCycleYears != null ? String(e2.rentIncreaseCycleYears) : "2");
+                                setEditStart(e2.rentIncreaseStart ? String(e2.rentIncreaseStart).slice(0, 10) : "");
                                 setEditOpen(true);
                               }}
                             >
