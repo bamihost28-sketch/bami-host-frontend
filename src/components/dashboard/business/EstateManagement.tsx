@@ -206,7 +206,8 @@ export const EstateManagement = () => {
                     id: editId, name, description: editDesc || undefined, totalUnits: unitsNum,
                     rentIncreasePercent: Number(editPct) || 0,
                     rentIncreaseCycleYears: Number(editCycle),
-                    rentIncreaseStart: editStart ? new Date(editStart).toISOString() : null,
+                    // send a plain date (naive) — the column is a tz-naive timestamp
+                    rentIncreaseStart: editStart || null,
                   } as any).unwrap();
                   toast({ title: 'Estate updated' });
                   setEditOpen(false);
