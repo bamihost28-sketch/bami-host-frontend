@@ -83,7 +83,7 @@ const sidebarItems: SidebarItem[] = [
     label: "Billionaire OS",
     icon: Rocket,
     category: 'core',
-    requiredPermissions: ['view_overview'],
+    requiredPermissions: ['view_big5'],
     path: '/dashboard/billionaire-os'
   },
   {

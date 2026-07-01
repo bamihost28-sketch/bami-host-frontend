@@ -702,7 +702,7 @@ export const getPermissionsByCategory = (userRole: string, category: Permission[
 // Navigation items with their required permissions
 export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'overview': ['view_overview'],
-  'billionaire-os': ['view_overview'],
+  'billionaire-os': ['view_big5'],
   'defining-your-number': ['view_big5'],
   'scalable-impact-planner': ['view_scalable_impact'],
   'wallet': ['view_wallet'],
