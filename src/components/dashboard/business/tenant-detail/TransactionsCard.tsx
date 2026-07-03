@@ -247,7 +247,7 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
               </TableHeader>
               <TableBody>
                 {transactions.map((t) => (
-                  <TableRow key={t.paymentId} className={isFetching ? 'opacity-60' : ''}>
+                  <TableRow key={t.id ?? t.reference} className={isFetching ? 'opacity-60' : ''}>
                     <TableCell className="whitespace-nowrap">{formatDate(t.paymentDate || t.createdAt)}</TableCell>
                     <TableCell>
                       <p className="font-medium leading-tight">{t.tenant?.name || '—'}</p>
@@ -258,9 +258,9 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
                     <TableCell className="font-medium capitalize">{t.paymentType?.replace(/_/g, ' ') || '—'}</TableCell>
                     <TableCell className="capitalize text-sm">{t.paymentMethod?.replace(/_/g, ' ') || '—'}</TableCell>
                     <TableCell>
-                      {t.status ? (
-                        <Badge className={`text-xs ${STATUS_COLORS[t.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                          {t.status}
+                      {t.paymentStatus ? (
+                        <Badge className={`text-xs ${STATUS_COLORS[t.paymentStatus] ?? 'bg-slate-100 text-slate-700'}`}>
+                          {t.paymentStatus}
                         </Badge>
                       ) : '—'}
                     </TableCell>
@@ -278,13 +278,13 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
                         >
                           <Receipt className="h-4 w-4" />
                         </Button>
-                        {isCompleted(t.status) && (
+                        {isCompleted(t.paymentStatus) && (
                           <>
                             <Button
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => handleDownload(t.reference || t.paymentId)}
+                              onClick={() => handleDownload(t.reference || t.id)}
                               disabled={isDownloading}
                               title="Download PDF"
                             >
@@ -294,7 +294,7 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={() => handleEmail(t.reference || t.paymentId)}
+                              onClick={() => handleEmail(t.reference || t.id)}
                               disabled={isEmailing}
                               title="Resend Email"
                             >
