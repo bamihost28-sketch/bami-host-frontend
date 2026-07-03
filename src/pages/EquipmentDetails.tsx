@@ -31,7 +31,7 @@ const EQUIPMENT_DATA = {
         { icon: <Lightbulb className="w-5 h-5" />, title: "High-Visibility Lighting", desc: "LED work lights for safe night-time operations." }
     ],
     images: [
-        "/images/estate/energy_hub.png", // Using existing placeholder for now
+        "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1581094794329-c8112a4e5190?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1579412691525-4139881682d3?auto=format&fit=crop&w=800&q=80"
     ]

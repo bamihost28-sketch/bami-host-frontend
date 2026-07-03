@@ -39,7 +39,7 @@ export const EnergyHubs = () => {
                     <div className="relative">
                         <div className="absolute -inset-4 bg-blue-600/5 blur-3xl rounded-full" />
                         <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
-                            <img src="/images/estate/energy_hub.png" alt="Energy Hub" className="w-full h-full object-cover" />
+                            <img src="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1200&q=80" alt="Energy Hub" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
                                 <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl w-full text-center">
                                     <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-3 shadow-lg">

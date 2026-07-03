@@ -15,7 +15,7 @@ import {
 
 const heroSlides = [
   {
-    image: "/images/hero/hero_business_scaling_1768388722802.png",
+    image: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80",
     badge: "Scale Systematically",
     title: "One Platform.\nInfinite Possibilities.",
     highlight: "Infinite Possibilities.",
@@ -25,7 +25,7 @@ const heroSlides = [
     link: "/register",
   },
   {
-    image: "/images/hero/hero_financial_freedom_1768388738721.png",
+    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80",
     badge: "Financial Clarity",
     title: "Take control of your\nPersonal & Business Finances.",
     highlight: "Personal & Business Finances.",
@@ -35,7 +35,7 @@ const heroSlides = [
     link: "/product",
   },
   {
-    image: "/images/hero/hero_entrepreneur_lifestyle_1768388752631.png",
+    image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=80",
     badge: "Estate Marketplace",
     title: "Find, List & Manage\nPremier Properties.",
     highlight: "Premier Properties.",
@@ -281,7 +281,7 @@ const Landing = () => {
             <div className="grid grid-cols-3 gap-4 h-[280px] rounded-2xl overflow-hidden">
               <div className="col-span-2 relative group overflow-hidden rounded-xl">
                 <img
-                  src="/images/estate/estate_exterior_modern_1768390624272.png"
+                  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
                   alt="Modern apartment"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -294,14 +294,14 @@ const Landing = () => {
               </div>
               <div className="flex flex-col gap-4">
                 <div className="relative group overflow-hidden rounded-xl flex-1">
-                  <img src="/images/estate/estate_interior_living_1768390639037.png" alt="Living room" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1200&q=80" alt="Living room" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent" />
                   <div className="absolute bottom-2 left-2">
                     <p className="text-white font-bold text-xs">Living Space</p>
                   </div>
                 </div>
                 <div className="relative group overflow-hidden rounded-xl flex-1">
-                  <img src="/images/estate/estate_interior_kitchen_modern_1768390652240.png" alt="Kitchen" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=80" alt="Kitchen" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent" />
                   <div className="absolute bottom-2 left-2">
                     <p className="text-white font-bold text-xs">Modern Kitchen</p>

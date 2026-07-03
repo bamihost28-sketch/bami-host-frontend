@@ -5,7 +5,7 @@ export const MarketplaceHero = () => {
         <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 z-0">
                 <img
-                    src="/images/estate/marketplace_hero.png"
+                    src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80"
                     alt="Conglomerate Architecture"
                     className="w-full h-full object-cover animate-[ken-burns_20s_ease-in-out_infinite]"
                 />

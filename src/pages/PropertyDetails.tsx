@@ -141,7 +141,7 @@ const PropertyDetails = () => {
 
     const displayImages = property.images && property.images.length > 0
         ? property.images.map((img) => img.url)
-        : ["/images/estate/estate_exterior_modern_1768390624272.png"];
+        : ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"];
 
     const hasArea = property.area && property.area > 0;
     const statusKey = (property.status ?? "vacant").toLowerCase();

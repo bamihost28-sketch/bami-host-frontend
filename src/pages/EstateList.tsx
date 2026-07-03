@@ -242,10 +242,10 @@ const EstateList = () => {
                                 {/* Image */}
                                 <div className={`relative overflow-hidden shrink-0 ${viewMode === "list" ? "w-[260px] h-full" : "w-full h-[200px]"}`}>
                                     <img
-                                        src={property.images && property.images.length > 0 ? property.images[0].url : "/images/estate/estate_exterior_modern_1768390624272.png"}
+                                        src={property.images && property.images.length > 0 ? property.images[0].url : "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"}
                                         alt={property.label}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                        onError={(e) => { (e.target as HTMLImageElement).src = "/images/estate/estate_exterior_modern_1768390624272.png"; }}
+                                        onError={(e) => { (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"; }}
                                     />
                                     <div className="absolute top-3 left-3 flex gap-1.5">
                                         <Badge className="bg-blue-600 text-white font-bold px-2.5 py-1 border-none rounded-lg text-[10px] shadow">
