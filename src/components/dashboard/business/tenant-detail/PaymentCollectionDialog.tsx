@@ -53,7 +53,11 @@ export const PaymentCollectionDialog = ({
   const [manualMethod, setManualMethod] = useState<'bank_transfer' | 'cash' | 'check'>('bank_transfer');
   const [manualType, setManualType] = useState('rent');
   const [manualMonths, setManualMonths] = useState('12');
-  const [manualDate, setManualDate] = useState(new Date().toISOString().split('T')[0]);
+  // Local calendar date (not UTC) so "today" isn't yesterday near midnight in WAT.
+  const [manualDate, setManualDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [manualDesc, setManualDesc] = useState('');
   const [manualNotes, setManualNotes] = useState('');
 

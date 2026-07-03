@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { useUpdateTenantMutation, useUpdateEstateUnitMutation } from '@/services/estatesApi';
-import { formatDate, formatDateToDDMMYYYY } from '@/utils/propertyUtils';
+import { formatDate, formatDateToDDMMYYYY, toDateInput } from '@/utils/propertyUtils';
 
 interface TenantDetailHeaderProps {
   tenantId?: string;
@@ -45,36 +45,11 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
       setEditEmail(tenant.email || overview?.email || tenant.tenantEmail || '');
       setEditPhone(tenant.whatsapp || tenant.whatsappNumber || overview?.phone || tenant.tenantPhone || '');
       setEditType((tenant.tenantType as any) || 'new');
-      // Format entry date for input field (ISO format: YYYY-MM-DD)
-      const entryDate = (tenant as any).entryDate || '';
-      if (entryDate) {
-        const dateObj = new Date(entryDate);
-        if (!Number.isNaN(dateObj.getTime())) {
-          setEditEntryDate(dateObj.toISOString().split('T')[0]);
-        } else {
-          setEditEntryDate(entryDate);
-        }
-      } else {
-        setEditEntryDate('');
-      }
-      const nextDueDate = (tenant as any).nextDueDate || '';
-      if (nextDueDate) {
-        const dateObj = new Date(nextDueDate);
-        if (!Number.isNaN(dateObj.getTime())) {
-          setEditNextDueDate(dateObj.toISOString().split('T')[0]);
-        } else {
-          setEditNextDueDate(nextDueDate);
-        }
-      } else {
-        setEditNextDueDate('');
-      }
-      const increaseStart = (tenant as any).rentIncreaseStart || '';
-      if (increaseStart) {
-        const dateObj = new Date(increaseStart);
-        setEditIncreaseStart(!Number.isNaN(dateObj.getTime()) ? dateObj.toISOString().split('T')[0] : increaseStart);
-      } else {
-        setEditIncreaseStart('');
-      }
+      // Time-zone-safe: read the calendar date directly, no UTC round-trip
+      // (otherwise WAT/UTC+1 shifts the day back by one).
+      setEditEntryDate(toDateInput((tenant as any).entryDate));
+      setEditNextDueDate(toDateInput((tenant as any).nextDueDate));
+      setEditIncreaseStart(toDateInput((tenant as any).rentIncreaseStart));
     }
   };
 

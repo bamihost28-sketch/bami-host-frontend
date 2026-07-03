@@ -63,15 +63,31 @@ export const formatDateShort = (iso?: string | null): string | null => {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-/** "DD/MM/YYYY" — for API date inputs */
+/** "DD/MM/YYYY" — for API date inputs.
+ *  Reads the calendar date directly from an ISO/`YYYY-MM-DD` string so a
+ *  date never shifts a day across time zones (e.g. WAT / UTC+1). */
 export const formatDateToDDMMYYYY = (dateString: string): string => {
   if (!dateString) return '';
+  const iso = String(dateString).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
+};
+
+/** Convert any stored date value to the `YYYY-MM-DD` a <input type="date">
+ *  expects, WITHOUT time-zone math. Grabbing the date part of an ISO string
+ *  directly avoids the UTC round-trip that shifts the day in WAT (UTC+1). */
+export const toDateInput = (value?: string | null): string => {
+  if (!value) return '';
+  const iso = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
 export const formatCurrency = (n: number): string =>
