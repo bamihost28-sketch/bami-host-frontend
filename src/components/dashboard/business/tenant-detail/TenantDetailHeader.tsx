@@ -71,16 +71,19 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   };
 
   const handleEditFeesOpen = () => {
-    if (overview) {
-      setEditMonthlyPrice(overview.unitMonthlyPrice != null ? String(overview.unitMonthlyPrice) : '');
-      setEditServiceCharge(overview.serviceChargeMonthly != null ? String(overview.serviceChargeMonthly) : '');
-      setEditCautionFee(tenant?.unit?.cautionFee != null ? String(tenant?.unit?.cautionFee) : '');
-      setEditLegalFee(overview?.unit?.legalFee != null ? String(overview?.unit?.legalFee) : '');
-    }
+    // Pre-fill from the unit's actual stored fees so the owner edits the real
+    // current values rather than a blank form.
+    const u = overview?.unit || {};
+    setEditMonthlyPrice(u.monthlyPrice != null ? String(u.monthlyPrice) : '');
+    setEditServiceCharge(u.serviceChargeMonthly != null ? String(u.serviceChargeMonthly) : '');
+    setEditCautionFee(u.cautionFee != null ? String(u.cautionFee) : '');
+    setEditLegalFee(u.legalFee != null ? String(u.legalFee) : '');
   };
 
   const submitEditFees = async () => {
-    const unitId = tenant && (tenant as any).unit && (tenant as any).unit._id;
+    // tenant.unit comes back as an id string; overview.unit.id is the reliable source.
+    const rawUnit = (tenant as any)?.unit;
+    const unitId = overview?.unit?.id || (typeof rawUnit === 'string' ? rawUnit : rawUnit?._id);
     if (!unitId) {
       toast({ title: 'No unit found for this tenant', variant: 'destructive' });
       return;
