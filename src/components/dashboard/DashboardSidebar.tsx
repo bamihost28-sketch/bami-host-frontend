@@ -292,7 +292,7 @@ const sidebarItems: SidebarItem[] = [
     id: "meters",
     label: "Smart Meters",
     icon: Zap,
-    category: 'financial',
+    category: 'business',
     requiredPermissions: ['view_all_data'],
     path: '/dashboard/meters'
   },
