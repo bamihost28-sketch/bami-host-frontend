@@ -28,6 +28,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   const [editType, setEditType] = useState<'new' | 'existing' | 'transfer'>('new');
   const [editEntryDate, setEditEntryDate] = useState('');
   const [editNextDueDate, setEditNextDueDate] = useState('');
+  const [editIncreaseStart, setEditIncreaseStart] = useState('');
 
   // Edit Fees state
   const [editFeesOpen, setEditFeesOpen] = useState(false);
@@ -66,6 +67,13 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
         }
       } else {
         setEditNextDueDate('');
+      }
+      const increaseStart = (tenant as any).rentIncreaseStart || '';
+      if (increaseStart) {
+        const dateObj = new Date(increaseStart);
+        setEditIncreaseStart(!Number.isNaN(dateObj.getTime()) ? dateObj.toISOString().split('T')[0] : increaseStart);
+      } else {
+        setEditIncreaseStart('');
       }
     }
   };
@@ -175,6 +183,16 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
                 />
                 <p className="text-[10px] text-muted-foreground -mt-1">The date the tenant's next rent payment is due. Correcting this fixes the Current/Renewal Year cards.</p>
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-increase-start">Rent increase start (optional)</Label>
+                <Input
+                  id="edit-increase-start"
+                  type="date"
+                  value={editIncreaseStart}
+                  onChange={(e) => setEditIncreaseStart(e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground -mt-1">Anchors when this tenant's increases begin (the estate's % and cycle still apply). Leave blank to use the estate default / entry date.</p>
+              </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="ghost" onClick={() => setEditTenantOpen(false)}>Cancel</Button>
@@ -196,6 +214,8 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
                     if (editNextDueDate) {
                       payload.nextDueDate = formatDateToDDMMYYYY(editNextDueDate);
                     }
+                    // Sent unconditionally so clearing the field removes the override.
+                    payload.rentIncreaseStart = editIncreaseStart ? formatDateToDDMMYYYY(editIncreaseStart) : '';
 
                     await updateTenant(payload).unwrap();
                     toast({ title: 'Tenant updated' });
