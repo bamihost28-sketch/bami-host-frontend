@@ -9,7 +9,6 @@ import {
   PieChart,
   Target,
   Building,
-  Crown,
   Lock,
   Eye,
   X,
@@ -150,7 +149,7 @@ const sidebarItems: SidebarItem[] = [
   {
     id: "strategic-hiring-planner",
     label: "Hire Like a Boss",
-    icon: Crown,
+    icon: UserCheck,
     category: 'business',
     requiredPermissions: ['view_strategic_hiring', 'view_hiring_triggers'],
     isPremium: true,
@@ -265,7 +264,7 @@ const sidebarItems: SidebarItem[] = [
   {
     id: "personal-portfolios",
     label: "Personal Life",
-    icon: Crown,
+    icon: Wallet,
     category: 'financial',
     requiredPermissions: ['view_personal_portfolios'],
     isPremium: true,
@@ -390,11 +389,8 @@ export const DashboardSidebar = ({
           !hasAccess && "text-slate-500",
           hasAccess && !isActive && "group-hover:text-blue-400 group-hover:scale-105"
         )} />
-        <span className="flex-1 font-medium truncate">{item.label}</span>
+        <span className="flex-1 text-xs font-medium truncate">{item.label}</span>
         {!hasAccess && <Lock className="w-3 h-3 text-slate-500 shrink-0" />}
-        {item.isPremium && hasAccess && rolePriority >= 60 && (
-          <Crown className="w-3 h-3 text-yellow-400 animate-pulse shrink-0" />
-        )}
         {hasAccess && rolePriority < 40 && (
           <Eye className="w-3 h-3 text-blue-400 shrink-0" />
         )}
@@ -533,9 +529,8 @@ export const DashboardSidebar = ({
                 )}
               >
                 <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-blue-400" : config.color)} />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1 text-xs">{item.label}</span>
                 {!hasAccess && <Lock className="w-3 h-3 text-slate-500" />}
-                {item.isPremium && hasAccess && <Crown className="w-3 h-3 text-yellow-400" />}
               </DropdownMenuItem>
             );
           })}
@@ -650,7 +645,6 @@ export const DashboardSidebar = ({
             {/* Access level badge */}
             <div className="mb-5 px-3 py-3 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/20">
               <div className="flex items-center gap-2 mb-1.5">
-                <Crown className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
                 <span className="text-xs font-medium text-slate-300">Access Level</span>
               </div>
               <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-medium">
