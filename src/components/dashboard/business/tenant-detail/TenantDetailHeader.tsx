@@ -73,7 +73,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   const handleEditFeesOpen = () => {
     // Pre-fill from the unit's actual stored fees so the owner edits the real
     // current values rather than a blank form.
-    const u = overview?.unit || {};
+    const u = overview?.unitFees || {};
     setEditMonthlyPrice(u.monthlyPrice != null ? String(u.monthlyPrice) : '');
     setEditServiceCharge(u.serviceChargeMonthly != null ? String(u.serviceChargeMonthly) : '');
     setEditCautionFee(u.cautionFee != null ? String(u.cautionFee) : '');
@@ -81,9 +81,9 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   };
 
   const submitEditFees = async () => {
-    // tenant.unit comes back as an id string; overview.unit.id is the reliable source.
+    // tenant.unit comes back as an id string; overview.unitFees.id is the reliable source.
     const rawUnit = (tenant as any)?.unit;
-    const unitId = overview?.unit?.id || (typeof rawUnit === 'string' ? rawUnit : rawUnit?._id);
+    const unitId = overview?.unitFees?.id || (typeof rawUnit === 'string' ? rawUnit : rawUnit?._id);
     if (!unitId) {
       toast({ title: 'No unit found for this tenant', variant: 'destructive' });
       return;
