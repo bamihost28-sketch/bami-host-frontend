@@ -37,6 +37,19 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
     return null;
   })();
 
+  // Lease months = calendar months from entry to the day AFTER next due (the due
+  // date is the last day of the paid period). Matches the backend's
+  // leaseDurationMonths so both cards always agree.
+  const leaseMonths = (() => {
+    if (!tenant?.entryDate || !nextDueRaw) return null;
+    const start = new Date(tenant.entryDate);
+    const end = new Date(nextDueRaw);
+    end.setDate(end.getDate() + 1);
+    let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    if (end.getDate() < start.getDate()) months -= 1;
+    return Math.max(0, months);
+  })();
+
   // Total Stay is measured from the ACTUAL entry date (not the current period).
   const entryYear = entryDateRaw ? new Date(entryDateRaw).getFullYear() : new Date().getFullYear();
   const currentYear = new Date().getFullYear();
@@ -100,10 +113,7 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {tenant?.entryDate && (overview?.nextDue || tenant?.nextDueDate)
-                  ? `${Math.ceil((new Date(overview?.nextDue || tenant.nextDueDate).getTime() - new Date(tenant.entryDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months`
-                  : 'Ongoing'
-                }
+                {leaseMonths !== null ? `${leaseMonths} months` : 'Ongoing'}
               </p>
               <div className="flex flex-col text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
                 <span>Entry: {formatDate(tenant?.entryDate)}</span>
@@ -146,7 +156,7 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {overview?.leaseDurationMonths || 0}
+                {overview?.leaseDurationMonths ?? leaseMonths ?? 0}
               </p>
               <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">months</p>
             </div>
