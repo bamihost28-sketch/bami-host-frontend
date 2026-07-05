@@ -594,115 +594,152 @@ export const TenantDashboard: React.FC = () => {
           )}
 
           {/* Annual Payment Summary */}
-          {apiYearlyPayment?.currentYear && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  Annual Payment Summary
-                </CardTitle>
-                <CardDescription>Your payments this year and projections for renewal</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Current Year */}
-                  <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-semibold text-slate-900 dark:text-white">
-                        {apiYearlyPayment.currentYear.year} — This Year
-                      </p>
-                      {apiYearlyPayment.currentYear.isFirstTime && (
-                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-[10px]">
-                          First Payment
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="space-y-2 text-sm mb-3">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Projected Rent</span>
-                        <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.rent)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Projected Service Charge</span>
-                        <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.serviceCharge)}</span>
-                      </div>
-                      {(apiYearlyPayment.currentYear.other ?? 0) > 0 && (
-                        apiYearlyPayment.currentYear.otherBreakdown?.length ? (
-                          apiYearlyPayment.currentYear.otherBreakdown.map((item) => (
-                            <div key={item.code} className="flex justify-between">
-                              <span className="text-slate-600 dark:text-slate-400">{item.label}</span>
-                              <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(item.amount)}</span>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
-                            <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.currentYear.other!)}</span>
-                          </div>
-                        )
-                      )}
-                      {apiYearlyPayment.currentYear.outstanding !== undefined && (
-                        <div className="flex justify-between text-sm pt-1 border-t border-green-200 dark:border-green-800/50">
-                          <span className="text-slate-500 dark:text-slate-400">Outstanding</span>
-                          <span className="font-medium text-amber-700 dark:text-amber-400">{formatCurrency(apiYearlyPayment.currentYear.outstanding)}</span>
+          {apiYearlyPayment?.currentYear && (() => {
+            const cy = apiYearlyPayment.currentYear;
+            const ny = apiYearlyPayment.nextYear;
+            const cyPaid = cy.paid?.total ?? cy.totalPaid ?? 0;
+            const cyTotal = cy.total ?? (cy.rent + cy.serviceCharge + (cy.other ?? 0));
+            const cyPct = cyTotal > 0 ? Math.min(100, Math.round((cyPaid / cyTotal) * 100)) : 0;
+            const fullyPaid = (cy.outstanding ?? 0) <= 0;
+            return (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    Annual Payment Summary
+                  </CardTitle>
+                  <CardDescription>Your payments this year and projections for renewal</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* This Year */}
+                    <div className="rounded-xl border border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50/50 dark:from-green-900/10 dark:to-emerald-900/5 p-4 sm:p-5 flex flex-col">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-green-700 dark:text-green-400">This Year</p>
+                        <div className="flex items-center gap-1.5">
+                          {cy.isFirstTime && (
+                            <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 text-[10px]">
+                              First Payment
+                            </Badge>
+                          )}
+                          {fullyPaid && (
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-[10px]">
+                              <CheckCircle2 className="h-3 w-3 mr-0.5" /> Fully Paid
+                            </Badge>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="border-t border-green-200 dark:border-green-800 pt-2 flex justify-between">
-                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {(apiYearlyPayment.currentYear.outstanding ?? 0) > 0 ? "Paid So Far" : "Total Paid"}
-                      </span>
-                      <span className="font-bold text-green-700 dark:text-green-400 text-lg">
-                        {formatCurrency(apiYearlyPayment.currentYear.paid?.total ?? apiYearlyPayment.currentYear.totalPaid ?? 0)}
-                      </span>
-                    </div>
-                  </div>
+                      </div>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{cy.year}</p>
 
-                  {/* Next Year */}
-                  {apiYearlyPayment.nextYear && <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="font-semibold text-slate-900 dark:text-white">
-                        {apiYearlyPayment.nextYear.year} — Renewal
-                      </p>
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 text-[10px]">
-                        Projected
-                      </Badge>
-                    </div>
-                    <div className="space-y-2 text-sm mb-3">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Rent</span>
-                        <div className="text-right">
-                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.nextYear.projectedRent)}</span>
-                          <span className="block text-xs text-slate-400 dark:text-slate-500">{formatCurrency(apiYearlyPayment.nextYear.monthlyRent)}/mo</span>
+                      {/* Paid progress */}
+                      <div className="mb-4">
+                        <div className="flex justify-between items-baseline mb-1.5">
+                          <span className="text-sm text-slate-600 dark:text-slate-400">Paid so far</span>
+                          <span className="font-bold text-green-700 dark:text-green-400 text-lg">{formatCurrency(cyPaid)}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-green-100 dark:bg-green-900/30 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-green-500 dark:bg-green-500 transition-all"
+                            style={{ width: `${cyPct}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          <span>{cyPct}% of {formatCurrency(cyTotal)}</span>
+                          {!fullyPaid && (
+                            <span className="font-medium text-amber-700 dark:text-amber-400">
+                              {formatCurrency(cy.outstanding ?? 0)} outstanding
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600 dark:text-slate-400">Service Charge</span>
-                        <div className="text-right">
-                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.nextYear.projectedServiceCharge)}</span>
-                          <span className="block text-xs text-slate-400 dark:text-slate-500">{formatCurrency(apiYearlyPayment.nextYear.monthlyServiceCharge)}/mo</span>
-                        </div>
-                      </div>
-                      {apiYearlyPayment.nextYear.projectedOther !== undefined && apiYearlyPayment.nextYear.projectedOther > 0 && (
+
+                      <div className="space-y-2 text-sm mt-auto pt-3 border-t border-green-200/70 dark:border-green-800/50">
                         <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
-                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(apiYearlyPayment.nextYear.projectedOther)}</span>
+                          <span className="text-slate-600 dark:text-slate-400">Rent</span>
+                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(cy.rent)}</span>
                         </div>
-                      )}
-                      <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 pt-1 border-t border-blue-100 dark:border-blue-800/50">
-                        <span>Renewal starts</span>
-                        <span>{formatDate(apiYearlyPayment.nextYear.renewalStartDate)}</span>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600 dark:text-slate-400">Service Charge</span>
+                          <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(cy.serviceCharge)}</span>
+                        </div>
+                        {(cy.other ?? 0) > 0 && (
+                          cy.otherBreakdown?.length ? (
+                            cy.otherBreakdown.map((item) => (
+                              <div key={item.code} className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">{item.label}</span>
+                                <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(item.amount)}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
+                              <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(cy.other!)}</span>
+                            </div>
+                          )
+                        )}
+                        <div className="flex justify-between pt-2 border-t border-green-200 dark:border-green-800">
+                          <span className="font-semibold text-slate-900 dark:text-white">Year Total</span>
+                          <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(cyTotal)}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="border-t border-blue-200 dark:border-blue-800 pt-2 flex justify-between">
-                      <span className="font-semibold text-slate-900 dark:text-white">Projected Total</span>
-                      <span className="font-bold text-blue-700 dark:text-blue-400 text-lg">{formatCurrency(apiYearlyPayment.nextYear.projectedTotal)}</span>
-                    </div>
-                  </div>}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+
+                    {/* Next Year (Renewal) */}
+                    {ny && (
+                      <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/5 p-4 sm:p-5 flex flex-col">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">Next Year · Renewal</p>
+                          <div className="flex items-center gap-1.5">
+                            {ny.rentIncreased && (
+                              <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 text-[10px]">
+                                <TrendingUp className="h-3 w-3 mr-0.5" /> Rent Increase
+                              </Badge>
+                            )}
+                            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 text-[10px]">
+                              Projected
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{ny.year}</p>
+
+                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-4">
+                          <Calendar className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                          <span>Renewal starts <span className="font-medium text-slate-900 dark:text-white">{formatDate(ny.renewalStartDate)}</span></span>
+                        </div>
+
+                        <div className="space-y-2 text-sm mt-auto pt-3 border-t border-blue-200/70 dark:border-blue-800/50">
+                          <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Rent</span>
+                            <div className="text-right">
+                              <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(ny.projectedRent)}</span>
+                              <span className="block text-xs text-slate-400 dark:text-slate-500">{formatCurrency(ny.monthlyRent)}/mo</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">Service Charge</span>
+                            <div className="text-right">
+                              <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(ny.projectedServiceCharge)}</span>
+                              <span className="block text-xs text-slate-400 dark:text-slate-500">{formatCurrency(ny.monthlyServiceCharge)}/mo</span>
+                            </div>
+                          </div>
+                          {ny.projectedOther !== undefined && ny.projectedOther > 0 && (
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">One-Time Fees</span>
+                              <span className="font-medium text-slate-900 dark:text-white">{formatCurrency(ny.projectedOther)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between pt-2 border-t border-blue-200 dark:border-blue-800">
+                            <span className="font-semibold text-slate-900 dark:text-white">Projected Total</span>
+                            <span className="font-bold text-blue-700 dark:text-blue-400">{formatCurrency(ny.projectedTotal)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
         </TabsContent>
 
         <TabsContent value="billing" className="space-y-5">
