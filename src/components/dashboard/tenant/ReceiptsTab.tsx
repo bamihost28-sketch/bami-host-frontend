@@ -92,25 +92,29 @@ function generatePrintHTML(r: PaymentReceipt): string {
 </head>
 <body>
   <div class="header">
-    <div class="co">SAMFRED GLOBAL RESOURCES LTD</div>
-    <div class="sub">BALADO ESTATE MASON IFIE OFF MATRIX DEPOT</div>
-    <div class="sub">Tel: 07052258160, 0905665358</div>
-    <div class="title">Receipt</div>
+    <div class="co">${(r.estateName || "BamiHost").toUpperCase()}</div>
+    ${r.estateAddress ? `<div class="sub">${r.estateAddress}</div>` : ""}
+    <div class="title">Payment Receipt</div>
     <div class="date">DATE: ${r.paymentDate}</div>
   </div>
   <table>
+    <tr><td colspan="2" class="sh">Payment Details</td></tr>
+    ${row("Reference", r.reference)}
+    ${row("Payment Type", (r.paymentType || "").replace(/_/g, " "))}
+    ${row("Amount Paid", naira(r.amountPaid), "color:#16a34a;font-weight:bold")}
+
     <tr><td colspan="2" class="sh">Tenant Information</td></tr>
     ${row("Tenant Full Name", r.tenantName)}
     ${row("Phone Number", r.phone)}
     ${row("Meter No", r.meterNo || "—")}
-    ${row("Bedroom Type", r.bedroomType)}
-    ${row("Flat Type", r.flatType)}
+    ${r.bedroomType ? row("Bedroom Type", r.bedroomType) : ""}
+    ${row("Unit", r.flatType)}
     ${row("Move In Date", r.moveInDate)}
-    ${row("Expiry Date", r.expiryDate)}
+    ${row("Next Due Date", r.expiryDate)}
 
-    <tr><td colspan="2" class="sh">Payment Breakdown</td></tr>
-    ${r.rent > 0 ? row("Rent", naira(r.rent)) : ""}
-    ${r.serviceCharge > 0 ? row("Service Charge", naira(r.serviceCharge)) : ""}
+    <tr><td colspan="2" class="sh">Account Summary</td></tr>
+    ${r.rent > 0 ? row("Rent (annual)", naira(r.rent)) : ""}
+    ${r.serviceCharge > 0 ? row("Service Charge (annual)", naira(r.serviceCharge)) : ""}
     ${r.cautionFee > 0 ? row("1 Time Caution Fee", naira(r.cautionFee)) : ""}
     ${r.legalFee > 0 ? row("Legal Fee", naira(r.legalFee)) : ""}
     ${r.rentOutstanding > 0 ? row("Rent Outstanding", naira(r.rentOutstanding), "color:#dc2626;font-weight:bold") : ""}
@@ -121,19 +125,14 @@ function generatePrintHTML(r: PaymentReceipt): string {
     ${row(`Current Total Tenancy Rate: ${r.currentYear}`, naira(r.currentTotalTenancyRate))}
     ${row(`Next Total Tenancy Rate: ${r.nextYear}`, naira(r.nextTotalTenancyRate))}
     ${row("Tenancy Duration", r.tenancyDuration)}
-    ${row("Tenant Total Stay", r.tenantTotalStay)}
-    ${row("Year Duration", r.yearDuration)}
-
-    <tr><td colspan="2" class="sh">Upcoming Rent Adjustment</td></tr>
-    <tr class="inc"><td>Next Rental Increase on ${r.nextIncreaseDate}</td><td>${naira(r.nextRentIncrease)}</td></tr>
-    <tr class="inc"><td>Next Service Charge Increase on ${r.nextIncreaseDate}</td><td>${naira(r.nextServiceChargeIncrease)}</td></tr>
-    <tr class="inc"><td>Total Tenancy Rate Increase on ${r.nextIncreaseDate}</td><td>${naira(r.totalTenancyRateIncrease)}</td></tr>
+    ${r.tenantTotalStay ? row("Tenant Total Stay", r.tenantTotalStay) : ""}
   </table>
 
+  ${r.increaseCycleYears > 0 && r.increasePercent > 0 ? `
   <div class="notice">
     <div class="nt">Important Notice Regarding Rent Adjustment</div>
-    <p>Please be advised that there will be a <strong>26% increase in the combined Rent and Service Charge</strong> applicable <strong>every two (2) years</strong> of continuous tenancy. We appreciate your understanding and continued residency.</p>
-  </div>
+    <p>Please be advised that there is a <strong>${r.increasePercent}% increase in the combined Rent and Service Charge</strong> applicable <strong>every ${r.increaseCycleYears} year${r.increaseCycleYears !== 1 ? "s" : ""}</strong> of continuous tenancy. We appreciate your understanding and continued residency.</p>
+  </div>` : ""}
 
   <div class="footer">
     <p>BamiHost Property Management System &bull; Ref: ${r.reference}</p>
@@ -335,11 +334,11 @@ export const ReceiptsTab: React.FC = () => {
               {/* ── Blue header ── */}
               <div className="bg-blue-700 dark:bg-blue-900 text-white text-center px-6 py-5">
                 <p className="text-[11px] font-bold tracking-[0.2em] text-blue-200 uppercase mb-0.5">
-                  Samfred Global Resources Ltd
+                  {selectedReceipt.estateName || "BamiHost"}
                 </p>
-                <p className="text-[10px] text-blue-300">
-                  Balado Estate Mason Ifie Off Matrix Depot
-                </p>
+                {selectedReceipt.estateAddress && (
+                  <p className="text-[10px] text-blue-300">{selectedReceipt.estateAddress}</p>
+                )}
                 <Separator className="my-3 bg-blue-500/50" />
                 <p className="text-xl font-extrabold tracking-[0.3em] uppercase">Receipt</p>
                 <p className="text-blue-300 text-[11px] mt-1">{selectedReceipt.paymentDate}</p>
@@ -429,40 +428,46 @@ export const ReceiptsTab: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Upcoming Adjustment */}
-                <div>
-                  <SectionLabel>Upcoming Adjustment (26%)</SectionLabel>
-                  <div className="rounded-lg border border-amber-200 dark:border-amber-700 overflow-hidden">
-                    <ReceiptRow
-                      label={`Rent Increase — ${selectedReceipt.nextIncreaseDate}`}
-                      value={formatCurrency(selectedReceipt.nextRentIncrease)}
-                      color="amber"
-                    />
-                    <ReceiptRow
-                      label={`Service Charge Increase — ${selectedReceipt.nextIncreaseDate}`}
-                      value={formatCurrency(selectedReceipt.nextServiceChargeIncrease)}
-                      color="amber"
-                    />
-                    <ReceiptRow
-                      label={`Total Rate Increase — ${selectedReceipt.nextIncreaseDate}`}
-                      value={formatCurrency(selectedReceipt.totalTenancyRateIncrease)}
-                      color="amber"
-                    />
-                  </div>
-                </div>
+                {/* Upcoming Adjustment — only when the estate has an increase policy */}
+                {selectedReceipt.increaseCycleYears > 0 && selectedReceipt.increasePercent > 0 && (
+                  <>
+                    {(selectedReceipt.nextRentIncrease > 0 || selectedReceipt.nextServiceChargeIncrease > 0) && (
+                      <div>
+                        <SectionLabel>Upcoming Adjustment ({selectedReceipt.increasePercent}%)</SectionLabel>
+                        <div className="rounded-lg border border-amber-200 dark:border-amber-700 overflow-hidden">
+                          <ReceiptRow
+                            label={`Rent Increase — ${selectedReceipt.nextIncreaseDate}`}
+                            value={formatCurrency(selectedReceipt.nextRentIncrease)}
+                            color="amber"
+                          />
+                          <ReceiptRow
+                            label={`Service Charge Increase — ${selectedReceipt.nextIncreaseDate}`}
+                            value={formatCurrency(selectedReceipt.nextServiceChargeIncrease)}
+                            color="amber"
+                          />
+                          <ReceiptRow
+                            label={`Total Rate Increase — ${selectedReceipt.nextIncreaseDate}`}
+                            value={formatCurrency(selectedReceipt.totalTenancyRateIncrease)}
+                            color="amber"
+                          />
+                        </div>
+                      </div>
+                    )}
 
-                {/* Legal notice */}
-                <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4">
-                  <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mb-1">
-                    Important Notice Regarding Rent Adjustment
-                  </p>
-                  <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                    There will be a{" "}
-                    <strong>26% increase in the combined Rent and Service Charge</strong> applicable{" "}
-                    <strong>every two (2) years</strong> of continuous tenancy. We appreciate your
-                    understanding and continued residency.
-                  </p>
-                </div>
+                    {/* Legal notice */}
+                    <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4">
+                      <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mb-1">
+                        Important Notice Regarding Rent Adjustment
+                      </p>
+                      <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
+                        There is a{" "}
+                        <strong>{selectedReceipt.increasePercent}% increase in the combined Rent and Service Charge</strong> applicable{" "}
+                        <strong>every {selectedReceipt.increaseCycleYears} year{selectedReceipt.increaseCycleYears !== 1 ? "s" : ""}</strong> of continuous tenancy. We appreciate your
+                        understanding and continued residency.
+                      </p>
+                    </div>
+                  </>
+                )}
 
                 {/* Action buttons */}
                 <div className="flex gap-3 pb-2">

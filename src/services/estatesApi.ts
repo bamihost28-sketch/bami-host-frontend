@@ -1082,6 +1082,10 @@ export const estatesApi = createApi({
           description?: string;
           tenantName: string;
           phone: string;
+          estateName: string;
+          estateAddress: string;
+          increasePercent: number;
+          increaseCycleYears: number;
           meterNo: string;
           bedroomType: string;
           flatType: string;

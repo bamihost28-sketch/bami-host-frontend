@@ -113,7 +113,7 @@ export const PaymentSuccessPage = () => {
           <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
             Official Receipt
           </Badge>
-          <span className="text-xs font-bold text-primary tracking-widest uppercase">SAMFRED System</span>
+          <span className="text-xs font-bold text-primary tracking-widest uppercase">BamiHost</span>
         </div>
         
         <CardHeader className="pb-4">
@@ -184,7 +184,7 @@ export const PaymentSuccessPage = () => {
               
               <div className="hidden print:block pt-8 text-center border-t border-muted mt-8">
                 <p className="text-[10px] text-muted-foreground">Thank you for your payment. This receipt is computer generated and does not require a physical signature.</p>
-                <p className="text-xs font-bold mt-2 text-primary">SAMFRED ESTATE MANAGEMENT SYSTEM</p>
+                <p className="text-xs font-bold mt-2 text-primary">BAMIHOST PROPERTY MANAGEMENT SYSTEM</p>
               </div>
             </div>
           )}
