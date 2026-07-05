@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -27,34 +26,6 @@ import { formatCurrency, formatDate } from "./utils";
 type PaymentReceipt = NonNullable<
   ReturnType<typeof useGetPaymentReceiptsQuery>["data"]
 >["receipts"][number];
-
-// ── Shared receipt table row ──────────────────────────────────────────────────
-function ReceiptRow({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color?: "red" | "green" | "amber";
-}) {
-  const valClass =
-    color === "red"
-      ? "text-red-600 dark:text-red-400 font-semibold"
-      : color === "green"
-      ? "text-emerald-600 dark:text-emerald-400 font-semibold"
-      : color === "amber"
-      ? "text-amber-700 dark:text-amber-300 font-semibold"
-      : "text-slate-800 dark:text-slate-200";
-  return (
-    <div className="grid grid-cols-2 border-b border-slate-100 dark:border-slate-700/50 last:border-0">
-      <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide leading-tight">
-        {label}
-      </div>
-      <div className={`px-4 py-2.5 text-[11px] leading-tight ${valClass}`}>{value}</div>
-    </div>
-  );
-}
 
 // ── Print / PDF generation ────────────────────────────────────────────────────
 function generatePrintHTML(r: PaymentReceipt): string {
@@ -333,144 +304,96 @@ export const ReceiptsTab: React.FC = () => {
 
           {selectedReceipt && (
             <div>
-              {/* ── Blue header ── */}
-              <div className="bg-blue-700 dark:bg-blue-900 text-white text-center px-6 py-5">
-                <p className="text-[11px] font-bold tracking-[0.2em] text-blue-200 uppercase mb-0.5">
-                  {selectedReceipt.estateName || "BamiHost"}
-                </p>
-                {selectedReceipt.estateAddress && (
-                  <p className="text-[10px] text-blue-300">{selectedReceipt.estateAddress}</p>
-                )}
-                <Separator className="my-3 bg-blue-500/50" />
-                <p className="text-xl font-extrabold tracking-[0.3em] uppercase">Receipt</p>
-                <p className="text-blue-300 text-[11px] mt-1">{formatDate(selectedReceipt.paymentDate)}</p>
-              </div>
-
-              {/* ── Amount paid hero ── */}
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-200 dark:border-emerald-800 px-6 py-5 text-center">
-                <p className="text-[10px] font-bold tracking-widest text-emerald-600 dark:text-emerald-400 uppercase mb-1">
-                  Amount Paid
-                </p>
-                <p className="text-4xl font-extrabold text-emerald-700 dark:text-emerald-300">
-                  {formatCurrency(selectedReceipt.amountPaid)}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-2 font-mono">{selectedReceipt.reference}</p>
-              </div>
-
-              {/* ── Sections ── */}
-              <div className="px-5 pt-5 space-y-5">
-
-                {/* Tenant Info */}
-                <div>
-                  <SectionLabel>Tenant Information</SectionLabel>
-                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <ReceiptRow label="Tenant Full Name" value={selectedReceipt.tenantName} />
-                    <ReceiptRow label="Phone Number" value={selectedReceipt.phone} />
-                    <ReceiptRow label="Meter No" value={selectedReceipt.meterNo || "—"} />
-                    <ReceiptRow label="Bedroom Type" value={selectedReceipt.bedroomType} />
-                    <ReceiptRow label="Flat Type" value={selectedReceipt.flatType} />
-                    <ReceiptRow label="Move In Date" value={formatDate(selectedReceipt.moveInDate)} />
-                    <ReceiptRow label="Expiry Date" value={formatDate(selectedReceipt.expiryDate)} />
+              {/* ── Classic paper receipt preview (same design as print + PDF) ── */}
+              <div className="bg-white text-slate-900 px-5 pt-5 pb-4">
+                {/* Letterhead */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="min-w-0 pr-3">
+                    <p className="text-xl font-bold leading-tight" style={{ color: "#4472c4" }}>
+                      {(selectedReceipt.estateName || "BamiHost").toUpperCase()}
+                    </p>
+                    {selectedReceipt.estateAddress && (
+                      <p className="text-[11px] mt-0.5">{selectedReceipt.estateAddress.toUpperCase()}</p>
+                    )}
+                    {selectedReceipt.estatePhone && (
+                      <p className="text-[11px]">Tel: {selectedReceipt.estatePhone}</p>
+                    )}
+                  </div>
+                  <div
+                    className="w-14 h-14 shrink-0 flex items-center justify-center font-bold text-white text-base"
+                    style={{ background: "#0056b3", border: "2px solid #2c5aa0" }}
+                  >
+                    {(selectedReceipt.estateName || "BamiHost").split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase()}
                   </div>
                 </div>
 
-                {/* Payment Breakdown */}
-                <div>
-                  <SectionLabel>Payment Breakdown</SectionLabel>
-                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    {selectedReceipt.rent > 0 && (
-                      <ReceiptRow label="Rent" value={formatCurrency(selectedReceipt.rent)} />
-                    )}
-                    {selectedReceipt.serviceCharge > 0 && (
-                      <ReceiptRow label="Service Charge" value={formatCurrency(selectedReceipt.serviceCharge)} />
-                    )}
-                    {selectedReceipt.cautionFee > 0 && (
-                      <ReceiptRow label="1 Time Caution Fee" value={formatCurrency(selectedReceipt.cautionFee)} />
-                    )}
-                    {selectedReceipt.legalFee > 0 && (
-                      <ReceiptRow label="Legal Fee" value={formatCurrency(selectedReceipt.legalFee)} />
-                    )}
-                    {selectedReceipt.rentOutstanding > 0 && (
-                      <ReceiptRow
-                        label="Rent Outstanding"
-                        value={formatCurrency(selectedReceipt.rentOutstanding)}
-                        color="red"
-                      />
-                    )}
-                    {selectedReceipt.serviceChargeOutstanding > 0 && (
-                      <ReceiptRow
-                        label="Service Charge Outstanding"
-                        value={formatCurrency(selectedReceipt.serviceChargeOutstanding)}
-                        color="red"
-                      />
-                    )}
-                    <ReceiptRow
-                      label="Outstanding Balance"
-                      value={formatCurrency(selectedReceipt.outstandingBalance)}
-                      color={selectedReceipt.outstandingBalance > 0 ? "red" : "green"}
-                    />
-                  </div>
+                {/* RECEIPT bar + date */}
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-bold text-sm px-2.5 py-1" style={{ background: "#e7e6e6" }}>RECEIPT</span>
+                  <span className="font-bold text-xs">DATE: {formatDate(selectedReceipt.paymentDate)}</span>
                 </div>
 
-                {/* Tenancy Summary */}
-                <div>
-                  <SectionLabel>Tenancy Summary</SectionLabel>
-                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <ReceiptRow
-                      label={`Current Total Tenancy Rate: ${selectedReceipt.currentYear}`}
-                      value={formatCurrency(selectedReceipt.currentTotalTenancyRate)}
-                    />
-                    <ReceiptRow
-                      label={`Next Total Tenancy Rate: ${selectedReceipt.nextYear}`}
-                      value={formatCurrency(selectedReceipt.nextTotalTenancyRate)}
-                    />
-                    <ReceiptRow label="Tenancy Duration" value={selectedReceipt.tenancyDuration} />
-                    <ReceiptRow label="Tenant Total Stay" value={selectedReceipt.tenantTotalStay} />
-                    <ReceiptRow label="Year Duration" value={selectedReceipt.yearDuration} />
-                  </div>
-                </div>
+                {/* Classic table */}
+                <table className="w-full border-collapse text-[11px]">
+                  <tbody>
+                    {([
+                      ["TENANT FULL NAME:", selectedReceipt.tenantName, "#4472c4"],
+                      ["PHONE NUMBER:", selectedReceipt.phone, "#4472c4"],
+                      ["Meter No:", selectedReceipt.meterNo || "—", "#4472c4"],
+                      ...(selectedReceipt.bedroomType ? [["BEDROOM TYPE:", selectedReceipt.bedroomType.toUpperCase(), "#4472c4"]] : []),
+                      ["FLAT TYPE:", (selectedReceipt.flatType || "").toUpperCase(), "#4472c4"],
+                      ["MOVE IN DATE:", formatDate(selectedReceipt.moveInDate).toUpperCase(), "#4472c4"],
+                      ["EXPIRY DATE:", formatDate(selectedReceipt.expiryDate).toUpperCase(), "#4472c4"],
+                      ["AMOUNT PAID:", formatCurrency(selectedReceipt.amountPaid), "#70ad47"],
+                      ["RENT:", formatCurrency(selectedReceipt.rent), "#4472c4"],
+                      ["RENT OUTSTANDING:", formatCurrency(selectedReceipt.rentOutstanding), "#ff0000"],
+                      ["SERVICE CHARGE:", formatCurrency(selectedReceipt.serviceCharge), "#4472c4"],
+                      ["SERVICE CHARGE OUTSTANDING:", formatCurrency(selectedReceipt.serviceChargeOutstanding), "#ff0000"],
+                      ["1 TIME CAUTION FEE:", formatCurrency(selectedReceipt.cautionFee), "#4472c4"],
+                      ["1 TIME LEGAL FEE:", formatCurrency(selectedReceipt.legalFee), "#4472c4"],
+                      ["OUTSTANDING BALANCE:", formatCurrency(selectedReceipt.outstandingBalance), "#ff0000"],
+                      [`CURRENT TOTAL TENANCY RATE: ${selectedReceipt.currentYear}`, formatCurrency(selectedReceipt.currentTotalTenancyRate), "#70ad47"],
+                      [`NEXT TOTAL TENANCY RATE ${selectedReceipt.nextYear}:`, formatCurrency(selectedReceipt.nextTotalTenancyRate), "#bf9000"],
+                      ["TENANCY DURATION:", selectedReceipt.tenancyDuration, "#4472c4"],
+                      ["TENANT TOTAL STAY:", selectedReceipt.tenantTotalStay, "#4472c4"],
+                      ["YEAR DURATION:", selectedReceipt.yearDuration, "#4472c4"],
+                      ...(selectedReceipt.increaseCycleYears > 0 && selectedReceipt.increasePercent > 0 && selectedReceipt.nextIncreaseDate &&
+                          (selectedReceipt.nextRentIncrease > 0 || selectedReceipt.nextServiceChargeIncrease > 0)
+                        ? [
+                            [`NEXT RENTAL INCREASE BY (${selectedReceipt.increasePercent}%) ON ${formatDate(selectedReceipt.nextIncreaseDate).toUpperCase()}:`, formatCurrency(selectedReceipt.nextRentIncrease), "#ff0000"],
+                            [`NEXT SERVICE CHARGE INCREASE BY (${selectedReceipt.increasePercent}%) ON ${formatDate(selectedReceipt.nextIncreaseDate).toUpperCase()}:`, formatCurrency(selectedReceipt.nextServiceChargeIncrease), "#ff0000"],
+                            [`TOTAL TENANCY RATE INCREASE BY (${selectedReceipt.increasePercent}%) ON ${formatDate(selectedReceipt.nextIncreaseDate).toUpperCase()}:`, formatCurrency(selectedReceipt.totalTenancyRateIncrease), "#ff0000"],
+                          ]
+                        : []),
+                    ] as [string, string, string][]).map(([label, value, color], i) => (
+                      <tr key={i} style={{ color }}>
+                        <td className="border border-slate-800 px-2 py-1.5 font-bold w-1/2">{label}</td>
+                        <td className="border border-slate-800 px-2 py-1.5">{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
 
-                {/* Upcoming Adjustment — only when the estate has an increase policy */}
+                {/* Red adjustment notice */}
                 {selectedReceipt.increaseCycleYears > 0 && selectedReceipt.increasePercent > 0 && (
-                  <>
-                    {(selectedReceipt.nextRentIncrease > 0 || selectedReceipt.nextServiceChargeIncrease > 0) && (
-                      <div>
-                        <SectionLabel>Upcoming Adjustment ({selectedReceipt.increasePercent}%)</SectionLabel>
-                        <div className="rounded-lg border border-amber-200 dark:border-amber-700 overflow-hidden">
-                          <ReceiptRow
-                            label={`Rent Increase — ${formatDate(selectedReceipt.nextIncreaseDate)}`}
-                            value={formatCurrency(selectedReceipt.nextRentIncrease)}
-                            color="amber"
-                          />
-                          <ReceiptRow
-                            label={`Service Charge Increase — ${formatDate(selectedReceipt.nextIncreaseDate)}`}
-                            value={formatCurrency(selectedReceipt.nextServiceChargeIncrease)}
-                            color="amber"
-                          />
-                          <ReceiptRow
-                            label={`Total Rate Increase — ${formatDate(selectedReceipt.nextIncreaseDate)}`}
-                            value={formatCurrency(selectedReceipt.totalTenancyRateIncrease)}
-                            color="amber"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Legal notice */}
-                    <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4">
-                      <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mb-1">
-                        Important Notice Regarding Rent Adjustment
-                      </p>
-                      <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed">
-                        There is a{" "}
-                        <strong>{selectedReceipt.increasePercent}% increase in the combined Rent and Service Charge</strong> applicable{" "}
-                        <strong>every {selectedReceipt.increaseCycleYears} year{selectedReceipt.increaseCycleYears !== 1 ? "s" : ""}</strong> of continuous tenancy. We appreciate your
-                        understanding and continued residency.
-                      </p>
-                    </div>
-                  </>
+                  <div className="mt-3">
+                    <p className="text-[11px] font-bold" style={{ color: "#ff0000" }}>
+                      Important Notice Regarding Rent Adjustment
+                    </p>
+                    <p className="text-[10px] leading-relaxed" style={{ color: "#ff0000" }}>
+                      Please be advised that there will be a <strong>{selectedReceipt.increasePercent}% increase in the combined
+                      Rent and Service Charge</strong> applicable <strong>every {selectedReceipt.increaseCycleYears === 2 ? "two (2)" : selectedReceipt.increaseCycleYears} year{selectedReceipt.increaseCycleYears !== 1 ? "s" : ""}</strong> of
+                      continuous tenancy. We appreciate your understanding and continued residency.
+                    </p>
+                  </div>
                 )}
 
+                <p className="text-[9px] text-slate-400 text-center mt-3">
+                  BamiHost Property Management System &bull; Ref: {selectedReceipt.reference}
+                </p>
+              </div>
+
+              <div className="px-5 pb-5 pt-3 space-y-4 border-t border-slate-200 dark:border-slate-700">
                 {/* Action buttons */}
                 <div className="flex gap-3 pb-2">
                   <Button
@@ -502,12 +425,3 @@ export const ReceiptsTab: React.FC = () => {
     </>
   );
 };
-
-// ── Small helpers ─────────────────────────────────────────────────────────────
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-2">
-      {children}
-    </p>
-  );
-}
