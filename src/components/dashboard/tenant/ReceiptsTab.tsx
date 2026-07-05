@@ -22,7 +22,7 @@ import {
   useGetPaymentReceiptsQuery,
   useLazyDownloadPaymentReceiptQuery,
 } from "@/services/estatesApi";
-import { formatCurrency } from "./utils";
+import { formatCurrency, formatDate } from "./utils";
 
 type PaymentReceipt = NonNullable<
   ReturnType<typeof useGetPaymentReceiptsQuery>["data"]
@@ -105,7 +105,7 @@ function generatePrintHTML(r: PaymentReceipt): string {
   </div>
   <div class="titlebar">
     <span class="title">RECEIPT</span>
-    <span class="date">DATE: ${r.paymentDate}</span>
+    <span class="date">DATE: ${formatDate(r.paymentDate)}</span>
   </div>
   <table>
     ${row("TENANT FULL NAME:", r.tenantName)}
@@ -113,8 +113,8 @@ function generatePrintHTML(r: PaymentReceipt): string {
     ${row("Meter No:", r.meterNo || "—")}
     ${r.bedroomType ? row("BEDROOM TYPE:", r.bedroomType.toUpperCase()) : ""}
     ${row("FLAT TYPE:", (r.flatType || "").toUpperCase())}
-    ${row("MOVE IN DATE:", (r.moveInDate || "").toUpperCase())}
-    ${row("EXPIRY DATE:", (r.expiryDate || "").toUpperCase())}
+    ${row("MOVE IN DATE:", formatDate(r.moveInDate).toUpperCase())}
+    ${row("EXPIRY DATE:", formatDate(r.expiryDate).toUpperCase())}
     ${row("AMOUNT PAID:", naira(r.amountPaid), "#70ad47")}
     ${row("RENT:", naira(r.rent))}
     ${row("RENT OUTSTANDING:", naira(r.rentOutstanding), "#ff0000")}
@@ -129,9 +129,9 @@ function generatePrintHTML(r: PaymentReceipt): string {
     ${row("TENANT TOTAL STAY:", r.tenantTotalStay)}
     ${row("YEAR DURATION:", r.yearDuration)}
     ${hasIncrease ? `
-    ${row(`NEXT RENTAL INCREASE BY (${r.increasePercent}%) ON ${r.nextIncreaseDate}:`, naira(r.nextRentIncrease), "#ff0000")}
-    ${row(`NEXT SERVICE CHARGE INCREASE BY (${r.increasePercent}%) ON ${r.nextIncreaseDate}:`, naira(r.nextServiceChargeIncrease), "#ff0000")}
-    ${row(`TOTAL TENANCY RATE INCREASE BY (${r.increasePercent}%) ON ${r.nextIncreaseDate}:`, naira(r.totalTenancyRateIncrease), "#ff0000")}` : ""}
+    ${row(`NEXT RENTAL INCREASE BY (${r.increasePercent}%) ON ${formatDate(r.nextIncreaseDate).toUpperCase()}:`, naira(r.nextRentIncrease), "#ff0000")}
+    ${row(`NEXT SERVICE CHARGE INCREASE BY (${r.increasePercent}%) ON ${formatDate(r.nextIncreaseDate).toUpperCase()}:`, naira(r.nextServiceChargeIncrease), "#ff0000")}
+    ${row(`TOTAL TENANCY RATE INCREASE BY (${r.increasePercent}%) ON ${formatDate(r.nextIncreaseDate).toUpperCase()}:`, naira(r.totalTenancyRateIncrease), "#ff0000")}` : ""}
   </table>
 
   ${r.increaseCycleYears > 0 && r.increasePercent > 0 ? `
@@ -262,7 +262,7 @@ export const ReceiptsTab: React.FC = () => {
                         <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-500 dark:text-slate-400">
                           <span className="flex items-center gap-1">
                             <CalendarDays className="h-3 w-3" />
-                            {r.paymentDate}
+                            {formatDate(r.paymentDate)}
                           </span>
                           <span className="flex items-center gap-1 capitalize">
                             <CreditCard className="h-3 w-3" />
@@ -343,7 +343,7 @@ export const ReceiptsTab: React.FC = () => {
                 )}
                 <Separator className="my-3 bg-blue-500/50" />
                 <p className="text-xl font-extrabold tracking-[0.3em] uppercase">Receipt</p>
-                <p className="text-blue-300 text-[11px] mt-1">{selectedReceipt.paymentDate}</p>
+                <p className="text-blue-300 text-[11px] mt-1">{formatDate(selectedReceipt.paymentDate)}</p>
               </div>
 
               {/* ── Amount paid hero ── */}
@@ -369,8 +369,8 @@ export const ReceiptsTab: React.FC = () => {
                     <ReceiptRow label="Meter No" value={selectedReceipt.meterNo || "—"} />
                     <ReceiptRow label="Bedroom Type" value={selectedReceipt.bedroomType} />
                     <ReceiptRow label="Flat Type" value={selectedReceipt.flatType} />
-                    <ReceiptRow label="Move In Date" value={selectedReceipt.moveInDate} />
-                    <ReceiptRow label="Expiry Date" value={selectedReceipt.expiryDate} />
+                    <ReceiptRow label="Move In Date" value={formatDate(selectedReceipt.moveInDate)} />
+                    <ReceiptRow label="Expiry Date" value={formatDate(selectedReceipt.expiryDate)} />
                   </div>
                 </div>
 
@@ -438,17 +438,17 @@ export const ReceiptsTab: React.FC = () => {
                         <SectionLabel>Upcoming Adjustment ({selectedReceipt.increasePercent}%)</SectionLabel>
                         <div className="rounded-lg border border-amber-200 dark:border-amber-700 overflow-hidden">
                           <ReceiptRow
-                            label={`Rent Increase — ${selectedReceipt.nextIncreaseDate}`}
+                            label={`Rent Increase — ${formatDate(selectedReceipt.nextIncreaseDate)}`}
                             value={formatCurrency(selectedReceipt.nextRentIncrease)}
                             color="amber"
                           />
                           <ReceiptRow
-                            label={`Service Charge Increase — ${selectedReceipt.nextIncreaseDate}`}
+                            label={`Service Charge Increase — ${formatDate(selectedReceipt.nextIncreaseDate)}`}
                             value={formatCurrency(selectedReceipt.nextServiceChargeIncrease)}
                             color="amber"
                           />
                           <ReceiptRow
-                            label={`Total Rate Increase — ${selectedReceipt.nextIncreaseDate}`}
+                            label={`Total Rate Increase — ${formatDate(selectedReceipt.nextIncreaseDate)}`}
                             value={formatCurrency(selectedReceipt.totalTenancyRateIncrease)}
                             color="amber"
                           />
