@@ -58,9 +58,16 @@ function ReceiptRow({
 
 // ── Print / PDF generation ────────────────────────────────────────────────────
 function generatePrintHTML(r: PaymentReceipt): string {
-  const row = (label: string, value: string, style = "") =>
-    `<tr><td>${label}</td><td style="${style}">${value}</td></tr>`;
-  const naira = (n: number) => `&#8358;${n.toLocaleString()}`;
+  // Classic letterhead-table receipt (matches the backend PDF design):
+  // blue labels/values, red outstanding rows, green current rate, gold next rate.
+  const row = (label: string, value: string, color = "#4472c4") =>
+    `<tr style="color:${color}"><td>${label}</td><td>${value}</td></tr>`;
+  const naira = (n: number) => `&#8358; ${(n || 0).toLocaleString()}`;
+  const name = (r.estateName || "BamiHost").toUpperCase();
+  const initials = name.split(/\s+/).slice(0, 2).map(w => w[0]).join("");
+  const hasIncrease =
+    r.increaseCycleYears > 0 && r.increasePercent > 0 && !!r.nextIncreaseDate &&
+    (r.nextRentIncrease > 0 || r.nextServiceChargeIncrease > 0);
 
   return `<!DOCTYPE html>
 <html>
@@ -69,74 +76,69 @@ function generatePrintHTML(r: PaymentReceipt): string {
   <title>Receipt – ${r.flatType}</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:Arial,sans-serif;color:#1e293b;padding:32px;font-size:11px}
-    .header{text-align:center;margin-bottom:20px;border-bottom:3px solid #1d4ed8;padding-bottom:16px}
-    .co{font-size:22px;font-weight:bold;color:#1d4ed8;letter-spacing:1px}
-    .sub{font-size:11px;color:#475569;margin-top:3px}
-    .title{font-size:16px;font-weight:bold;margin:14px 0 4px;text-transform:uppercase;letter-spacing:3px}
-    .date{color:#64748b;font-size:11px}
-    table{width:100%;border-collapse:collapse;margin-top:16px}
-    tr:nth-child(even){background:#f8fafc}
-    td{padding:7px 12px;font-size:11px;border-bottom:1px solid #e2e8f0}
-    td:first-child{font-weight:600;color:#2563eb;width:55%}
-    .sh{background:#1d4ed8!important;color:white;font-weight:bold;font-size:11px;padding:7px 12px;text-transform:uppercase;letter-spacing:1px}
-    .tot td{font-weight:bold;background:#eff6ff!important}
-    .inc{background:#fffbeb!important}
-    .inc td:first-child{color:#92400e}
-    .notice{margin-top:20px;border:1px solid #fde68a;background:#fffbeb;border-radius:4px;padding:12px 14px}
-    .nt{font-weight:bold;color:#92400e;font-size:11px;margin-bottom:4px}
-    .notice p{color:#78350f;font-size:10px;line-height:1.5}
-    .footer{margin-top:20px;text-align:center;color:#94a3b8;font-size:10px;border-top:1px solid #e2e8f0;padding-top:10px}
+    body{font-family:Arial,sans-serif;color:#1e293b;padding:32px;font-size:12px}
+    .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+    .co{font-size:24px;font-weight:bold;color:#4472c4}
+    .sub{font-size:12px;color:#1e293b;margin-top:3px}
+    .logo{width:72px;height:72px;background:#0056b3;border:2px solid #2c5aa0;color:white;
+          display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px}
+    .titlebar{display:flex;justify-content:space-between;align-items:center;margin-bottom:0}
+    .title{font-size:15px;font-weight:bold;background:#e7e6e6;padding:5px 10px}
+    .date{font-size:13px;font-weight:bold}
+    table{width:100%;border-collapse:collapse;margin-top:6px}
+    td{padding:6px 8px;font-size:12px;border:1px solid #1e293b}
+    td:first-child{font-weight:bold;width:50%}
+    .notice-t{margin-top:14px;font-weight:bold;color:#ff0000;font-size:12px}
+    .notice-b{color:#ff0000;font-size:11px;line-height:1.5;margin-top:3px}
+    .footer{margin-top:14px;text-align:center;color:#94a3b8;font-size:9px}
     @media print{body{padding:16px}}
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="co">${(r.estateName || "BamiHost").toUpperCase()}</div>
-    ${r.estateAddress ? `<div class="sub">${r.estateAddress}</div>` : ""}
-    <div class="title">Payment Receipt</div>
-    <div class="date">DATE: ${r.paymentDate}</div>
+  <div class="head">
+    <div>
+      <div class="co">${name}</div>
+      ${r.estateAddress ? `<div class="sub">${r.estateAddress.toUpperCase()}</div>` : ""}
+      ${r.estatePhone ? `<div class="sub">Tel: ${r.estatePhone}</div>` : ""}
+    </div>
+    <div class="logo">${initials}</div>
+  </div>
+  <div class="titlebar">
+    <span class="title">RECEIPT</span>
+    <span class="date">DATE: ${r.paymentDate}</span>
   </div>
   <table>
-    <tr><td colspan="2" class="sh">Payment Details</td></tr>
-    ${row("Reference", r.reference)}
-    ${row("Payment Type", (r.paymentType || "").replace(/_/g, " "))}
-    ${row("Amount Paid", naira(r.amountPaid), "color:#16a34a;font-weight:bold")}
-
-    <tr><td colspan="2" class="sh">Tenant Information</td></tr>
-    ${row("Tenant Full Name", r.tenantName)}
-    ${row("Phone Number", r.phone)}
-    ${row("Meter No", r.meterNo || "—")}
-    ${r.bedroomType ? row("Bedroom Type", r.bedroomType) : ""}
-    ${row("Unit", r.flatType)}
-    ${row("Move In Date", r.moveInDate)}
-    ${row("Next Due Date", r.expiryDate)}
-
-    <tr><td colspan="2" class="sh">Account Summary</td></tr>
-    ${r.rent > 0 ? row("Rent (annual)", naira(r.rent)) : ""}
-    ${r.serviceCharge > 0 ? row("Service Charge (annual)", naira(r.serviceCharge)) : ""}
-    ${r.cautionFee > 0 ? row("1 Time Caution Fee", naira(r.cautionFee)) : ""}
-    ${r.legalFee > 0 ? row("Legal Fee", naira(r.legalFee)) : ""}
-    ${r.rentOutstanding > 0 ? row("Rent Outstanding", naira(r.rentOutstanding), "color:#dc2626;font-weight:bold") : ""}
-    ${r.serviceChargeOutstanding > 0 ? row("Service Charge Outstanding", naira(r.serviceChargeOutstanding), "color:#dc2626;font-weight:bold") : ""}
-    <tr class="tot"><td>Outstanding Balance</td><td style="color:${r.outstandingBalance > 0 ? "#dc2626" : "#16a34a"}">${naira(r.outstandingBalance)}</td></tr>
-
-    <tr><td colspan="2" class="sh">Tenancy Summary</td></tr>
-    ${row(`Current Total Tenancy Rate: ${r.currentYear}`, naira(r.currentTotalTenancyRate))}
-    ${row(`Next Total Tenancy Rate: ${r.nextYear}`, naira(r.nextTotalTenancyRate))}
-    ${row("Tenancy Duration", r.tenancyDuration)}
-    ${r.tenantTotalStay ? row("Tenant Total Stay", r.tenantTotalStay) : ""}
+    ${row("TENANT FULL NAME:", r.tenantName)}
+    ${row("PHONE NUMBER:", r.phone)}
+    ${row("Meter No:", r.meterNo || "—")}
+    ${r.bedroomType ? row("BEDROOM TYPE:", r.bedroomType.toUpperCase()) : ""}
+    ${row("FLAT TYPE:", (r.flatType || "").toUpperCase())}
+    ${row("MOVE IN DATE:", (r.moveInDate || "").toUpperCase())}
+    ${row("EXPIRY DATE:", (r.expiryDate || "").toUpperCase())}
+    ${row("AMOUNT PAID:", naira(r.amountPaid), "#70ad47")}
+    ${row("RENT:", naira(r.rent))}
+    ${row("RENT OUTSTANDING:", naira(r.rentOutstanding), "#ff0000")}
+    ${row("SERVICE CHARGE:", naira(r.serviceCharge))}
+    ${row("SERVICE CHARGE OUTSTANDING:", naira(r.serviceChargeOutstanding), "#ff0000")}
+    ${row("1 TIME CAUTION FEE:", naira(r.cautionFee))}
+    ${row("1 TIME LEGAL FEE:", naira(r.legalFee))}
+    ${row("OUTSTANDING BALANCE:", naira(r.outstandingBalance), "#ff0000")}
+    ${row(`CURRENT TOTAL TENANCY RATE: ${r.currentYear}`, naira(r.currentTotalTenancyRate), "#70ad47")}
+    ${row(`NEXT TOTAL TENANCY RATE ${r.nextYear}:`, naira(r.nextTotalTenancyRate), "#bf9000")}
+    ${row("TENANCY DURATION:", r.tenancyDuration)}
+    ${row("TENANT TOTAL STAY:", r.tenantTotalStay)}
+    ${row("YEAR DURATION:", r.yearDuration)}
+    ${hasIncrease ? `
+    ${row(`NEXT RENTAL INCREASE BY (${r.increasePercent}%) ON ${r.nextIncreaseDate}:`, naira(r.nextRentIncrease), "#ff0000")}
+    ${row(`NEXT SERVICE CHARGE INCREASE BY (${r.increasePercent}%) ON ${r.nextIncreaseDate}:`, naira(r.nextServiceChargeIncrease), "#ff0000")}
+    ${row(`TOTAL TENANCY RATE INCREASE BY (${r.increasePercent}%) ON ${r.nextIncreaseDate}:`, naira(r.totalTenancyRateIncrease), "#ff0000")}` : ""}
   </table>
 
   ${r.increaseCycleYears > 0 && r.increasePercent > 0 ? `
-  <div class="notice">
-    <div class="nt">Important Notice Regarding Rent Adjustment</div>
-    <p>Please be advised that there is a <strong>${r.increasePercent}% increase in the combined Rent and Service Charge</strong> applicable <strong>every ${r.increaseCycleYears} year${r.increaseCycleYears !== 1 ? "s" : ""}</strong> of continuous tenancy. We appreciate your understanding and continued residency.</p>
-  </div>` : ""}
+  <div class="notice-t">Important Notice Regarding Rent Adjustment</div>
+  <div class="notice-b">Please be advised that there will be a <strong>${r.increasePercent}% increase in the combined Rent and Service Charge</strong> applicable <strong>every ${r.increaseCycleYears === 2 ? "two (2)" : r.increaseCycleYears} year${r.increaseCycleYears !== 1 ? "s" : ""}</strong> of continuous tenancy. We appreciate your understanding and continued residency.</div>` : ""}
 
-  <div class="footer">
-    <p>BamiHost Property Management System &bull; Ref: ${r.reference}</p>
-  </div>
+  <div class="footer">BamiHost Property Management System &bull; Ref: ${r.reference}</div>
   <script>window.onload=function(){window.print()}</script>
 </body>
 </html>`;

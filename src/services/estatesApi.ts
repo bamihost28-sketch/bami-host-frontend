@@ -1099,6 +1099,7 @@ export const estatesApi = createApi({
           phone: string;
           estateName: string;
           estateAddress: string;
+          estatePhone?: string;
           increasePercent: number;
           increaseCycleYears: number;
           meterNo: string;
