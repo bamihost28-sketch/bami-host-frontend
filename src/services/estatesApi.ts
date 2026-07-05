@@ -174,6 +174,7 @@ export interface TenantBillingResponse {
       nextDueDate: string;
       daysUntilDue: number;
       isOverdue: boolean;
+      autoPayEnabled?: boolean;
     };
     charges: {
       recurring: {
@@ -222,9 +223,12 @@ export interface TenantBillingResponse {
       initialPayment: {
         rent12Months: number;
         serviceCharge12Months: number;
+        rent6Months?: number;
+        serviceCharge6Months?: number;
         cautionFee: number;
         legalFee: number;
         total: number;
+        total6Months?: number;
         note: string;
       } | null;
     };
@@ -944,6 +948,17 @@ export const estatesApi = createApi({
         { type: 'Payment', id: 'TENANT' },
       ],
     }),
+    toggleAutoPay: builder.mutation<
+      { success: boolean; message: string; data: { autoPayEnabled: boolean } },
+      { enabled: boolean }
+    >({
+      query: (body) => ({
+        url: '/api/tenants/me/auto-pay',
+        method: 'PATCH',
+        body
+      }),
+      invalidatesTags: () => [{ type: 'Tenant', id: 'ME' }],
+    }),
     // Vacant units for an estate
     getEstateVacantUnits: builder.query<{ success: boolean; data: { unitId: string; label: string; monthlyPrice: number; meterNumber?: string; status?: string; description?: string }[]; total?: number }, string>({
       query: (estateId) => `/api/estates/${estateId}/units/vacant`,
@@ -1345,6 +1360,7 @@ export const {
   useVerifyPaymentQuery,
   useLazyVerifyPaymentQuery,
   usePayBillingMutation,
+  useToggleAutoPayMutation,
   useCreateEstateTenantMutation,
   useCreateEstateUnitMutation,
   useGetEstateVacantUnitsQuery,

@@ -18,7 +18,8 @@ import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, Credi
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useGetMyPaymentHistoryQuery, useGetIssuesQuery, type TenantPaymentRecord } from "@/services/estatesApi";
+import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useToggleAutoPayMutation, useGetMyPaymentHistoryQuery, useGetIssuesQuery, type TenantPaymentRecord } from "@/services/estatesApi";
+import { Switch } from "@/components/ui/switch";
 import {
   useGetWalletBalanceQuery,
   useDepositMutation,
@@ -62,6 +63,7 @@ export const TenantDashboard: React.FC = () => {
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
   const { data: billingData } = useGetMyBillingQuery();
   const [payBilling, { isLoading: isPaying }] = usePayBillingMutation();
+  const [toggleAutoPay, { isLoading: isTogglingAutoPay }] = useToggleAutoPayMutation();
   const { data: transactionsData, isLoading: transactionsLoading } = useGetMyPaymentHistoryQuery(
     { page: 1, limit: 20 }
   );
@@ -194,9 +196,12 @@ export const TenantDashboard: React.FC = () => {
   };
 
   const calculateSelectedTotal = () => {
-    // When locked for initial payment, use the pre-calculated 12-month total from the API
+    // When locked for initial payment, use the API's pre-calculated total for
+    // the chosen duration (all one-time fees are included in both).
     if (billingSummary?.requiresInitialPayment && billingSummary?.initialPayment?.total) {
-      return billingSummary.initialPayment.total;
+      return rentPaymentMonths === 6
+        ? billingSummary.initialPayment.total6Months ?? billingSummary.initialPayment.total
+        : billingSummary.initialPayment.total;
     }
     let total = 0;
     allBillingItems.forEach((item) => {
@@ -757,8 +762,18 @@ export const TenantDashboard: React.FC = () => {
 
                   <div className="bg-white dark:bg-slate-800 rounded-lg overflow-hidden border border-amber-200 dark:border-amber-800 divide-y divide-amber-100 dark:divide-slate-700 mb-4">
                     {[
-                      { label: "12-Month Rent", amount: billingSummary.initialPayment.rent12Months },
-                      { label: "12-Month Service Charge", amount: billingSummary.initialPayment.serviceCharge12Months },
+                      {
+                        label: `${rentPaymentMonths}-Month Rent`,
+                        amount: rentPaymentMonths === 6
+                          ? billingSummary.initialPayment.rent6Months ?? billingSummary.initialPayment.rent12Months / 2
+                          : billingSummary.initialPayment.rent12Months,
+                      },
+                      {
+                        label: `${rentPaymentMonths}-Month Service Charge`,
+                        amount: rentPaymentMonths === 6
+                          ? billingSummary.initialPayment.serviceCharge6Months ?? billingSummary.initialPayment.serviceCharge12Months / 2
+                          : billingSummary.initialPayment.serviceCharge12Months,
+                      },
                       { label: "Caution Fee", amount: billingSummary.initialPayment.cautionFee },
                       { label: "Legal Fee", amount: billingSummary.initialPayment.legalFee },
                     ].filter(r => r.amount > 0).map(row => (
@@ -769,9 +784,12 @@ export const TenantDashboard: React.FC = () => {
                     ))}
                     <div className="flex justify-between px-4 py-3 bg-amber-50 dark:bg-amber-900/30">
                       <span className="font-semibold text-slate-900 dark:text-white">Total Initial Payment</span>
-                      <span className="font-bold text-amber-700 dark:text-amber-300 text-lg">{formatCurrency(billingSummary.initialPayment.total)}</span>
+                      <span className="font-bold text-amber-700 dark:text-amber-300 text-lg">{formatCurrency(calculateSelectedTotal())}</span>
                     </div>
                   </div>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mb-3">
+                    You can pay rent for 6 or 12 months (choose below), but all one-time fees must be included in this first payment.
+                  </p>
 
                   <Button
                     className="w-full bg-amber-600 hover:bg-amber-700 text-white h-11"
@@ -781,10 +799,40 @@ export const TenantDashboard: React.FC = () => {
                     }}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
-                    Pay Initial Amount — {formatCurrency(billingSummary.initialPayment.total)}
+                    Pay Initial Amount — {formatCurrency(calculateSelectedTotal())}
                   </Button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Auto-Pay toggle */}
+          {billingData?.data?.tenant && (
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-blue-600" />
+                  Auto-Pay from Wallet
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  When your rent is due, it will be paid automatically from your wallet — only if the
+                  balance covers the full amount. You stay in control and can turn this off anytime.
+                </p>
+              </div>
+              <Switch
+                checked={!!billingData.data.tenant.autoPayEnabled}
+                disabled={isTogglingAutoPay}
+                onCheckedChange={async (checked) => {
+                  try {
+                    await toggleAutoPay({ enabled: checked }).unwrap();
+                    toast(checked
+                      ? "Auto-pay enabled — rent will be paid from your wallet when due."
+                      : "Auto-pay disabled.");
+                  } catch (error: any) {
+                    toast(`Error: ${error?.data?.message || "Could not update auto-pay"}`);
+                  }
+                }}
+              />
             </div>
           )}
 
@@ -951,20 +999,32 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Payment Duration Picker — shown when rent is selected (non-initial payment only) */}
-              {!isInitialPaymentLocked && selectedBillingItems.includes("rent") && (
+              {/* Payment Duration Picker — rent can be paid for 6 or 12 months.
+                  For the locked initial payment the one-time fees still apply on top. */}
+              {selectedBillingItems.includes("rent") && (
                 <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 p-4">
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-blue-600" />
                     Payment Duration
+                    {isInitialPaymentLocked && (
+                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                        (all fees are included either way)
+                      </span>
+                    )}
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {([6, 12] as const).map(months => {
-                      const rentAmt = recurringItems.find(i => i.code === "rent")?.amount || 0;
-                      const scAmt = selectedBillingItems.includes("service_charge")
-                        ? (recurringItems.find(i => i.code === "service_charge")?.amount || 0)
-                        : 0;
-                      const optionTotal = (rentAmt + scAmt) * months;
+                      const optionTotal = isInitialPaymentLocked
+                        ? (months === 6
+                            ? billingSummary?.initialPayment?.total6Months
+                            : billingSummary?.initialPayment?.total) ?? 0
+                        : (() => {
+                            const rentAmt = recurringItems.find(i => i.code === "rent")?.amount || 0;
+                            const scAmt = selectedBillingItems.includes("service_charge")
+                              ? (recurringItems.find(i => i.code === "service_charge")?.amount || 0)
+                              : 0;
+                            return (rentAmt + scAmt) * months;
+                          })();
                       const isSelected = rentPaymentMonths === months;
                       return (
                         <button
