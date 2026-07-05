@@ -23,9 +23,11 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
   const isOverdue = daysUntilRentDue < 0;
   const overdueMonths = isOverdue ? Math.floor(Math.abs(daysUntilRentDue) / 30) : 0;
 
-  // Move-in = start of the CURRENT lease period: the entry-date anniversary
-  // on/before the next due date (keeps the entry's day & month, e.g. entry
-  // 1 Jun 2024 + next due 30 May 2026 -> 1 Jun 2025). Falls back to
+  // Move-in = start of the CURRENT lease period: the last entry-date anniversary
+  // strictly BEFORE the next due date (keeps the entry's day & month, e.g. entry
+  // 1 Jun 2024 + next due 30 May 2026 -> 1 Jun 2025). Strict <: a due date
+  // exactly on the anniversary is the END of the period that started a year
+  // earlier (entry 9 Dec 2025 + due 9 Dec 2026 -> 9 Dec 2025). Falls back to
   // (next due - 1yr) only when there's no entry date.
   const moveInDate = (() => {
     const entry = tenantInfo.leaseStartDate ? new Date(tenantInfo.leaseStartDate) : null;
@@ -35,7 +37,7 @@ export const OverviewCards: React.FC<OverviewCardsProps> = ({
         while (true) {
           const nextAnniv = new Date(entry);
           nextAnniv.setFullYear(nextAnniv.getFullYear() + 1);
-          if (nextAnniv <= due) entry.setFullYear(entry.getFullYear() + 1);
+          if (nextAnniv < due) entry.setFullYear(entry.getFullYear() + 1);
           else break;
         }
       }

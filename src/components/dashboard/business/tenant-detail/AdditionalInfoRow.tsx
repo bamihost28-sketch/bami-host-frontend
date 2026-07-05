@@ -10,9 +10,11 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
   const nextDueRaw = overview?.nextDue || tenant?.nextDueDate;
   const entryDateRaw = tenant?.entryDate || tenant?.createdAt;
 
-  // Move-in = the start of the CURRENT lease period: the entry-date anniversary
-  // that falls on/before the next due date, keeping the entry's day & month.
-  // e.g. entry 1 Jun 2024 + next due 30 May 2026 -> 1 Jun 2025.
+  // Move-in = the start of the CURRENT lease period: the last entry-date
+  // anniversary strictly BEFORE the next due date, keeping the entry's day & month.
+  // e.g. entry 1 Jun 2024 + next due 30 May 2026 -> 1 Jun 2025. Strict <: a due
+  // date exactly on the anniversary is the END of the period that started a year
+  // earlier (entry 9 Dec 2025 + due 9 Dec 2026 -> 9 Dec 2025).
   // Falls back to (next due - 1yr) only when there's no entry date on file.
   const moveInDate = (() => {
     if (entryDateRaw) {
@@ -22,7 +24,7 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
         while (true) {
           const nextAnniv = new Date(start);
           nextAnniv.setFullYear(nextAnniv.getFullYear() + 1);
-          if (nextAnniv <= due) start.setFullYear(start.getFullYear() + 1);
+          if (nextAnniv < due) start.setFullYear(start.getFullYear() + 1);
           else break;
         }
       }
