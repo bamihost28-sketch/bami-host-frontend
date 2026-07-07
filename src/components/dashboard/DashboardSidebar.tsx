@@ -27,6 +27,7 @@ import {
   ChevronRight,
   ChevronDown,
   Zap,
+  Radio,
   Rocket,
   Palette,
   Megaphone,
@@ -232,6 +233,16 @@ const sidebarItems: SidebarItem[] = [
     requiredPermissions: ['view_autopilot'],
     isPremium: true,
     path: '/dashboard/autopilot'
+  },
+  {
+    // Live visualization of the agent team at work — the Ops Room
+    id: "ai-ops",
+    label: "AI Ops Room",
+    icon: Radio,
+    category: 'business',
+    requiredPermissions: ['view_autopilot'],
+    isPremium: true,
+    path: '/dashboard/ai-ops'
   },
   {
     // Level 7 progress system — diagnose level, NPS/promoters, growth scorecard, pay-yourself-first

@@ -41,6 +41,7 @@ import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
 import BillionaireOS from '@/components/billionaire/BillionaireOS';
 import { Subscription } from '@/components/dashboard/Subscription';
 import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
+import { AIOpsCenter } from '@/components/skills/AIOpsCenter';
 import { ScaleDashboard } from '@/components/skills/ScaleDashboard';
 
 const DashboardRouter: React.FC = () => {
@@ -540,6 +541,18 @@ const DashboardRouter: React.FC = () => {
               feature="Business Autopilot"
               showUpgradePrompt={true}
               viewName="autopilot"
+            />
+          }
+        />
+        <Route
+          path="/ai-ops"
+          element={
+            <ProtectedRoute
+              element={<AIOpsCenter />}
+              requiredPermissions={['view_autopilot']}
+              feature="AI Ops Room"
+              showUpgradePrompt={true}
+              viewName="ai-ops"
             />
           }
         />
