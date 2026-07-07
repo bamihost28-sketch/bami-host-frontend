@@ -33,6 +33,7 @@ import { useGetBankInfoQuery, useSubmitDepositMutation } from "@/services/bankDe
 import { OverviewCards } from "./tenant/OverviewCards";
 import { WalletBalanceCard } from "./tenant/WalletBalanceCard";
 import { QuickActions } from "./tenant/QuickActions";
+import { FeedbackTab } from "./tenant/FeedbackTab";
 import { NotificationsTab } from "./tenant/NotificationsTab";
 import { MaintenanceList } from "./tenant/MaintenanceList";
 import { ReportIssueDialog } from "./tenant/ReportIssueDialog";
@@ -418,6 +419,7 @@ export const TenantDashboard: React.FC = () => {
 
           <TabsTrigger value="utilities">Services</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="feedback">Feedback</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -1380,6 +1382,10 @@ export const TenantDashboard: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="feedback" className="space-y-6">
+          <FeedbackTab />
         </TabsContent>
       </Tabs>
 

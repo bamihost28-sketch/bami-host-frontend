@@ -55,6 +55,7 @@ import { OWNER_DEMO_DATA } from "@/data/demoData";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { TransactionsPanel } from "./TransactionsPanel";
+import { AdminFeedbackPanel } from "./AdminFeedbackPanel";
 import { formatCurrencyIntl as formatCurrency, formatDateNg as formatDate, getStatusColor } from "@/utils/propertyUtils";
 
 const ownerData = OWNER_DEMO_DATA;
@@ -127,6 +128,7 @@ export const OwnerDashboard: React.FC = () => {
           <TabsTrigger value="leases">Leases</TabsTrigger>
           <TabsTrigger value="maintenance">Maint.</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="feedback">Feedback</TabsTrigger>
         </TabsList>
 
         {/* 1. Property Overview */}
@@ -664,6 +666,11 @@ export const OwnerDashboard: React.FC = () => {
             formatDate={formatDate}
             getStatusColor={getStatusColor}
           />
+        </TabsContent>
+
+        {/* Tenant Feedback */}
+        <TabsContent value="feedback" className="space-y-6">
+          <AdminFeedbackPanel />
         </TabsContent>
       </Tabs>
 

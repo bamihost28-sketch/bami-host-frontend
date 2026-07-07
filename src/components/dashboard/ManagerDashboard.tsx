@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/providers/ToastProvider";
+import { AdminFeedbackPanel } from "./AdminFeedbackPanel";
 import { formatCurrencyIntl as formatCurrency, formatDateNg as formatDate, getStatusColor, getPriorityColor } from "@/utils/propertyUtils";
 import {
   useGetManagerOverviewQuery,
@@ -277,6 +278,7 @@ export const ManagerDashboard: React.FC = () => {
           <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="service-requests">Requests</TabsTrigger>
           <TabsTrigger value="enquiries">Enquiries</TabsTrigger>
+          <TabsTrigger value="feedback">Feedback</TabsTrigger>
           <TabsTrigger value="applications">Applications</TabsTrigger>
           <TabsTrigger value="vacancies">Vacancies</TabsTrigger>
           <TabsTrigger value="estates">Estates</TabsTrigger>
@@ -719,6 +721,11 @@ export const ManagerDashboard: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ─── FEEDBACK TAB ────────────────────────────────────────────── */}
+        <TabsContent value="feedback" className="space-y-6">
+          <AdminFeedbackPanel />
         </TabsContent>
 
         {/* ─── ENQUIRIES TAB ───────────────────────────────────────────── */}
