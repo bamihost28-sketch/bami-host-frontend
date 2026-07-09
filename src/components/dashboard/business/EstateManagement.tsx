@@ -11,16 +11,50 @@ import { toast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Wand2 } from "lucide-react";
+import { MoreVertical, Wand2, HelpCircle } from "lucide-react";
 import { EstateManagementSkeleton } from "@/components/ui/skeletons";
 import { EstateOverviewCards } from "./EstateOverviewCards";
 import { EstateSetupWizard } from "./EstateSetupWizard";
 import { SkillContextPanel } from "@/components/skills/SkillContextPanel";
+import { GuidedTour, type TourStep } from "@/components/ui/guided-tour";
 
 
 interface Estate { id: string; name: string; description?: string }
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+const ESTATE_TOUR_STEPS: TourStep[] = [
+  {
+    selector: '[data-tour="estate-header"]',
+    title: "Welcome to Estate Management",
+    content: "This is where you manage every estate you host — units, tenants, rent policy and more. Let's take a quick look around.",
+    placement: "bottom",
+  },
+  {
+    selector: '[data-tour="estate-create"]',
+    title: "Create an estate",
+    content: "Use Quick Create to add an estate with a name and unit count in seconds. You can fill in the rest of the details later.",
+    placement: "bottom",
+  },
+  {
+    selector: '[data-tour="estate-overview"]',
+    title: "Your at-a-glance numbers",
+    content: "These cards summarise your estates — total units, occupancy and rent collected — so you always know how things stand.",
+    placement: "bottom",
+  },
+  {
+    selector: '[data-tour="estate-search"]',
+    title: "Find any estate fast",
+    content: "As your portfolio grows, search by estate name here to jump straight to the one you need.",
+    placement: "bottom",
+  },
+  {
+    selector: '[data-tour="estate-table"]',
+    title: "Manage each estate",
+    content: "Open the actions menu on any row to View its units and tenants, Edit its details and rent-increase policy, or remove it.",
+    placement: "top",
+  },
+];
 
 export const EstateManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,6 +87,9 @@ export const EstateManagement = () => {
   const [editCycle, setEditCycle] = useState("2");        // "0" = no increase
   const [editStart, setEditStart] = useState("");          // YYYY-MM-DD; blank = per-tenant entry date
   const [updateEstate, { isLoading: updating }] = useUpdateEstateMutation();
+
+  // Guided tour ("Take a tour" bumps this to (re)start it)
+  const [tourSignal, setTourSignal] = useState(0);
 
   // Estates options from API
   const estateOptions = estatesPage?.data ?? [];
@@ -107,14 +144,18 @@ export const EstateManagement = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
+        <div data-tour="estate-header">
           <h1 className="text-xl sm:text-3xl font-bold text-foreground">Estate Management</h1>
           <p className="text-muted-foreground text-sm">Manage estates, units and tenants</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)}>
+            <HelpCircle className="h-4 w-4 mr-1.5" />
+            Take a tour
+          </Button>
           <Dialog open={createEstateOpen} onOpenChange={setCreateEstateOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline">Quick Create</Button>
+              <Button variant="outline" data-tour="estate-create">Quick Create</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -144,7 +185,9 @@ export const EstateManagement = () => {
       </div>
 
       {/* Overview Cards */}
-      <EstateOverviewCards />
+      <div data-tour="estate-overview">
+        <EstateOverviewCards />
+      </div>
 
       {/* Edit Estate Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -221,7 +264,7 @@ export const EstateManagement = () => {
       </Dialog>
 
       {/* Estates (from API) */}
-      <Card>
+      <Card data-tour="estate-table">
         <CardHeader>
           <CardTitle>Estates</CardTitle>
           <CardDescription>Manage your estates</CardDescription>
@@ -229,6 +272,7 @@ export const EstateManagement = () => {
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <Input
+              data-tour="estate-search"
               placeholder="Search estates..."
               value={searchTerm}
               onChange={(e) => {
@@ -350,6 +394,10 @@ export const EstateManagement = () => {
       </Card>
 
       <EstateSetupWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+
+      {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
+      <GuidedTour steps={ESTATE_TOUR_STEPS} storageKey="tour:estate-management:v1" startSignal={tourSignal} />
+
 
       {/* Marketer AI activates immediately after a new estate is created */}
       {newlyCreatedEstate && (
