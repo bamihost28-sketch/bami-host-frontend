@@ -64,7 +64,7 @@ interface SidebarItem {
   label: string;
   icon: any;
   requiredPermissions?: string[];
-  category?: 'core' | 'business' | 'financial' | 'system';
+  category?: 'core' | 'business' | 'growth' | 'team' | 'financial' | 'system';
   isPremium?: boolean;
   path?: string;
 }
@@ -151,7 +151,7 @@ const sidebarItems: SidebarItem[] = [
     id: "strategic-hiring-planner",
     label: "Hire Like a Boss",
     icon: UserCheck,
-    category: 'business',
+    category: 'team',
     requiredPermissions: ['view_strategic_hiring', 'view_hiring_triggers'],
     isPremium: true,
     path: '/dashboard/strategic-hiring-planner'
@@ -160,7 +160,7 @@ const sidebarItems: SidebarItem[] = [
     id: "managing-like-a-boss",
     label: "Manage Like a Boss",
     icon: ShieldCheck,
-    category: 'business',
+    category: 'team',
     requiredPermissions: ['view_managing_like_a_boss'],
     isPremium: true,
     path: '/dashboard/managing-like-a-boss'
@@ -169,7 +169,7 @@ const sidebarItems: SidebarItem[] = [
     id: "candidate-management",
     label: "Candidates",
     icon: UserCheck,
-    category: 'business',
+    category: 'team',
     requiredPermissions: ['view_strategic_hiring', 'manage_candidates'],
     isPremium: true,
     path: '/dashboard/candidate-management'
@@ -229,7 +229,7 @@ const sidebarItems: SidebarItem[] = [
     id: "autopilot",
     label: "AI Agents",
     icon: Zap,
-    category: 'business',
+    category: 'growth',
     requiredPermissions: ['view_autopilot'],
     isPremium: true,
     path: '/dashboard/autopilot'
@@ -239,7 +239,7 @@ const sidebarItems: SidebarItem[] = [
     id: "ai-ops",
     label: "AI Ops Room",
     icon: Radio,
-    category: 'business',
+    category: 'growth',
     requiredPermissions: ['view_autopilot'],
     isPremium: true,
     path: '/dashboard/ai-ops'
@@ -249,7 +249,7 @@ const sidebarItems: SidebarItem[] = [
     id: "scale",
     label: "Scale · 7 Levels",
     icon: TrendingUp,
-    category: 'business',
+    category: 'growth',
     requiredPermissions: ['view_autopilot'],
     isPremium: true,
     path: '/dashboard/scale'
@@ -320,6 +320,8 @@ const categoryConfig: Record<string, { label: string; icon: any; color: string }
   core: { label: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-400' },
   financial: { label: 'Financial', icon: DollarSign, color: 'text-emerald-400' },
   business: { label: 'Business', icon: Briefcase, color: 'text-amber-400' },
+  growth: { label: 'Growth & AI', icon: Rocket, color: 'text-pink-400' },
+  team: { label: 'Team', icon: UserCheck, color: 'text-cyan-400' },
   system: { label: 'System', icon: Settings, color: 'text-purple-400' },
 };
 
@@ -351,8 +353,10 @@ export const DashboardSidebar = ({
 
   const groupedItems = {
     core: filteredItems.filter(item => item.category === 'core'),
-    financial: filteredItems.filter(item => item.category === 'financial'),
     business: filteredItems.filter(item => item.category === 'business'),
+    growth: filteredItems.filter(item => item.category === 'growth'),
+    team: filteredItems.filter(item => item.category === 'team'),
+    financial: filteredItems.filter(item => item.category === 'financial'),
     system: filteredItems.filter(item => item.category === 'system'),
   };
 
@@ -666,8 +670,10 @@ export const DashboardSidebar = ({
             {/* Nav sections */}
             <nav className="flex-1 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-700">
               {renderExpandedSection("Dashboard", "core", groupedItems.core)}
-              {renderExpandedSection("Financial", "financial", groupedItems.financial)}
               {renderExpandedSection("Business", "business", groupedItems.business)}
+              {renderExpandedSection("Growth & AI", "growth", groupedItems.growth)}
+              {renderExpandedSection("Team", "team", groupedItems.team)}
+              {renderExpandedSection("Financial", "financial", groupedItems.financial)}
               {renderExpandedSection("System", "system", groupedItems.system)}
             </nav>
 
