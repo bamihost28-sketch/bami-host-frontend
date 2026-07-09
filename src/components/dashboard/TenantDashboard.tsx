@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, CreditCard, Building2, Copy, CheckCircle2, ImageIcon, Upload } from "lucide-react";
+import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, CreditCard, Building2, Copy, CheckCircle2, ImageIcon, Upload, HelpCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,40 @@ import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
 import { ReceiptsTab } from "./tenant/ReceiptsTab";
 import { formatCurrency, formatDate } from "./tenant/utils";
+import { GuidedTour, type TourStep } from "@/components/ui/guided-tour";
+
+const TENANT_TOUR_STEPS: TourStep[] = [
+  {
+    selector: '[data-tour="tenant-nav"]',
+    title: "Welcome to your home portal",
+    content: "Everything about your tenancy lives here. Use these tabs to move between your Home overview, Billing, Complaints, Notices, Documents, Services, Transactions and Feedback.",
+    placement: "bottom",
+  },
+  {
+    selector: '[data-tour="tenant-overview-cards"]',
+    title: "Your rent at a glance",
+    content: "See when your next rent is due, your lease status and other key details the moment you log in.",
+    placement: "bottom",
+  },
+  {
+    selector: '[data-tour="tenant-wallet"]',
+    title: "Your wallet",
+    content: "Top up your wallet, then pay rent and bills instantly from it. You can also withdraw or transfer funds here.",
+    placement: "top",
+  },
+  {
+    selector: '[data-tour="tenant-actions"]',
+    title: "Quick actions",
+    content: "Report a maintenance issue or contact your landlord in a single tap.",
+    placement: "top",
+  },
+  {
+    selector: '[data-tour="tenant-billing-tab"]',
+    title: "Pay your rent & bills",
+    content: "Open the Billing tab to see everything you owe — rent, service charge and utilities — and pay it from your wallet. You can even turn on Auto-Pay.",
+    placement: "bottom",
+  },
+];
 
 export const TenantDashboard: React.FC = () => {
   const { user: authUser } = useAuth();
@@ -59,6 +93,7 @@ export const TenantDashboard: React.FC = () => {
   const [topUpAmount, setTopUpAmount] = useState("");
   const [rentPaymentMonths, setRentPaymentMonths] = useState<6 | 12>(12);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [tourSignal, setTourSignal] = useState(0);
 
   // Fetch dashboard overview from API
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
@@ -410,9 +445,9 @@ export const TenantDashboard: React.FC = () => {
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="dashboard-tabs-list">
+        <TabsList className="dashboard-tabs-list" data-tour="tenant-nav">
           <TabsTrigger value="overview">Home</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="billing" data-tour="tenant-billing-tab">Billing</TabsTrigger>
           <TabsTrigger value="maintenance">Complaints</TabsTrigger>
           <TabsTrigger value="notices">Notices</TabsTrigger>
           <TabsTrigger value="documents">Docs</TabsTrigger>
@@ -425,16 +460,24 @@ export const TenantDashboard: React.FC = () => {
         <TabsContent value="overview" className="space-y-6">
           <Card>
             <CardHeader className="pb-2">
-              <div>
-                <CardTitle className="text-xl sm:text-2xl text-slate-900 dark:text-white">Welcome back, {firstName}!</CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400">Here's your home overview</CardDescription>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <CardTitle className="text-xl sm:text-2xl text-slate-900 dark:text-white">Welcome back, {firstName}!</CardTitle>
+                  <CardDescription className="text-slate-600 dark:text-slate-400">Here's your home overview</CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)} className="shrink-0">
+                  <HelpCircle className="h-4 w-4 mr-1.5" />
+                  Take a tour
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <OverviewCards
-                tenantInfo={tenantInfo}
-                daysUntilRentDue={daysUntilRentDue}
-              />
+              <div data-tour="tenant-overview-cards">
+                <OverviewCards
+                  tenantInfo={tenantInfo}
+                  daysUntilRentDue={daysUntilRentDue}
+                />
+              </div>
               {((apiApartment?.rentOutstanding ?? 0) + (apiApartment?.serviceChargeOutstanding ?? 0)) > 0 && (
                 <Alert className="mb-4 border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
                   <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
@@ -451,23 +494,27 @@ export const TenantDashboard: React.FC = () => {
                 </Alert>
               )}
               
-              <WalletBalanceCard
-                balance={walletBalance}
-                isLoading={isWalletLoading}
-                totalEarnings={apiWallet?.totalEarnings}
-                totalSpent={apiWallet?.totalSpent}
-                onDeposit={handleOpenDeposit}
-                onWithdraw={handleOpenWithdraw}
-                onTransfer={handleOpenTransfer}
-                isDepositing={isDepositing}
-                isWithdrawing={isWithdrawing}
-                isTransferring={isTransferringUser}
-              />
+              <div data-tour="tenant-wallet">
+                <WalletBalanceCard
+                  balance={walletBalance}
+                  isLoading={isWalletLoading}
+                  totalEarnings={apiWallet?.totalEarnings}
+                  totalSpent={apiWallet?.totalSpent}
+                  onDeposit={handleOpenDeposit}
+                  onWithdraw={handleOpenWithdraw}
+                  onTransfer={handleOpenTransfer}
+                  isDepositing={isDepositing}
+                  isWithdrawing={isWithdrawing}
+                  isTransferring={isTransferringUser}
+                />
+              </div>
 
-              <QuickActions
-                onReportMaintenance={handleReportMaintenance}
-                onContactLandlord={() => setContactDialogOpen(true)}
-              />
+              <div data-tour="tenant-actions">
+                <QuickActions
+                  onReportMaintenance={handleReportMaintenance}
+                  onContactLandlord={() => setContactDialogOpen(true)}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -1623,6 +1670,9 @@ export const TenantDashboard: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
+      <GuidedTour steps={TENANT_TOUR_STEPS} storageKey="tour:tenant-dashboard:v1" startSignal={tourSignal} />
     </div>
   );
 };
