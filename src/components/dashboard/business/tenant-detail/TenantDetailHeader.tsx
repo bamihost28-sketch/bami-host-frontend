@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -13,9 +14,10 @@ interface TenantDetailHeaderProps {
   tenantId?: string;
   tenant: any;
   overview: any;
+  onStartTour?: () => void;
 }
 
-export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailHeaderProps) => {
+export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour }: TenantDetailHeaderProps) => {
   const navigate = useNavigate();
   const [updateTenant, { isLoading: updatingTenant }] = useUpdateTenantMutation();
   const [updateUnit, { isLoading: updatingUnit }] = useUpdateEstateUnitMutation();
@@ -118,6 +120,12 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
         <p className="text-muted-foreground text-sm">Profile, history, and transactions</p>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
+        {onStartTour && (
+          <Button variant="ghost" size="sm" onClick={onStartTour}>
+            <HelpCircle className="h-4 w-4 mr-1.5" />
+            Take a tour
+          </Button>
+        )}
         <Dialog open={editTenantOpen} onOpenChange={(open) => {
           setEditTenantOpen(open);
           if (open) handleEditTenantOpen();

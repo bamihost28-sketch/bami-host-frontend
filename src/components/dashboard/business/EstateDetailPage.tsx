@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Trash2, Loader2, ArrowLeft, Home, Plus } from 'lucide-react';
+import { Trash2, Loader2, ArrowLeft, Home, Plus, HelpCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,40 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatDate } from '@/utils/propertyUtils';
 import { SkillContextPanel } from '@/components/skills/SkillContextPanel';
+import { GuidedTour, type TourStep } from '@/components/ui/guided-tour';
+
+const ESTATE_DETAIL_TOUR_STEPS: TourStep[] = [
+  {
+    selector: '[data-tour="estate-detail-overview"]',
+    title: 'Estate at a glance',
+    content: "Occupancy, upcoming billing, recent revenue, projected income and your wallet balance for this estate — all in one row.",
+    placement: 'bottom',
+  },
+  {
+    selector: '[data-tour="estate-detail-financial"]',
+    title: 'Financial summary',
+    content: 'Filter by year and quarter to see projected rent and tenant counts for any period.',
+    placement: 'bottom',
+  },
+  {
+    selector: '[data-tour="estate-detail-add-tenant"]',
+    title: 'Add a tenant',
+    content: 'Assign a tenant to a vacant unit here. They get a login and their rent schedule is set up automatically.',
+    placement: 'bottom',
+  },
+  {
+    selector: '[data-tour="estate-detail-tenants"]',
+    title: 'Your tenants',
+    content: "Search tenants, open any one to manage them, or vacate a unit. Click a tenant's name to see their full record.",
+    placement: 'top',
+  },
+  {
+    selector: '[data-tour="estate-detail-vacant"]',
+    title: 'Vacant units',
+    content: 'Add new units, edit their fees, or remove them. Vacant units are what you assign new tenants to.',
+    placement: 'top',
+  },
+];
 
 export const EstateDetailPage = () => {
   const { estateId } = useParams();
@@ -72,6 +106,9 @@ export const EstateDetailPage = () => {
   const [editServiceCharge, setEditServiceCharge] = useState('');
   const [editCautionFee, setEditCautionFee] = useState('');
   const [editLegalFee, setEditLegalFee] = useState('');
+
+  // Guided tour ("Take a tour" bumps this to (re)start it)
+  const [tourSignal, setTourSignal] = useState(0);
 
   // API hooks
   const { data: estate, isLoading, isError: estateError, error: estateErrObj, refetch: refetchEstate } = useGetEstateQuery(estateId as string, { skip: !estateId });
@@ -179,12 +216,17 @@ export const EstateDetailPage = () => {
           <h1 className="text-xl sm:text-3xl font-bold">Estate Overview</h1>
           <p className="text-muted-foreground text-sm">Details and tenants</p>
         </div>
-        <Button variant="outline" onClick={() => navigate('/dashboard/estate')} className="gap-2 self-start sm:self-auto">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)} className="gap-1.5">
+            <HelpCircle className="w-4 h-4" /> Take a tour
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/dashboard/estate')} className="gap-2">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Button>
+        </div>
       </div>
 
-      <Card>
+      <Card data-tour="estate-detail-overview">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>{overviewData?.data?.estate?.name || estate?.name || 'c7'}</span>
@@ -300,7 +342,7 @@ export const EstateDetailPage = () => {
       </Card>
 
       {/* Quarterly rent summary */}
-      <Card>
+      <Card data-tour="estate-detail-financial">
         <CardHeader>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
@@ -386,7 +428,7 @@ export const EstateDetailPage = () => {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card data-tour="estate-detail-tenants">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -402,7 +444,7 @@ export const EstateDetailPage = () => {
               />
               <Dialog open={addOpen} onOpenChange={setAddOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm">
+                  <Button size="sm" data-tour="estate-detail-add-tenant">
                     <Plus className="w-4 h-4 mr-1.5" />
                     Add Tenant
                   </Button>
@@ -708,7 +750,7 @@ export const EstateDetailPage = () => {
       </Card>
 
       {/* Vacant Units Section */}
-      <Card>
+      <Card data-tour="estate-detail-vacant">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -913,6 +955,9 @@ export const EstateDetailPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
+      <GuidedTour steps={ESTATE_DETAIL_TOUR_STEPS} storageKey="tour:estate-detail:v1" startSignal={tourSignal} />
     </div>
   );
 };
