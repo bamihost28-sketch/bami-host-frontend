@@ -870,6 +870,9 @@ export const estatesApi = createApi({
         { type: 'TenantList', id: 'LIST' },
       ],
     }),
+    resendTenantCredentials: builder.mutation<{ success: boolean; message?: string }, string>({
+      query: (tenantId) => ({ url: `/api/tenants/${tenantId}/resend-credentials`, method: 'POST' }),
+    }),
     getTenantHistory: builder.query<TenantHistoryEntry[], string>({
       query: (tenantId) => `/api/tenants/${tenantId}/history`,
       providesTags: (result, error, tenantId) => [{ type: 'Tenant' as const, id: tenantId }],
@@ -1372,6 +1375,7 @@ export const {
   useGetTenantQuery,
   useUpdateTenantMutation,
   useDeleteTenantMutation,
+  useResendTenantCredentialsMutation,
   useGetTenantHistoryQuery,
   useGetTenantTransactionsQuery,
   useGetMyPaymentHistoryQuery,

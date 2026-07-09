@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { useUpdateTenantMutation, useUpdateEstateUnitMutation } from '@/services/estatesApi';
+import { useUpdateTenantMutation, useUpdateEstateUnitMutation, useResendTenantCredentialsMutation } from '@/services/estatesApi';
 import { formatDate, formatDateToDDMMYYYY, toDateInput } from '@/utils/propertyUtils';
 
 interface TenantDetailHeaderProps {
@@ -19,6 +19,25 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
   const navigate = useNavigate();
   const [updateTenant, { isLoading: updatingTenant }] = useUpdateTenantMutation();
   const [updateUnit, { isLoading: updatingUnit }] = useUpdateEstateUnitMutation();
+  const [resendCredentials, { isLoading: resendingCredentials }] = useResendTenantCredentialsMutation();
+
+  // Resend login credentials state
+  const [resendOpen, setResendOpen] = useState(false);
+  const tenantEmail = tenant?.email || overview?.email || tenant?.tenantEmail || '';
+
+  const handleResendCredentials = async () => {
+    if (!tenantId) return;
+    try {
+      const res = await resendCredentials(tenantId).unwrap();
+      toast({ title: res?.message || `Login credentials sent to ${tenantEmail}` });
+      setResendOpen(false);
+    } catch (e: any) {
+      toast({
+        title: e?.data?.detail || 'Failed to resend credentials',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Tenant edit state
   const [editTenantOpen, setEditTenantOpen] = useState(false);
@@ -264,6 +283,42 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview }: TenantDetailH
               <Button variant="outline" onClick={() => setEditFeesOpen(false)}>Cancel</Button>
               <Button onClick={submitEditFees} disabled={updatingUnit}>
                 {updatingUnit ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={resendOpen} onOpenChange={setResendOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">Resend Login Details</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Resend login credentials</DialogTitle>
+            </DialogHeader>
+            <div className="py-2 text-sm space-y-3">
+              <p>
+                A new temporary password will be generated and emailed to this tenant's
+                current email address:
+              </p>
+              {tenantEmail ? (
+                <p className="font-medium break-all">{tenantEmail}</p>
+              ) : (
+                <p className="text-destructive">
+                  This tenant has no email address. Add one under “Edit Tenant” first.
+                </p>
+              )}
+              <p className="text-[11px] text-muted-foreground">
+                Their existing password will stop working once the new one is sent.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2 mt-2">
+              <Button variant="ghost" onClick={() => setResendOpen(false)}>Cancel</Button>
+              <Button
+                onClick={handleResendCredentials}
+                disabled={resendingCredentials || !tenantEmail}
+              >
+                {resendingCredentials ? 'Sending...' : 'Send credentials'}
               </Button>
             </div>
           </DialogContent>
