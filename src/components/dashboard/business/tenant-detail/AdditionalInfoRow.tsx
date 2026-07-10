@@ -39,18 +39,21 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
     return null;
   })();
 
-  // Lease months = calendar months from entry to the day AFTER next due (the due
-  // date is the last day of the paid period). Matches the backend's
-  // leaseDurationMonths so both cards always agree.
-  const leaseMonths = (() => {
+  // Date-derived lease length (fallback only): entry → next due, rounded to the
+  // nearest whole month by day count. Rounding (not floor) avoids the off-by-one
+  // where e.g. 1 Jun 2024 → 30 May 2026 (728 days) read as 23 instead of 24.
+  const derivedLeaseMonths = (() => {
     if (!tenant?.entryDate || !nextDueRaw) return null;
     const start = new Date(tenant.entryDate);
     const end = new Date(nextDueRaw);
-    end.setDate(end.getDate() + 1);
-    let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-    if (end.getDate() < start.getDate()) months -= 1;
-    return Math.max(0, months);
+    const days = (end.getTime() - start.getTime()) / 86_400_000;
+    return Math.max(0, Math.round(days / 30.437));
   })();
+
+  // The lease TERM shown to users is the contracted length the tenant signed
+  // (stored on the tenant), falling back to the date-derived estimate. This is
+  // the single source of truth for "how long is this lease".
+  const leaseTermMonths = tenant?.leaseDurationMonths ?? derivedLeaseMonths;
 
   // Total Stay is measured from the ACTUAL entry date (not the current period).
   const entryYear = entryDateRaw ? new Date(entryDateRaw).getFullYear() : new Date().getFullYear();
@@ -59,7 +62,7 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
   const totalStayLabel = totalYears <= 0 ? 'Less than 1 year' : totalYears === 1 ? '1 Year' : `${totalYears} Years`;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
       <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
         <CardHeader className="pb-2">
           <CardTitle className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Move-in Date</CardTitle>
@@ -102,9 +105,9 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
         </CardContent>
       </Card>
 
-      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-4 border-l-cyan-500">
         <CardHeader className="pb-2">
-          <CardTitle className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lease Info</CardTitle>
+          <CardTitle className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lease Term</CardTitle>
         </CardHeader>
         <CardContent className="pt-2">
           <div className="flex items-center gap-2">
@@ -115,7 +118,7 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {leaseMonths !== null ? `${leaseMonths} months` : 'Ongoing'}
+                {leaseTermMonths != null ? `${leaseTermMonths} months` : 'Ongoing'}
               </p>
               <div className="flex flex-col text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
                 <span>Entry: {formatDate(tenant?.entryDate)}</span>
@@ -140,27 +143,6 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
             <div>
               <p className="text-sm font-bold text-slate-900 dark:text-white">{totalStayLabel}</p>
               <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">Since {entryYear}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 border-l-4 border-l-cyan-500">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Lease Duration</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {overview?.leaseDurationMonths ?? leaseMonths ?? 0}
-              </p>
-              <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-0.5">months</p>
             </div>
           </div>
         </CardContent>
