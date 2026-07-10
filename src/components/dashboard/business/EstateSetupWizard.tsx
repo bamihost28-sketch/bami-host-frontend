@@ -203,9 +203,11 @@ export const EstateSetupWizard = ({ open, onOpenChange }: EstateSetupWizardProps
     try {
       const result = await createEstate({ name, description: estateForm.description || undefined, totalUnits }).unwrap();
       const id = extractId(result);
-      setCreatedEstateId(id);
-      setCreatedEstateName(name);
-      setStep(1);
+      // Creating the estate closes the wizard and routes the admin to the new estate,
+      // instead of continuing into the multi-step setup.
+      toast({ title: 'Estate created', description: `${name} has been created.` });
+      handleClose();
+      navigate(`/dashboard/estate/${id}`);
     } catch {
       toast({ title: 'Failed to create estate', variant: 'destructive' });
     }
