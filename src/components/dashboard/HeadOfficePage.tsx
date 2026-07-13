@@ -8,6 +8,7 @@ import { Send, Loader2, Building2, Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BASE_API_URL } from "@/services/api";
+import GoogleKnowledgePanel from "./GoogleKnowledgePanel";
 
 interface Message { role: "user" | "assistant"; content: string; }
 interface TeamMember { key: string; name: string; emoji: string; description: string; businessLine?: string; }
@@ -194,6 +195,11 @@ export default function HeadOfficePage() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Google Drive & Gmail knowledge — powers document-grounded answers */}
+      <div className="mb-3">
+        <GoogleKnowledgePanel />
       </div>
 
       {/* Messages */}
