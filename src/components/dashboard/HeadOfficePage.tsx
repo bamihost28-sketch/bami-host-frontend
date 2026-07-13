@@ -21,6 +21,17 @@ function authHeaders(json = true): Record<string, string> {
   return h;
 }
 
+// The AI replies in light Markdown (**bold** for names/labels). We don't want a
+// whole Markdown library for this — just turn **bold** into real bold. Line
+// breaks and bullets are preserved by `whitespace-pre-wrap` on the container.
+function renderRich(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : <span key={i}>{part}</span>
+  );
+}
+
 const SUGGESTIONS = [
   "Give me a quick boardroom read — how are we doing?",
   "Which tenants are overdue and what should we do?",
@@ -208,7 +219,9 @@ export default function HeadOfficePage() {
                 ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-sm"
                 : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm"
             }`}>
-              {m.content || (loading && i === messages.length - 1 ? <Loader2 className="h-4 w-4 animate-spin text-blue-500" /> : "")}
+              {m.content
+                ? (m.role === "assistant" ? renderRich(m.content) : m.content)
+                : (loading && i === messages.length - 1 ? <Loader2 className="h-4 w-4 animate-spin text-blue-500" /> : "")}
             </div>
           </div>
         ))}
