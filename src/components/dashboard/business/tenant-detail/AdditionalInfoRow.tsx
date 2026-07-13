@@ -39,22 +39,6 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
     return null;
   })();
 
-  // Date-derived lease length (fallback only): entry → next due, rounded to the
-  // nearest whole month by day count. Rounding (not floor) avoids the off-by-one
-  // where e.g. 1 Jun 2024 → 30 May 2026 (728 days) read as 23 instead of 24.
-  const derivedLeaseMonths = (() => {
-    if (!tenant?.entryDate || !nextDueRaw) return null;
-    const start = new Date(tenant.entryDate);
-    const end = new Date(nextDueRaw);
-    const days = (end.getTime() - start.getTime()) / 86_400_000;
-    return Math.max(0, Math.round(days / 30.437));
-  })();
-
-  // The lease TERM shown to users is the contracted length the tenant signed
-  // (stored on the tenant), falling back to the date-derived estimate. This is
-  // the single source of truth for "how long is this lease".
-  const leaseTermMonths = tenant?.leaseDurationMonths ?? derivedLeaseMonths;
-
   // Total Stay is measured from the ACTUAL entry date (not the current period).
   const entryYear = entryDateRaw ? new Date(entryDateRaw).getFullYear() : new Date().getFullYear();
   const currentYear = new Date().getFullYear();
@@ -117,8 +101,10 @@ export const AdditionalInfoRow = ({ tenant, overview }: AdditionalInfoRowProps) 
               </svg>
             </div>
             <div className="flex-1">
+              {/* Leases run on a yearly cycle (rent + renewal are annual), so the
+                  lease term is always shown as 1 Year regardless of total stay. */}
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {leaseTermMonths != null ? `${leaseTermMonths} months` : 'Ongoing'}
+                1 Year
               </p>
               <div className="flex flex-col text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
                 <span>Entry: {formatDate(tenant?.entryDate)}</span>
