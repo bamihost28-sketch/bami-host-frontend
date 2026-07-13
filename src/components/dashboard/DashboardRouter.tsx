@@ -13,6 +13,7 @@ import { WalletDashboard } from '@/components/dashboard/WalletDashboard';
 import { WalletPage, DepositVerification } from '@/components/wallet';
 import { EstateManagement } from '@/components/dashboard/business/EstateManagement';
 import { EstateDetailPage } from '@/components/dashboard/business/EstateDetailPage';
+import HeadOfficePage from '@/components/dashboard/HeadOfficePage';
 import { AddPropertyPage } from '@/components/dashboard/business/AddPropertyPage';
 import { TenantDetailPage } from '@/components/dashboard/business/TenantDetailPage';
 import { FillingStationManagement } from '@/components/dashboard/business/FillingStationManagement';
@@ -236,6 +237,19 @@ const DashboardRouter: React.FC = () => {
               feature="50/30/20 Split Tracker"
               showUpgradePrompt={true}
               viewName="split-tracker"
+            />
+          }
+        />
+
+        {/* Head Office — owner's boardroom chat with the whole AI team */}
+        <Route
+          path="/head-office"
+          element={
+            <ProtectedRoute
+              element={<HeadOfficePage />}
+              requiredPermissions={['view_estate']}
+              feature="Head Office"
+              viewName="estate"
             />
           }
         />

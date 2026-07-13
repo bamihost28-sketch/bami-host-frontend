@@ -1,0 +1,187 @@
+/**
+ * Head Office — the owner's boardroom chat with the whole AI agent team.
+ * Streams replies from POST /api/head-office/threads/{id}/chat (SSE), grounded
+ * in live business data and what the agents have flagged.
+ */
+import { useState, useEffect, useRef } from "react";
+import { Send, Loader2, Building2, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { BASE_API_URL } from "@/services/api";
+
+interface Message { role: "user" | "assistant"; content: string; }
+interface TeamMember { key: string; name: string; emoji: string; description: string; }
+
+function getToken() {
+  return localStorage.getItem("token") || sessionStorage.getItem("token") || "";
+}
+function authHeaders(json = true): Record<string, string> {
+  const h: Record<string, string> = { Authorization: `Bearer ${getToken()}` };
+  if (json) h["Content-Type"] = "application/json";
+  return h;
+}
+
+const SUGGESTIONS = [
+  "Give me a quick boardroom read — how are we doing?",
+  "Which tenants are overdue and what should we do?",
+  "Any meters low on balance or offline?",
+  "What should each department focus on this week?",
+];
+
+export default function HeadOfficePage() {
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Load the roster + get-or-create a thread on mount.
+  useEffect(() => {
+    (async () => {
+      try {
+        const t = await fetch(`${BASE_API_URL}/api/head-office/team`, { headers: authHeaders(false) });
+        if (t.ok) setTeam((await t.json()).team ?? []);
+      } catch { /* roster is cosmetic */ }
+      try {
+        const list = await fetch(`${BASE_API_URL}/api/head-office/threads`, { headers: authHeaders(false) });
+        const data = list.ok ? await list.json() : { data: [] };
+        let tid = data.data?.[0]?.id;
+        if (!tid) {
+          const created = await fetch(`${BASE_API_URL}/api/head-office/threads`, { method: "POST", headers: authHeaders() });
+          tid = (await created.json())?.data?.id;
+        } else {
+          const msgs = await fetch(`${BASE_API_URL}/api/head-office/threads/${tid}/messages`, { headers: authHeaders(false) });
+          if (msgs.ok) setMessages(((await msgs.json()).data ?? []).map((m: any) => ({ role: m.role, content: m.content })));
+        }
+        setThreadId(tid);
+      } catch { /* ignore */ }
+    })();
+  }, []);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  const handleSend = async (text?: string) => {
+    const msg = (text ?? input).trim();
+    if (!msg || loading || !threadId) return;
+    setInput("");
+    setMessages(m => [...m, { role: "user", content: msg }, { role: "assistant", content: "" }]);
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_API_URL}/api/head-office/threads/${threadId}/chat`, {
+        method: "POST", headers: authHeaders(), body: JSON.stringify({ message: msg }),
+      });
+      if (!res.ok || !res.body) throw new Error("chat failed");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const frames = buffer.split("\n\n");
+        buffer = frames.pop() || "";
+        for (const frame of frames) {
+          const line = frame.trim();
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6);
+          if (payload === "[DONE]") continue;
+          try {
+            const p = JSON.parse(payload);
+            if (p.delta) {
+              setMessages(m => {
+                const copy = [...m];
+                copy[copy.length - 1] = { role: "assistant", content: copy[copy.length - 1].content + p.delta };
+                return copy;
+              });
+            } else if (p.error) {
+              setMessages(m => {
+                const copy = [...m];
+                copy[copy.length - 1] = { role: "assistant", content: "Sorry — the Head Office couldn't respond. Try again." };
+                return copy;
+              });
+            }
+          } catch { /* skip malformed frame */ }
+        }
+      }
+    } catch {
+      setMessages(m => {
+        const copy = [...m];
+        if (copy.length && copy[copy.length - 1].role === "assistant" && !copy[copy.length - 1].content) {
+          copy[copy.length - 1] = { role: "assistant", content: "Sorry — couldn't reach the Head Office. Try again." };
+        }
+        return copy;
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full min-h-[70vh] max-w-4xl mx-auto">
+      {/* Header + roster */}
+      <div className="mb-3">
+        <div className="flex items-center gap-2">
+          <Building2 className="h-6 w-6 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl font-bold">Head Office</h1>
+          <span className="text-xs text-muted-foreground">your boardroom with the whole AI team</span>
+        </div>
+        {team.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {team.map(t => (
+              <span key={t.key} title={t.description}
+                className="text-xs rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
+                {t.emoji} {t.name.split(" · ").pop()}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto rounded-xl border bg-white dark:bg-slate-900 p-4 space-y-3">
+        {messages.length === 0 && (
+          <div className="text-center py-10">
+            <Sparkles className="h-9 w-9 mx-auto text-blue-300 mb-3" />
+            <p className="text-sm text-slate-500">Ask the whole team anything — they answer with your real numbers.</p>
+            <div className="mt-4 flex flex-wrap gap-2 justify-center">
+              {SUGGESTIONS.map(q => (
+                <button key={q} onClick={() => handleSend(q)}
+                  className="text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full px-3 py-1 hover:bg-blue-100">
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap ${
+              m.role === "user"
+                ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-br-sm"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-sm"
+            }`}>
+              {m.content || (loading && i === messages.length - 1 ? <Loader2 className="h-4 w-4 animate-spin text-blue-500" /> : "")}
+            </div>
+          </div>
+        ))}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="pt-3 flex gap-2">
+        <Input
+          placeholder={threadId ? "Ask your Head Office…" : "Setting up the boardroom…"}
+          value={input}
+          disabled={!threadId}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleSend()}
+        />
+        <Button size="icon" onClick={() => handleSend()} disabled={loading || !input.trim() || !threadId}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white flex-shrink-0">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </div>
+    </div>
+  );
+}

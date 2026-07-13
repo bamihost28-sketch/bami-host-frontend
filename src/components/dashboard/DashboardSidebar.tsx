@@ -224,6 +224,14 @@ const sidebarItems: SidebarItem[] = [
     path: '/dashboard/estate'
   },
   {
+    id: "head-office",
+    label: "Head Office",
+    icon: Briefcase,
+    category: 'business',
+    requiredPermissions: ['view_estate'],
+    path: '/dashboard/head-office'
+  },
+  {
     // The 6 business skills (Designer, Marketer, Sales, Finance, Operations, HR)
     // now run as autonomous background agents — surfaced in this one AI Agents hub.
     id: "autopilot",
