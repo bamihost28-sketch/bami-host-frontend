@@ -322,6 +322,7 @@ export const EstateManagement = () => {
                             <DropdownMenuItem onClick={() => navigate(`/dashboard/estate/${est.id}`)}>
                               View
                             </DropdownMenuItem>
+                            {(est as any).myRole === 'admin' && (
                             <DropdownMenuItem
                               onClick={() => {
                                 setEditId(est.id);
@@ -337,6 +338,8 @@ export const EstateManagement = () => {
                             >
                               Edit
                             </DropdownMenuItem>
+                            )}
+                            {(est as any).myRole === 'admin' && (<>
                             <DropdownMenuSeparator />
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -357,6 +360,7 @@ export const EstateManagement = () => {
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
+                            </>)}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
