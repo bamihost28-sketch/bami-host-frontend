@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EstateTeam } from './EstateTeam';
 import {
   useGetEstateQuery,
   useGetEstateTenantsQuery,
@@ -112,6 +113,10 @@ export const EstateDetailPage = () => {
 
   // API hooks
   const { data: estate, isLoading, isError: estateError, error: estateErrObj, refetch: refetchEstate } = useGetEstateQuery(estateId as string, { skip: !estateId });
+  // Caller's per-property role (from backend `myRole`). Ops controls are hidden
+  // from viewers; unknown role → shown (backend still enforces on the request).
+  const myRole: string | undefined = (estate as any)?.data?.myRole ?? (estate as any)?.myRole;
+  const canOps = !myRole || myRole === 'admin' || myRole === 'manager';
   const { data: overviewData, isLoading: overviewLoading, isError: overviewError } = useGetEstateOverviewQuery(estateId as string, { skip: !estateId });
   // Consolidated hook call for both summary and list
   const { data: tenantsData, isLoading: tenantsLoading, isError: tenantsError } = useGetEstateTenantsQuery(
@@ -428,6 +433,8 @@ export const EstateDetailPage = () => {
         </CardContent>
       </Card>
 
+      {estateId && <EstateTeam estateId={estateId} />}
+
       <Card data-tour="estate-detail-tenants">
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -443,12 +450,14 @@ export const EstateDetailPage = () => {
                 className="w-44 h-9"
               />
               <Dialog open={addOpen} onOpenChange={setAddOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" data-tour="estate-detail-add-tenant">
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    Add Tenant
-                  </Button>
-                </DialogTrigger>
+                {canOps && (
+                  <DialogTrigger asChild>
+                    <Button size="sm" data-tour="estate-detail-add-tenant">
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Add Tenant
+                    </Button>
+                  </DialogTrigger>
+                )}
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Add Tenant</DialogTitle>
@@ -738,7 +747,7 @@ export const EstateDetailPage = () => {
               <p className="text-sm text-muted-foreground max-w-xs mb-5">
                 {tenantSearch ? `No tenants match "${tenantSearch}".` : 'Add a tenant to get started tracking occupancy and payments.'}
               </p>
-              {!tenantSearch && (
+              {!tenantSearch && canOps && (
                 <Button size="sm" onClick={() => setAddOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add your first tenant
@@ -792,13 +801,15 @@ export const EstateDetailPage = () => {
                       <TableCell>{u.meterNumber || '—'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditFeesOpen(u)}
-                          >
-                            Edit Fees
-                          </Button>
+                          {canOps && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditFeesOpen(u)}
+                            >
+                              Edit Fees
+                            </Button>
+                          )}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button

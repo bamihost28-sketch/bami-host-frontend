@@ -705,6 +705,29 @@ export interface IssueTimelineEntry {
   updatedAt: string;
 }
 
+// Per-property team & roles
+export type PropertyRole = 'admin' | 'manager' | 'viewer';
+export interface EstateMember {
+  userId: string;
+  email: string;
+  name?: string | null;
+  role: PropertyRole;
+  isActive?: boolean | null;
+}
+export interface EstateTeamResponse {
+  success: boolean;
+  owner: EstateMember | null;
+  members: EstateMember[];
+}
+export interface AssignMemberPayload {
+  estateId: string;
+  name: string;
+  email: string;
+  role: PropertyRole;
+  phone?: string;
+  sendCredentials?: boolean;
+}
+
 export interface Issue {
   _id: string;
   title: string;
@@ -726,7 +749,7 @@ export const estatesApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'Tenant', 'TenantList', 'Issue', 'Payment', 'DashboardOverview', 'RentalApplication', 'Enquiry'],
+  tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'EstateMembers', 'Tenant', 'TenantList', 'Issue', 'Payment', 'DashboardOverview', 'RentalApplication', 'Enquiry'],
   endpoints: (builder) => ({
     getEstates: builder.query<PaginatedResponse<Estate>, EstateListParams | void>({
       query: (params) => ({
@@ -1341,6 +1364,27 @@ export const estatesApi = createApi({
       query: (id) => `/api/issues/${id}`,
       providesTags: (result, error, id) => [{ type: 'Issue', id }],
     }),
+
+    // Per-property team & roles (assignment is super_admin only, enforced server-side)
+    getEstateMembers: builder.query<EstateTeamResponse, string>({
+      query: (estateId) => `/api/estates/${estateId}/members`,
+      providesTags: (result, error, estateId) => [{ type: 'EstateMembers', id: estateId }],
+    }),
+    assignEstateMember: builder.mutation<{ success: boolean; message?: string; data?: any }, AssignMemberPayload>({
+      query: ({ estateId, ...body }) => ({ url: `/api/estates/${estateId}/members`, method: 'POST', body }),
+      invalidatesTags: (result, error, { estateId }) => [
+        { type: 'EstateMembers', id: estateId },
+        { type: 'Estate', id: estateId },
+      ],
+    }),
+    updateEstateMemberRole: builder.mutation<{ success: boolean; message?: string }, { estateId: string; userId: string; role: PropertyRole }>({
+      query: ({ estateId, userId, role }) => ({ url: `/api/estates/${estateId}/members/${userId}`, method: 'PUT', body: { role } }),
+      invalidatesTags: (result, error, { estateId }) => [{ type: 'EstateMembers', id: estateId }],
+    }),
+    removeEstateMember: builder.mutation<{ success: boolean; message?: string }, { estateId: string; userId: string }>({
+      query: ({ estateId, userId }) => ({ url: `/api/estates/${estateId}/members/${userId}`, method: 'DELETE' }),
+      invalidatesTags: (result, error, { estateId }) => [{ type: 'EstateMembers', id: estateId }],
+    }),
   }),
 });
 
@@ -1395,6 +1439,11 @@ export const {
     useReportIssueMutation,
     useGetIssuesQuery,
     useGetIssueQuery,
+    // Per-property team & roles
+    useGetEstateMembersQuery,
+    useAssignEstateMemberMutation,
+    useUpdateEstateMemberRoleMutation,
+    useRemoveEstateMemberMutation,
     // Receipts
     useGetPaymentReceiptsQuery,
     // Admin payments
