@@ -4,13 +4,13 @@
  * in live business data and what the agents have flagged.
  */
 import { useState, useEffect, useRef } from "react";
-import { Send, Loader2, Building2, Sparkles } from "lucide-react";
+import { Send, Loader2, Building2, Sparkles, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BASE_API_URL } from "@/services/api";
 
 interface Message { role: "user" | "assistant"; content: string; }
-interface TeamMember { key: string; name: string; emoji: string; description: string; }
+interface TeamMember { key: string; name: string; emoji: string; description: string; businessLine?: string; }
 
 function getToken() {
   return localStorage.getItem("token") || sessionStorage.getItem("token") || "";
@@ -34,7 +34,38 @@ export default function HeadOfficePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [running, setRunning] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Distinct business lines the team covers, for the chips row.
+  const businessLines = Array.from(
+    new Set(team.map(t => t.businessLine).filter(Boolean) as string[])
+  );
+
+  // Task the whole team to re-scan, then drop a system note into the chat.
+  const runTeam = async () => {
+    if (running) return;
+    setRunning(true);
+    try {
+      const res = await fetch(`${BASE_API_URL}/api/head-office/run-team`, {
+        method: "POST", headers: authHeaders(),
+      });
+      const data = res.ok ? await res.json() : null;
+      const ran = data?.ran ?? 0;
+      const depts = (data?.byDepartment ?? [])
+        .map((d: any) => `${d.name} (${d.items})`).join(", ");
+      setMessages(m => [...m, {
+        role: "assistant",
+        content: `🔄 Team re-scan complete — ${ran} fresh item(s) across the business.` +
+          (depts ? `\nDepartments reporting: ${depts}.` : "") +
+          `\n\nAsk me anything and I'll answer against these updated numbers.`,
+      }]);
+    } catch {
+      setMessages(m => [...m, { role: "assistant", content: "Couldn't run the team just now — try again." }]);
+    } finally {
+      setRunning(false);
+    }
+  };
 
   // Load the roster + get-or-create a thread on mount.
   useEffect(() => {
@@ -124,12 +155,28 @@ export default function HeadOfficePage() {
         <div className="flex items-center gap-2">
           <Building2 className="h-6 w-6 text-blue-600" />
           <h1 className="text-xl sm:text-2xl font-bold">Head Office</h1>
-          <span className="text-xs text-muted-foreground">your boardroom with the whole AI team</span>
+          <span className="hidden sm:inline text-xs text-muted-foreground">your boardroom with the whole AI team</span>
+          <Button size="sm" variant="outline" onClick={runTeam} disabled={running}
+            className="ml-auto flex-shrink-0 gap-1.5">
+            {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            {running ? "Running…" : "Run the team"}
+          </Button>
         </div>
+        {businessLines.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] uppercase tracking-wide text-slate-400">Business lines:</span>
+            {businessLines.map(line => (
+              <span key={line}
+                className="text-xs rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 font-medium">
+                {line}
+              </span>
+            ))}
+          </div>
+        )}
         {team.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {team.map(t => (
-              <span key={t.key} title={t.description}
+              <span key={t.key} title={`${t.description}${t.businessLine ? ` — ${t.businessLine}` : ""}`}
                 className="text-xs rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">
                 {t.emoji} {t.name.split(" · ").pop()}
               </span>
