@@ -227,7 +227,7 @@ const sidebarItems: SidebarItem[] = [
     id: "head-office",
     label: "Head Office",
     icon: Briefcase,
-    category: 'business',
+    category: 'growth',
     requiredPermissions: ['view_estate'],
     path: '/dashboard/head-office'
   },
