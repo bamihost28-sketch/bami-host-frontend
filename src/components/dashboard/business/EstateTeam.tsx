@@ -54,9 +54,11 @@ export const EstateTeam = ({ estateId }: { estateId: string }) => {
       const res = await assign({ estateId, name: name.trim(), email: email.trim(), role }).unwrap();
       toast({
         title: 'Member assigned',
-        description: res?.data?.accountCreated
-          ? 'A login account was created and credentials emailed.'
-          : 'Existing account attached to this property.',
+        description: res?.data?.credentialsSent
+          ? (res?.data?.accountCreated
+              ? 'Login account created — credentials emailed to them.'
+              : 'Access granted — fresh login credentials emailed to them.')
+          : 'Member assigned (no credentials email was sent).',
       });
       setName(''); setEmail(''); setRole('manager');
     } catch (e: any) {
@@ -171,7 +173,8 @@ export const EstateTeam = ({ estateId }: { estateId: string }) => {
                   </Button>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  New emails get a login account with credentials emailed automatically.
+                  Everyone you assign gets login credentials emailed automatically — a new
+                  account for new emails, or fresh credentials for an existing account.
                 </p>
               </div>
             )}
