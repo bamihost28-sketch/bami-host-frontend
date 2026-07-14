@@ -1,125 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=cabinet-grotesk@400,500,700,800,900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Professional Financial Platform Design System */
+/* Professional Financial Platform Design System
+   Enhanced with design-taste-frontend & frontend-design skills */
 
 @layer base {
   :root {
-    /* Core Financial Brand Colors */
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 0 0% 20%; /* Dark Grey #333333 */
-    
-    /* Professional Green Primary */
-    --primary: 152 75% 20%; /* Deep Forest Green #006644 */
+    /* Core Brand Colors */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%;
+
+    /* Primary - Deep Forest Green */
+    --primary: 152 75% 20%;
     --primary-foreground: 0 0% 100%;
     --primary-light: 152 75% 85%;
-    
-    /* Success Green (Teal Green for highlights) */
-    --success: 169 67% 36%; /* Teal Green #00B894 */
+
+    /* Success - Emerald */
+    --success: 152 75% 35%;
     --success-foreground: 0 0% 100%;
-    --success-light: 169 67% 85%;
-    
-    /* Success & Growth */
-    --success: 142 69% 45%;
-    --success-foreground: 0 0% 100%;
-    --success-light: 142 69% 85%;
-    
+    --success-light: 152 75% 85%;
+
     /* Warning & Attention */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     --warning-light: 38 92% 85%;
-    
+
     /* Error & Negative */
     --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
     --destructive-light: 0 84% 85%;
-    
-    /* Professional Grey Neutral Palette */
-    --neutral: 0 0% 96%; /* Light Grey #F5F5F5 */
-    --neutral-foreground: 0 0% 29%; /* Medium Grey #4A4A4A */
-    --muted: 0 0% 96%; /* Light Grey Background #F5F5F5 */
-    --muted-foreground: 0 0% 62%; /* Secondary Text Grey #9E9E9E */
-    
-    /* Card & Surface Colors */
-    --card: 0 0% 100%; /* Pure White */
-    --card-foreground: 0 0% 20%; /* Dark Grey #333333 */
-    --card-border: 0 0% 88%; /* Light Border Grey #E0E0E0 */
-    
-    /* Secondary Surfaces */
-    --secondary: 0 0% 96%; /* Light Grey #F5F5F5 */
-    --secondary-foreground: 0 0% 20%; /* Dark Grey #333333 */
-    
-    /* Green Accent Colors */
-    --accent: 152 75% 96%; /* Very Light Green */
-    --accent-foreground: 152 75% 20%; /* Deep Forest Green */
-    
-    /* Input & Form Elements */
-    --input: 0 0% 94%; /* Light Input Background */
-    --border: 0 0% 88%; /* Light Border Grey #E0E0E0 */
-    --ring: 152 75% 20%; /* Green Focus Ring */
-    
-    /* Professional Green Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(152 75% 20%), hsl(152 75% 25%)); /* Deep Forest Green */
-    --gradient-success: linear-gradient(135deg, hsl(169 67% 36%), hsl(169 67% 41%)); /* Teal Green */
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 98%)); /* Pure White to Light Grey */
-    --gradient-green-accent: linear-gradient(135deg, hsl(152 75% 96%), hsl(169 67% 96%)); /* Light Green Gradient */
-    
+
+    /* Neutral Palette */
+    --neutral: 0 0% 96%;
+    --neutral-foreground: 0 0% 29%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 62%;
+
+    /* Card & Surface */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --card-border: 0 0% 88%;
+
+    /* Secondary */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
+
+    /* Accent */
+    --accent: 152 75% 96%;
+    --accent-foreground: 152 75% 20%;
+
+    /* Input & Form */
+    --input: 0 0% 94%;
+    --border: 0 0% 88%;
+    --ring: 152 75% 20%;
+
+    /* Green Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(152 75% 20%), hsl(152 75% 28%));
+    --gradient-success: linear-gradient(135deg, hsl(152 75% 35%), hsl(152 75% 42%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    --gradient-green-accent: linear-gradient(135deg, hsl(152 75% 96%), hsl(152 75% 92%));
+
     /* Shadows */
-    --shadow-card: 0 4px 6px -1px hsl(216 25% 15% / 0.1), 0 2px 4px -1px hsl(216 25% 15% / 0.06);
-    --shadow-elevated: 0 20px 25px -5px hsl(216 25% 15% / 0.1), 0 10px 10px -5px hsl(216 25% 15% / 0.04);
-    
+    --shadow-card: 0 4px 6px -1px hsl(152 75% 20% / 0.08), 0 2px 4px -1px hsl(152 75% 20% / 0.04);
+    --shadow-elevated: 0 20px 40px -15px hsl(152 75% 20% / 0.12), 0 10px 10px -5px hsl(152 75% 20% / 0.06);
+    --shadow-glow: 0 0 20px hsl(152 75% 35% / 0.3);
+
     /* Layout */
     --radius: 0.75rem;
     --header-height: 4rem;
-    
+
     /* Popover */
     --popover: 0 0% 100%;
     --popover-foreground: 216 25% 15%;
+
+    /* Animation Timing */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
   }
 
   .dark {
-    --background: 0 0% 8%; /* Dark Background */
-    --foreground: 0 0% 92%; /* Light Text */
-    
-    --primary: 152 75% 35%; /* Lighter Green for Dark Mode */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 92%;
+
+    --primary: 152 75% 40%;
     --primary-foreground: 0 0% 8%;
-    --primary-light: 152 75% 25%;
-    
-    --success: 169 67% 45%; /* Brighter Teal Green for Dark Mode */
+    --primary-light: 152 75% 28%;
+
+    --success: 152 75% 45%;
     --success-foreground: 0 0% 8%;
-    --success-light: 169 67% 30%;
-    
+    --success-light: 152 75% 30%;
+
     --warning: 38 92% 60%;
     --warning-foreground: 216 25% 8%;
     --warning-light: 38 92% 40%;
-    
+
     --destructive: 0 84% 65%;
     --destructive-foreground: 216 25% 8%;
     --destructive-light: 0 84% 45%;
-    
+
     --card: 216 25% 12%;
     --card-foreground: 216 15% 92%;
     --card-border: 216 20% 20%;
-    
+
     --secondary: 216 20% 15%;
     --secondary-foreground: 216 15% 85%;
-    
+
     --accent: 216 20% 18%;
     --accent-foreground: 216 15% 90%;
-    
+
     --muted: 216 20% 15%;
     --muted-foreground: 216 15% 65%;
-    
+
     --input: 216 20% 18%;
     --border: 216 20% 22%;
-    --ring: 216 100% 60%;
-    
+    --ring: 152 75% 40%;
+
     --popover: 216 25% 12%;
     --popover-foreground: 216 15% 92%;
-    
+
     --gradient-card: linear-gradient(145deg, hsl(216 25% 12%), hsl(216 25% 10%));
     --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
+    --shadow-elevated: 0 20px 40px -15px hsl(0 0% 0% / 0.4), 0 10px 10px -5px hsl(0 0% 0% / 0.3);
+    --shadow-glow: 0 0 20px hsl(152 75% 40% / 0.4);
   }
 }
 
@@ -127,103 +136,176 @@
   * {
     @apply border-border;
   }
-  
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Satoshi', 'Cabinet Grotesk', 'Inter', system-ui, sans-serif;
   }
-  
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cabinet Grotesk', 'Satoshi', 'Inter', system-ui, sans-serif;
+  }
+
   /* Financial Data Typography */
   .financial-amount {
     @apply font-mono font-semibold tracking-tight;
   }
-  
+
   /* Gradient Backgrounds */
   .gradient-primary {
     background: var(--gradient-primary);
   }
-  
+
   .gradient-success {
     background: var(--gradient-success);
   }
-  
+
   .gradient-card {
     background: var(--gradient-card);
   }
-  
+
   .gradient-green-accent {
     background: var(--gradient-green-accent);
   }
-  
-  /* Professional Green Utilities */
+
+  /* Brand Color Utilities */
   .text-green-primary {
-    color: hsl(152 75% 20%); /* Deep Forest Green #006644 */
+    color: hsl(152 75% 20%);
   }
-  
+
   .text-green-accent {
-    color: hsl(169 67% 36%); /* Teal Green #00B894 */
+    color: hsl(152 75% 35%);
   }
-  
+
   .bg-green-light {
-    background-color: hsl(0 0% 96%); /* Light Grey #F5F5F5 */
+    background-color: hsl(152 75% 96%);
+  }
+
+  /* Premium Button States */
+  .btn-interactive {
+    transition: transform var(--duration-fast) var(--ease-spring),
+                box-shadow var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .btn-interactive:active {
+    transform: scale(0.97) translateY(1px);
+  }
+
+  /* Magnetic Hover Effect */
+  .hover-lift {
+    transition: transform var(--duration-normal) var(--ease-out-expo),
+                box-shadow var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* Stagger Animation */
+  .stagger-item {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: stagger-in 0.6s var(--ease-out-expo) forwards;
+  }
+
+  .stagger-item:nth-child(1) { animation-delay: 0ms; }
+  .stagger-item:nth-child(2) { animation-delay: 80ms; }
+  .stagger-item:nth-child(3) { animation-delay: 160ms; }
+  .stagger-item:nth-child(4) { animation-delay: 240ms; }
+  .stagger-item:nth-child(5) { animation-delay: 320ms; }
+  .stagger-item:nth-child(6) { animation-delay: 400ms; }
+
+  /* Glass Effect */
+  .glass {
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+  }
+
+  /* Liquid Glass Refraction */
+  .liquid-glass {
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  /* Subtle Grain Texture */
+  .grain::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   }
 }
 
 @layer components {
   /* Financial Card Styles */
   .financial-card {
-    @apply rounded-xl border bg-card/50 backdrop-blur-sm p-6 shadow-sm;
+    @apply rounded-xl border bg-card/50 backdrop-blur-sm p-6;
     box-shadow: var(--shadow-card);
+    transition: transform var(--duration-normal) var(--ease-out-expo),
+                box-shadow var(--duration-normal) var(--ease-out-expo);
   }
-  
+
+  .financial-card:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-elevated);
+  }
+
   .financial-card-elevated {
     @apply financial-card;
     box-shadow: var(--shadow-elevated);
   }
-  
+
   /* Professional Green Cards */
   .green-accent-card {
     @apply financial-card border-green-100 bg-gradient-to-br from-green-50/50 to-white;
   }
-  
+
   .green-primary-card {
     @apply financial-card bg-gradient-to-br;
-    background: linear-gradient(135deg, hsl(152 75% 20%), hsl(152 75% 25%));
+    background: linear-gradient(135deg, hsl(152 75% 20%), hsl(152 75% 28%));
     color: white;
   }
-  
+
   /* Split Section Styles */
   .split-section {
     @apply rounded-lg border p-4 transition-all duration-200 hover:shadow-md;
   }
-  
+
   .split-section-needs {
     @apply bg-gradient-to-br from-destructive-light/10 to-destructive-light/5 border-destructive-light/20;
   }
-  
+
+  .split-section-wants {
+    @apply bg-gradient-to-br from-warning-light/10 to-warning-light/5 border-warning-light/20;
+  }
+
+  .split-section-savings {
+    @apply bg-gradient-to-br from-success-light/10 to-success-light/5 border-success-light/20;
+  }
+
   /* Drag and Drop styles */
   .drag-over {
-    @apply ring-2 ring-blue-500 bg-blue-50 border-blue-300;
+    @apply ring-2 ring-green-500 bg-green-50 border-green-300;
   }
-  
+
   .dragging {
     @apply opacity-50 transform scale-95;
   }
-  
+
   .drop-zone {
     @apply border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg;
     transition: all 0.2s ease-in-out;
   }
-  
+
   .drop-zone.drag-over {
-    @apply border-blue-500 bg-blue-50;
-  }
-  
-  .split-section-wants {
-    @apply bg-gradient-to-br from-warning-light/10 to-warning-light/5 border-warning-light/20;
-  }
-  
-  .split-section-savings {
-    @apply bg-gradient-to-br from-success-light/10 to-success-light/5 border-success-light/20;
+    @apply border-green-500 bg-green-50;
   }
 }
 
@@ -236,5 +318,52 @@
   }
   100% {
     transform: scale(1) translate(0, 0);
+  }
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }

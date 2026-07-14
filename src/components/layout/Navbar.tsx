@@ -30,16 +30,15 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
   const linkClass = isLight
-    ? "text-slate-600 hover:text-blue-600 font-medium transition-colors"
+    ? "text-slate-600 hover:text-green-600 font-medium transition-colors"
     : "text-white/80 hover:text-white font-medium transition-colors";
 
-  const activeLinkClass = isLight ? "text-blue-600" : "text-white";
+  const activeLinkClass = isLight ? "text-green-600" : "text-white";
 
   return (
     <header
@@ -57,7 +56,7 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
       <div className="container mx-auto px-6 flex items-center justify-between">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-lg shadow-green-600/30">
             <Building2 className="w-5 h-5 text-white" />
           </div>
           <span className={cn("text-lg font-bold tracking-tight", isLight ? "text-slate-900" : "text-white")}>
@@ -120,8 +119,8 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
             >
               {/* Mobile brand */}
               <div className="flex items-center gap-3 mb-8 pt-2">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                  <Building2 className="w-4 w-4 text-white" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-white" />
                 </div>
                 <span className={cn("font-bold tracking-tight", isLight ? "text-slate-900" : "text-white")}>
                   BamiHost
@@ -136,7 +135,7 @@ export const Navbar = ({ variant = "dark" }: NavbarProps) => {
                     className={cn(
                       "flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors",
                       location.pathname === link.to
-                        ? "bg-blue-600 text-white"
+                        ? "bg-green-600 text-white"
                         : isLight
                         ? "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         : "text-white/70 hover:bg-white/10 hover:text-white"

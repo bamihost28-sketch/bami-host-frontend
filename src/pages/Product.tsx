@@ -71,12 +71,12 @@ const productShots = [
 
 const Product = () => {
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
+    <div className="relative min-h-[100dvh] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
       {/* Decorative animated blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -left-24 h-48 w-48 md:h-72 md:w-72 rounded-full bg-blue-600/30 blur-3xl animate-pulse" />
-        <div className="absolute -bottom-24 -right-24 h-48 w-48 md:h-72 md:w-72 rounded-full bg-purple-600/30 blur-3xl animate-pulse [animation-delay:300ms]" />
-        <div className="absolute top-1/3 -right-16 h-24 w-24 md:h-40 md:w-40 rounded-full bg-emerald-500/20 blur-2xl animate-[spin_18s_linear_infinite]" />
+        <div className="absolute -top-24 -left-24 h-48 w-48 md:h-72 md:w-72 rounded-full bg-green-600/30 blur-3xl animate-pulse" />
+        <div className="absolute -bottom-24 -right-24 h-48 w-48 md:h-72 md:w-72 rounded-full bg-emerald-700/30 blur-3xl animate-pulse [animation-delay:300ms]" />
+        <div className="absolute top-1/3 -right-16 h-24 w-24 md:h-40 md:w-40 rounded-full bg-green-500/20 blur-2xl animate-[spin_18s_linear_infinite]" />
       </div>
 
       <Navbar />
@@ -91,12 +91,12 @@ const Product = () => {
 
       {/* Hero */}
       <section className="container mx-auto px-6 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-2xl md:text-3xl font-extrabold leading-tight tracking-tight mb-4">
-            The <span className="text-blue-400">7 Levels of Scale</span> Platform
+        <div className="mb-12 md:ml-12 md:text-left text-center">
+          <h1 className="font-display text-2xl md:text-3xl font-extrabold leading-tight tracking-tighter mb-4 stagger-item">
+            The <span className="text-green-400">7 Levels of Scale</span> Platform
           </h1>
-          <p className="text-lg md:text-xl text-slate-200/80 max-w-3xl mx-auto">
-            A systematic approach to entrepreneurship. Scale yourself, then scale your company. 
+          <p className="text-lg md:text-xl text-slate-200/80 max-w-3xl md:mx-0 mx-auto stagger-item">
+            A systematic approach to entrepreneurship. Scale yourself, then scale your company.
             Break through the flatline with proven frameworks and tools.
           </p>
         </div>
@@ -104,14 +104,14 @@ const Product = () => {
 
       {/* Features section */}
       <section id="features" className="container mx-auto px-6 pb-16">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Platform Features</h2>
-          <p className="text-slate-300/80">Powerful tools designed for entrepreneurs and teams</p>
+        <div className="mb-10 md:ml-12 md:text-left text-center">
+          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tighter mb-4 stagger-item">Platform Features</h2>
+          <p className="text-slate-300/80 stagger-item">Powerful tools designed for entrepreneurs and teams</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
           {features.map((f, idx) => (
-            <div key={idx} className="rounded-xl p-6 bg-white/5 border border-white/10 transition-all hover:bg-white/10">
-              <div className="flex items-center gap-2 text-blue-300">
+            <div key={idx} className="liquid-glass stagger-item rounded-xl p-6 bg-white/5 border border-white/10 transition-all hover:bg-white/10">
+              <div className="flex items-center gap-2 text-green-300">
                 {f.icon}
                 <div className="font-semibold">{f.title}</div>
               </div>
@@ -126,11 +126,11 @@ const Product = () => {
 
       {/* Product screenshots */}
       <section id="product-screenshots" className="container mx-auto px-6 pb-20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold">See the product in action</h2>
-          <p className="mt-2 text-slate-300/80">A glimpse of dashboards and workflows</p>
+        <div className="mb-10 md:mr-12 md:text-right text-center">
+          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tighter stagger-item">See the product in action</h2>
+          <p className="mt-2 text-slate-300/80 stagger-item">A glimpse of dashboards and workflows</p>
         </div>
-        <Carousel 
+        <Carousel
           className="mx-auto max-w-5xl"
           opts={{
             align: "start",
@@ -140,7 +140,7 @@ const Product = () => {
           <CarouselContent>
             {productShots?.map((src: any, i: number) => (
               <CarouselItem key={i}>
-                <Card className="bg-white/5 border-white/10 backdrop-blur">
+                <Card className="liquid-glass bg-white/5 border-white/10 backdrop-blur">
                   <CardContent className="p-4">
                     <AspectRatio ratio={16/9}>
                       <img src={src} alt={`Product screenshot ${i+1}`} className="h-full w-full object-cover rounded-lg border border-white/10" loading="lazy" />
@@ -157,87 +157,87 @@ const Product = () => {
 
       {/* The Entrepreneurial Lifecycle */}
       <section className="container mx-auto px-6 pb-20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold">THE ENTREPRENEURIAL LIFECYCLE</h2>
-          <p className="mt-2 text-slate-300/80 text-lg">AN EMOTIONAL ROLLERCOASTER</p>
+        <div className="mb-10 md:ml-12 md:text-left text-center">
+          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tighter stagger-item">THE ENTREPRENEURIAL LIFECYCLE</h2>
+          <p className="mt-2 text-slate-300/80 text-lg stagger-item">AN EMOTIONAL ROLLERCOASTER</p>
         </div>
-        
+
         <div className="max-w-6xl mx-auto mb-12">
           {/* The Problem: Scaling vs Starting */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-8 mb-8">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-red-400 mb-4">The Hidden Truth About Business Failure</h3>
-              <p className="text-lg text-slate-200 mb-6">Here's what the data shows:</p>
-              
+          <div className="liquid-glass bg-white/5 border border-white/10 rounded-xl p-8 mb-8">
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-red-400 mb-4 stagger-item">The Hidden Truth About Business Failure</h3>
+              <p className="text-lg text-slate-200 mb-6 stagger-item">Here's what the data shows:</p>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center">
+                <div className="stagger-item text-center">
                   <div className="text-2xl font-black text-green-400 mb-2">80%</div>
                   <div className="text-sm text-slate-300">Survive Year 1</div>
                   <div className="text-xs text-green-400">✓ Starting is achievable</div>
                 </div>
-                <div className="text-center">
+                <div className="stagger-item text-center">
                   <div className="text-2xl font-black text-yellow-400 mb-2">50%</div>
                   <div className="text-sm text-slate-300">Make it to Year 5</div>
                   <div className="text-xs text-yellow-400">⚠ Scaling is harder</div>
                 </div>
-                <div className="text-center">
+                <div className="stagger-item text-center">
                   <div className="text-2xl font-black text-red-400 mb-2">9%</div>
                   <div className="text-sm text-slate-300">Achieve Long-term Success</div>
                   <div className="text-xs text-red-400">💔 Most get stuck in the flatline</div>
                 </div>
               </div>
             </div>
-            
-            <div className="bg-gradient-to-r from-red-500/20 to-emerald-500/20 rounded-lg p-6 border border-emerald-400/30">
-              <p className="text-lg font-semibold text-center text-white mb-2">
+
+            <div className="bg-gradient-to-r from-red-500/20 to-emerald-500/20 rounded-lg p-6 border border-emerald-400/30 stagger-item">
+              <p className="text-lg font-semibold text-white mb-2">
                 <span className="text-red-400">The Real Challenge:</span> It's not starting a business—
                 <span className="text-emerald-400 font-bold">it's scaling without burning out</span>
               </p>
-              <p className="text-center text-slate-300">Our platform helps you break through the entrepreneurial flatline systematically.</p>
+              <p className="text-slate-300">Our platform helps you break through the entrepreneurial flatline systematically.</p>
             </div>
           </div>
-          
+
           {/* The Entrepreneurial Lifecycle */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-8">
-            <div className="text-center mb-8">
-              <div className="text-lg text-slate-200 mb-4">The Entrepreneurial Lifecycle Every Founder Experiences:</div>
-              
+          <div className="liquid-glass bg-white/5 border border-white/10 rounded-xl p-8">
+            <div className="mb-8">
+              <div className="text-lg text-slate-200 mb-4 stagger-item">The Entrepreneurial Lifecycle Every Founder Experiences:</div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                <div className="bg-blue-500/10 border border-blue-400/20 rounded-lg p-4">
-                  <div className="text-blue-400 font-bold mb-2">1. Eureka Moment</div>
+                <div className="stagger-item bg-green-500/10 border border-green-400/20 rounded-lg p-4">
+                  <div className="text-green-400 font-bold mb-2">1. Eureka Moment</div>
                   <div className="text-sm text-slate-300">"This is going to be easy!" Uninformed optimism</div>
                 </div>
-                <div className="bg-purple-500/10 border border-purple-400/20 rounded-lg p-4">
-                  <div className="text-purple-400 font-bold mb-2">2. Launch Drudgery</div>
+                <div className="stagger-item bg-emerald-500/10 border border-emerald-400/20 rounded-lg p-4">
+                  <div className="text-emerald-400 font-bold mb-2">2. Launch Drudgery</div>
                   <div className="text-sm text-slate-300">"We're all doomed." Reality hits hard</div>
                 </div>
-                <div className="bg-green-500/10 border border-green-400/20 rounded-lg p-4">
+                <div className="stagger-item bg-green-500/10 border border-green-400/20 rounded-lg p-4">
                   <div className="text-green-400 font-bold mb-2">3. Initial Traction</div>
                   <div className="text-sm text-slate-300">"We might have something!" First success</div>
                 </div>
-                <div className="bg-yellow-500/10 border border-yellow-400/20 rounded-lg p-4">
+                <div className="stagger-item bg-yellow-500/10 border border-yellow-400/20 rounded-lg p-4">
                   <div className="text-yellow-400 font-bold mb-2">4. Early Growth</div>
                   <div className="text-sm text-slate-300">"Where's the champagne?" Peak confidence</div>
                 </div>
-                <div className="bg-red-500/10 border border-red-400/20 rounded-lg p-4">
+                <div className="stagger-item bg-red-500/10 border border-red-400/20 rounded-lg p-4">
                   <div className="text-red-400 font-bold mb-2">5. The Flatline</div>
                   <div className="text-sm text-slate-300">"Why isn't this working?" Growth stagnates</div>
                 </div>
-                <div className="bg-emerald-500/10 border border-emerald-400/20 rounded-lg p-4">
+                <div className="stagger-item bg-emerald-500/10 border border-emerald-400/20 rounded-lg p-4">
                   <div className="text-emerald-400 font-bold mb-2">6. Breakthrough</div>
                   <div className="text-sm text-slate-300">"Informed realism." Systematic scaling</div>
                 </div>
               </div>
             </div>
-            
+
             <div className="border-t border-white/20 pt-6">
               <div className="text-center">
-                <h3 className="text-xl font-bold text-emerald-400 mb-4">THE GOAL: Your Level 7 Life</h3>
-                <div className="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-lg p-6 border border-emerald-400/30">
+                <h3 className="text-xl font-bold text-emerald-400 mb-4 stagger-item">THE GOAL: Your Level 7 Life</h3>
+                <div className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-lg p-6 border border-emerald-400/30 stagger-item">
                   <p className="text-lg font-semibold text-white mb-2">
-                    <span className="text-emerald-400 font-bold">DOUBLE</span> your revenue, 
-                    <span className="text-emerald-400 font-bold">DOUBLE</span> your take-home profit, 
-                    hit your <span className="text-blue-400 font-bold">"number"</span> without burning out
+                    <span className="text-emerald-400 font-bold">DOUBLE</span> your revenue,
+                    <span className="text-emerald-400 font-bold">DOUBLE</span> your take-home profit,
+                    hit your <span className="text-green-400 font-bold">"number"</span> without burning out
                   </p>
                   <p className="text-slate-300 text-sm mt-2">Scale yourself so you can scale your company</p>
                 </div>
@@ -249,57 +249,57 @@ const Product = () => {
 
       {/* How it works */}
       <section id="how-it-works" className="container mx-auto px-6 pb-20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold">How it works</h2>
-          <p className="mt-2 text-slate-300/80">The Ultimate Shortcut/Roadmap of knowing where you are right now and hitting your numbers</p>
+        <div className="mb-10 md:mr-12 md:text-right text-center">
+          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tighter stagger-item">How it works</h2>
+          <p className="mt-2 text-slate-300/80 stagger-item">The Ultimate Shortcut/Roadmap of knowing where you are right now and hitting your numbers</p>
         </div>
-        
+
         <div className="max-w-6xl mx-auto mb-8">
-          <div className="bg-gradient-to-r from-slate-900 to-slate-800 border border-white/10 rounded-xl p-8 mb-8">
-            <div className="text-center mb-6">
-              <div className="inline-block bg-green-500 text-black font-bold text-xs px-3 py-1 rounded mb-4">
+          <div className="liquid-glass bg-gradient-to-r from-slate-900 to-slate-800 border border-white/10 rounded-xl p-8 mb-8">
+            <div className="mb-6">
+              <div className="inline-block bg-green-500 text-black font-bold text-xs px-3 py-1 rounded mb-4 stagger-item">
                 THE SYSTEMATIC APPROACH
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">How to Break Through the Flatline</h3>
+              <h3 className="text-2xl font-bold text-white mb-4 stagger-item">How to Break Through the Flatline</h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="bg-blue-500/10 border border-blue-400/20 rounded-lg p-6 text-center">
-                <div className="w-12 h-12 mx-auto mb-4 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              <div className="stagger-item bg-green-500/10 border border-green-400/20 rounded-lg p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
                   1
                 </div>
-                <div className="font-semibold text-blue-400 mb-3">Define Your Number</div>
+                <div className="font-semibold text-green-400 mb-3">Define Your Number</div>
                 <p className="text-sm text-slate-400">
-                  Set your revenue target, profit goals, and business valuation. Know exactly 
+                  Set your revenue target, profit goals, and business valuation. Know exactly
                   what "success" looks like for you and your family.
                 </p>
               </div>
-              
-              <div className="bg-green-500/10 border border-green-400/20 rounded-lg p-6 text-center">
-                <div className="w-12 h-12 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+
+              <div className="stagger-item bg-emerald-500/10 border border-emerald-400/20 rounded-lg p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-4 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
                   2
                 </div>
-                <div className="font-semibold text-green-400 mb-3">Walk the 7 Levels</div>
+                <div className="font-semibold text-emerald-400 mb-3">Walk the 7 Levels</div>
                 <p className="text-sm text-slate-400">
-                  Follow our proven roadmap. Know exactly where you are now and 
+                  Follow our proven roadmap. Know exactly where you are now and
                   what specific steps will take you to your next level.
                 </p>
               </div>
-              
-              <div className="bg-purple-500/10 border border-purple-400/20 rounded-lg p-6 text-center">
-                <div className="w-12 h-12 mx-auto mb-4 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+
+              <div className="stagger-item bg-green-600/10 border border-green-500/20 rounded-lg p-6 text-center">
+                <div className="w-12 h-12 mx-auto mb-4 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
                   3
                 </div>
-                <div className="font-semibold text-purple-400 mb-3">Scale Systematically</div>
+                <div className="font-semibold text-green-500 mb-3">Scale Systematically</div>
                 <p className="text-sm text-slate-400">
-                  Execute your Level 7 plan with systems that work without you. 
+                  Execute your Level 7 plan with systems that work without you.
                   Scale yourself, then scale your company.
                 </p>
               </div>
             </div>
-            
+
             <div className="text-center">
-              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg p-4 border border-green-400/30">
+              <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-lg p-4 border border-green-400/30 stagger-item">
                 <p className="text-sm font-semibold text-green-400">
                   The result: Break through the flatline without burning out or losing control
                 </p>
@@ -307,10 +307,10 @@ const Product = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="grid md:grid-cols-3 gap-6">
           {steps.map((s) => (
-            <div key={s.step} className="rounded-xl p-6 bg-white/5 border border-white/10">
+            <div key={s.step} className="stagger-item rounded-xl p-6 bg-white/5 border border-white/10">
               <div className="text-3xl font-black text-white/10">{s.step}</div>
               <div className="mt-2 text-lg font-semibold">{s.title}</div>
               <div className="mt-1 text-slate-300/80">{s.desc}</div>
@@ -321,19 +321,19 @@ const Product = () => {
 
       {/* Testimonials */}
       <section id="testimonials" className="container mx-auto px-6 pb-20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold">Loved by operators and creators</h2>
-          <p className="mt-2 text-slate-300/80">What our users are saying</p>
+        <div className="mb-10 md:ml-12 md:text-left text-center">
+          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tighter stagger-item">Loved by operators and creators</h2>
+          <p className="mt-2 text-slate-300/80 stagger-item">What our users are saying</p>
         </div>
         <div className="relative">
           <Carousel className="mx-auto max-w-3xl">
             <CarouselContent>
               {testimonials.map((t, i) => (
                 <CarouselItem key={i}>
-                  <Card className="bg-white/5 border-white/10 backdrop-blur">
+                  <Card className="liquid-glass bg-white/5 border-white/10 backdrop-blur">
                     <CardContent className="p-8">
                       <div className="flex flex-col items-center text-center gap-4">
-                        <Quote className="h-6 w-6 text-blue-300" />
+                        <Quote className="h-6 w-6 text-green-300" />
                         <p className="text-lg text-slate-100">"{t.quote}"</p>
                         <Separator className="bg-white/10" />
                         <div className="text-sm text-slate-300/90 font-medium">{t.name} • {t.title}</div>
@@ -351,9 +351,9 @@ const Product = () => {
 
       {/* FAQ */}
       <section id="faq" className="container mx-auto px-6 pb-24">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold">Frequently asked questions</h2>
-          <p className="mt-2 text-slate-300/80">Everything you need to know</p>
+        <div className="mb-10 md:mr-12 md:text-right text-center">
+          <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tighter stagger-item">Frequently asked questions</h2>
+          <p className="mt-2 text-slate-300/80 stagger-item">Everything you need to know</p>
         </div>
         <Accordion type="single" collapsible className="max-w-3xl mx-auto bg-white/5 border border-white/10 rounded-xl p-2">
           {faqs.map((f, i) => (
@@ -367,7 +367,7 @@ const Product = () => {
 
       {/* CTA to get started */}
       <section className="container mx-auto px-6 pb-20">
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-blue-700/40 via-purple-700/30 to-slate-900">
+        <div className="liquid-glass relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-green-700/40 via-emerald-700/30 to-slate-900">
           <div className="absolute inset-0 opacity-20">
             <img
               src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1600&q=60"
@@ -377,21 +377,21 @@ const Product = () => {
             />
           </div>
           <div className="relative px-6 py-10 md:px-10 md:py-14 flex flex-col md:flex-row items-center gap-6">
-            <div className="flex-1">
-              <h3 className="text-2xl md:text-3xl font-bold">Ready to Break Through the Flatline?</h3>
-              <p className="mt-2 text-slate-200/80">
+            <div className="flex-1 md:text-left text-center">
+              <h3 className="font-display text-2xl md:text-3xl font-bold tracking-tighter stagger-item">Ready to Break Through the Flatline?</h3>
+              <p className="mt-2 text-slate-200/80 stagger-item">
                 Stop being stuck. Scale yourself to scale your company. Join the 9% that succeed systematically.
               </p>
             </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-3 w-full sm:w-auto stagger-item">
               <a href="https://docs.google.com/forms/d/e/1FAIpQLSf2n02tzF1Yti8ZiwVDhOjnvPpgCKayNZsuxr4vpRF8DY4TLA/viewform?usp=dialog" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full bg-green-600 text-white hover:bg-green-500 font-semibold">
+                <Button size="lg" className="btn-interactive w-full bg-green-600 text-white hover:bg-green-500 font-semibold">
                   Build My Level 7 Plan
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </a>
               <Link to="/" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full bg-white text-slate-900 hover:bg-slate-100 border-slate-200">Back to Home</Button>
+                <Button size="lg" variant="outline" className="btn-interactive w-full bg-white text-slate-900 hover:bg-slate-100 border-slate-200">Back to Home</Button>
               </Link>
             </div>
           </div>

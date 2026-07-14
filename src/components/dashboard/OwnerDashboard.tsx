@@ -155,35 +155,35 @@ export const OwnerDashboard: React.FC = () => {
 
           {/* Overview Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20">
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-blue-600 p-2 rounded-lg">
+                  <div className="bg-green-600 p-2 rounded-lg">
                     <Building className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Total Units</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{totalUnits}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{totalUnits}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20">
+            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-green-600 p-2 rounded-lg">
+                  <div className="bg-emerald-600 p-2 rounded-lg">
                     <Users className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Occupied</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{occupiedUnits}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{occupiedUnits}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20">
+            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-red-600 p-2 rounded-lg">
@@ -191,27 +191,27 @@ export const OwnerDashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Vacant</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{vacantUnits}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{vacantUnits}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20">
+            <Card className="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-purple-600 p-2 rounded-lg">
+                  <div className="bg-teal-600 p-2 rounded-lg">
                     <DollarSign className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Monthly Income</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(monthlyIncome)}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{formatCurrency(monthlyIncome)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20">
+            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-orange-600 p-2 rounded-lg">
@@ -219,27 +219,27 @@ export const OwnerDashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Outstanding</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{formatCurrency(outstanding)}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{formatCurrency(outstanding)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/20">
+            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="bg-yellow-600 p-2 rounded-lg">
+                  <div className="bg-amber-600 p-2 rounded-lg">
                     <Wrench className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Pending Repairs</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{pendingMaintenance}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{pendingMaintenance}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/30 dark:to-cyan-800/20">
+            <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/30 dark:to-cyan-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-cyan-600 p-2 rounded-lg">
@@ -247,13 +247,13 @@ export const OwnerDashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Expiring Leases</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{expiringLeases}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{expiringLeases}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-800/20">
+            <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-800/20 hover-lift">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="bg-indigo-600 p-2 rounded-lg">
@@ -261,7 +261,7 @@ export const OwnerDashboard: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-slate-600 dark:text-slate-400">Properties</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{ownerData.properties.length}</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{ownerData.properties.length}</p>
                   </div>
                 </div>
               </CardContent>
@@ -282,7 +282,7 @@ export const OwnerDashboard: React.FC = () => {
                     ) : activity.type === "maintenance" ? (
                       <Wrench className="h-5 w-5 text-orange-600" />
                     ) : activity.type === "lease" ? (
-                      <FileText className="h-5 w-5 text-blue-600" />
+                      <FileText className="h-5 w-5 text-green-600" />
                     ) : (
                       <UserPlus className="h-5 w-5 text-purple-600" />
                     )}
@@ -307,7 +307,7 @@ export const OwnerDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Tenant Management</h2>
               <p className="text-slate-500 dark:text-slate-400">Manage all tenants across properties</p>
             </div>
-            <Button onClick={() => setAddTenantDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setAddTenantDialogOpen(true)} className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive">
               <UserPlus className="h-4 w-4 mr-2" /> Add Tenant
             </Button>
           </div>
@@ -326,7 +326,7 @@ export const OwnerDashboard: React.FC = () => {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center text-white font-semibold">
                             {tenant.name.charAt(0)}
                           </div>
                           <div>
@@ -432,7 +432,7 @@ export const OwnerDashboard: React.FC = () => {
             <Card>
               <CardContent className="p-4">
                 <p className="text-sm text-slate-500 dark:text-slate-400">Collected This Month</p>
-                <p className="text-2xl font-bold text-blue-600">{formatCurrency(ownerData.financials.collectedThisMonth)}</p>
+                <p className="text-2xl font-bold text-emerald-600 tracking-tight">{formatCurrency(ownerData.financials.collectedThisMonth)}</p>
               </CardContent>
             </Card>
             <Card>

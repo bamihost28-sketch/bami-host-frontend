@@ -13,6 +13,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
   const { user, logout } = useAuth();
   const { data: countData } = useGetNotificationCountQuery(undefined, { pollingInterval: 60000 });
   const unreadCount = countData?.unreadCount ?? 0;
+
   return (
     <header className={`h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 transition-all duration-300 print:hidden ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
       <div className="flex items-center justify-between h-full px-4 md:px-6">
@@ -32,7 +33,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
               <span className="text-white font-bold text-sm">B</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-lg md:text-xl bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">Bami Host</span>
+              <span className="font-bold text-lg md:text-xl bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent tracking-tight">Bami Host</span>
               {user && (
                 <span className="hidden sm:block text-xs text-muted-foreground -mt-1">
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)} Portal
@@ -43,7 +44,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
         </div>
         
         <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
-          {/* Notifications - hidden on very small screens */}
+          {/* Notifications */}
           <Button variant="ghost" size="sm" className="hidden sm:flex relative">
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
@@ -66,12 +67,12 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
             </Button>
           </div>
           
-          {/* Logout button - always visible with responsive styling */}
+          {/* Logout button */}
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={logout}
-            className="flex items-center justify-center p-2 sm:px-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 hover:text-red-500 border border-red-500/20 hover:border-red-500/30 transition-all duration-200"
+            className="flex items-center justify-center p-2 sm:px-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 hover:text-red-500 border border-red-500/20 hover:border-red-500/30 transition-all duration-200 btn-interactive"
             title="Logout from Bami Host"
           >
             <LogOut className="w-4 h-4" />

@@ -325,12 +325,12 @@ const sidebarItems: SidebarItem[] = [
 ];
 
 const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
-  core: { label: 'Dashboard', icon: LayoutDashboard, color: 'text-blue-400' },
+  core: { label: 'Dashboard', icon: LayoutDashboard, color: 'text-green-400' },
   financial: { label: 'Financial', icon: DollarSign, color: 'text-emerald-400' },
   business: { label: 'Business', icon: Briefcase, color: 'text-amber-400' },
-  growth: { label: 'Growth & AI', icon: Rocket, color: 'text-pink-400' },
-  team: { label: 'Team', icon: UserCheck, color: 'text-cyan-400' },
-  system: { label: 'System', icon: Settings, color: 'text-purple-400' },
+  growth: { label: 'Growth & AI', icon: Rocket, color: 'text-green-500' },
+  team: { label: 'Team', icon: UserCheck, color: 'text-teal-400' },
+  system: { label: 'System', icon: Settings, color: 'text-emerald-500' },
 };
 
 export const DashboardSidebar = ({
@@ -399,7 +399,7 @@ export const DashboardSidebar = ({
         className={cn(
           "w-full justify-start gap-3 text-left relative transition-all duration-200 group h-10 px-3 rounded-lg mx-1",
           "hover:bg-slate-700/70 hover:text-slate-100",
-          isActive && "bg-gradient-to-r from-blue-600/40 to-purple-600/20 text-white shadow-lg border border-blue-500/30",
+          isActive && "bg-gradient-to-r from-green-600/40 to-emerald-600/20 text-white shadow-lg border border-green-500/30",
           !hasAccess && "opacity-50 cursor-not-allowed hover:bg-transparent",
           hasAccess && !isActive && "text-slate-300 hover:text-white"
         )}
@@ -408,9 +408,9 @@ export const DashboardSidebar = ({
       >
         <Icon className={cn(
           "w-4 h-4 shrink-0 transition-transform duration-200",
-          isActive && "text-blue-400 scale-110",
+          isActive && "text-green-400 scale-110",
           !hasAccess && "text-slate-500",
-          hasAccess && !isActive && "group-hover:text-blue-400 group-hover:scale-105"
+          hasAccess && !isActive && "group-hover:text-green-400 group-hover:scale-105"
         )} />
         <span className="flex-1 text-xs font-medium truncate">{item.label}</span>
         {!hasAccess && <Lock className="w-3 h-3 text-slate-500 shrink-0" />}
@@ -418,7 +418,7 @@ export const DashboardSidebar = ({
           <Eye className="w-3 h-3 text-blue-400 shrink-0" />
         )}
         {isActive && (
-          <div className="absolute right-2 w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          <div className="absolute right-2 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
         )}
       </Button>
     );
@@ -509,13 +509,13 @@ export const DashboardSidebar = ({
                   className={cn(
                     "w-10 h-10 rounded-lg transition-all duration-200 relative",
                     hasAnyActive
-                      ? "bg-gradient-to-br from-blue-600/40 to-purple-600/20 text-white border border-blue-500/30"
+                      ? "bg-gradient-to-br from-green-600/40 to-emerald-600/20 text-white border border-green-500/30"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-700/70"
                   )}
                 >
                   <CatIcon className={cn("w-5 h-5", config.color)} />
                   {hasAnyActive && (
-                    <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full" />
                   )}
                 </Button>
               </DropdownMenuTrigger>
@@ -547,11 +547,11 @@ export const DashboardSidebar = ({
                 disabled={!hasAccess}
                 className={cn(
                   "gap-2.5 cursor-pointer text-slate-300 focus:text-white focus:bg-slate-700",
-                  isActive && "bg-blue-600/20 text-white font-medium",
+                  isActive && "bg-green-600/20 text-white font-medium",
                   !hasAccess && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-blue-400" : config.color)} />
+                <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-green-400" : config.color)} />
                 <span className="flex-1 text-xs">{item.label}</span>
                 {!hasAccess && <Lock className="w-3 h-3 text-slate-500" />}
               </DropdownMenuItem>
@@ -666,11 +666,11 @@ export const DashboardSidebar = ({
             </div>
 
             {/* Access level badge */}
-            <div className="mb-5 px-3 py-3 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/20">
+            <div className="mb-5 px-3 py-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-xl border border-green-500/20">
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="text-xs font-medium text-slate-300">Access Level</span>
               </div>
-              <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 text-xs font-medium">
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 text-xs font-medium">
                 {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
               </Badge>
             </div>
@@ -721,7 +721,7 @@ export const DashboardSidebar = ({
                 </div>
                 <div className="w-full bg-slate-700 rounded-full h-1 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-green-400 to-blue-500 rounded-full transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-300"
                     style={{ width: `${(filteredItems.length / sidebarItems.length) * 100}%` }}
                   />
                 </div>
