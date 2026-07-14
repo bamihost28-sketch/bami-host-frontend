@@ -35,16 +35,21 @@ export const DashboardLayout = ({ children, currentView, onViewChange }: Dashboa
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(c => !c)}
         />
-        <main className={cn(
-          "flex-1 overflow-auto bg-background transition-all duration-300 print:ml-0 print:bg-white",
-          sidebarCollapsed ? "md:ml-16" : "md:ml-64"
-        )}>
-          <div className="p-4 md:p-6 max-w-7xl mx-auto h-full print:p-0 print:max-w-none">
+        <main
+          className={cn(
+            "flex-1 overflow-auto transition-all duration-300 ease-out print:ml-0 print:bg-white",
+            sidebarCollapsed ? "md:ml-16" : "md:ml-64"
+          )}
+          style={{ minHeight: "calc(100vh - var(--header-height))" }}
+        >
+          <div
+            key={currentView}
+            className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto animate-fade-in print:p-0 print:max-w-none"
+          >
             {children}
           </div>
         </main>
       </div>
-      {/* Floating AI Coach — available on every page, remembers all conversations */}
       <AIChatWidget floating />
     </div>
   );

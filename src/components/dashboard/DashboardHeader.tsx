@@ -1,7 +1,8 @@
-import { Bell, Settings, User, LogOut, Menu, X } from "lucide-react";
+import { Bell, Settings, LogOut, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetNotificationCountQuery } from "@/services/notificationsApi";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface DashboardHeaderProps {
   onMenuClick?: () => void;
@@ -15,68 +16,91 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
   const unreadCount = countData?.unreadCount ?? 0;
 
   return (
-    <header className={`h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50 transition-all duration-300 print:hidden ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}>
+    <header
+      className={`h-[var(--header-height)] border-b border-border/60 bg-background/80 glass-subtle sticky top-0 z-40 transition-all duration-300 print:hidden ${
+        sidebarCollapsed ? "md:ml-16" : "md:ml-64"
+      }`}
+    >
       <div className="flex items-center justify-between h-full px-4 md:px-6">
-        <div className="flex items-center space-x-2 md:space-x-4">
-          {/* Mobile Menu Button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="md:hidden" 
+        {/* Left: Mobile menu */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-9 w-9 rounded-lg"
             onClick={onMenuClick}
           >
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </Button>
-          
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">B</span>
+
+          {/* Page context - mobile only (sidebar shows brand on desktop) */}
+          <div className="md:hidden flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-xs font-display">B</span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg md:text-xl bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent tracking-tight">Bami Host</span>
-              {user && (
-                <span className="hidden sm:block text-xs text-muted-foreground -mt-1">
-                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)} Portal
-                </span>
-              )}
-            </div>
+            <span className="text-sm font-semibold text-foreground font-display tracking-tight">Bami Host</span>
           </div>
         </div>
-        
-        <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
+
+        {/* Right: Utility actions */}
+        <div className="flex items-center gap-1">
+          {/* Search trigger (decorative for now) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden sm:flex h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+          >
+            <Search className="w-4 h-4" />
+          </Button>
+
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="hidden sm:flex relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+          >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none">
-                {unreadCount > 99 ? '99+' : unreadCount}
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-background">
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
           </Button>
-          
-          <Button variant="ghost" size="sm" className="hidden sm:flex">
+
+          {/* Settings */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden sm:flex h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+          >
             <Settings className="w-4 h-4" />
           </Button>
-          
-          <div className="flex items-center space-x-1 md:space-x-2">
-            {user && (
-              <span className="text-sm font-medium hidden md:block">{user.name}</span>
-            )}
-            <Button variant="ghost" size="sm" className="hidden sm:flex">
-              <User className="w-4 h-4" />
-            </Button>
+
+          {/* Divider */}
+          <div className="hidden sm:block w-px h-5 bg-border mx-1" />
+
+          {/* User */}
+          <div className="flex items-center gap-2.5">
+            <div className="hidden md:flex flex-col items-end leading-none">
+              <span className="text-sm font-medium text-foreground">{user?.name}</span>
+              <span className="text-[11px] text-muted-foreground capitalize">{user?.role?.replace(/_/g, " ")}</span>
+            </div>
+            <Avatar className="h-8 w-8 ring-2 ring-background">
+              <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white text-xs font-semibold font-display">
+                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
           </div>
-          
-          {/* Logout button */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
+
+          {/* Logout */}
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={logout}
-            className="flex items-center justify-center p-2 sm:px-3 bg-red-500/10 hover:bg-red-500/20 text-red-600 hover:text-red-500 border border-red-500/20 hover:border-red-500/30 transition-all duration-200 btn-interactive"
-            title="Logout from Bami Host"
+            className="hidden sm:flex h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            title="Sign out"
           >
             <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline ml-1">Logout</span>
           </Button>
         </div>
       </div>

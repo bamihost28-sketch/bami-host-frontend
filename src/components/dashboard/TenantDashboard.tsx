@@ -1082,12 +1082,12 @@ export const TenantDashboard: React.FC = () => {
                           onClick={() => setRentPaymentMonths(months)}
                           className={`rounded-lg p-3 text-left transition-all ${
                             isSelected
-                              ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600 ring-offset-1 dark:ring-offset-slate-900"
-                              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
+                              ? "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-sm ring-2 ring-green-600 ring-offset-1 dark:ring-offset-slate-900"
+                              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-green-300 dark:hover:border-green-600"
                           }`}
                         >
                           <p className="font-semibold text-sm">{months} Months</p>
-                          <p className={`text-xs mt-0.5 ${isSelected ? "text-blue-100" : "text-slate-400 dark:text-slate-500"}`}>
+                          <p className={`text-xs mt-0.5 ${isSelected ? "text-green-100" : "text-slate-400 dark:text-slate-500"}`}>
                             {formatCurrency(optionTotal)}
                           </p>
                         </button>

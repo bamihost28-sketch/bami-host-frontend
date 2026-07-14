@@ -301,8 +301,8 @@ export const ManagerDashboard: React.FC = () => {
               <Button variant="outline" onClick={() => setNoticeDialog(true)}>
                 <Megaphone className="h-4 w-4 mr-2" /> Broadcast
               </Button>
-              <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIssueDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Log Issue
+              <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => setIssueDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Report Issue
               </Button>
             </div>
           </div>
@@ -313,7 +313,7 @@ export const ManagerDashboard: React.FC = () => {
               Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             ) : (
               <>
-                <StatCard icon={Building} label="Estates Managed" value={overview?.managed_estates ?? 0} color="from-blue-500 to-blue-700" />
+                <StatCard icon={Building} label="Estates Managed" value={overview?.managed_estates ?? 0} color="from-emerald-500 to-emerald-700" />
                 <StatCard icon={Home} label="Occupancy Rate" value={`${overview?.units?.occupancy_rate ?? 0}%`} color="from-green-500 to-green-700" />
                 <StatCard icon={Home} label="Vacant Units" value={overview?.units?.vacant ?? 0} color="from-red-500 to-red-700" />
                 <StatCard icon={Users} label="Total Tenants" value={overview?.tenants?.total ?? 0} color="from-purple-500 to-purple-700" />
@@ -481,7 +481,7 @@ export const ManagerDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Issues & Maintenance</h2>
               <p className="text-slate-500">{openIssues.length} open issues</p>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIssueDialog(true)}>
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => setIssueDialog(true)}>
               <Plus className="h-4 w-4 mr-2" /> Log Issue
             </Button>
           </div>
@@ -613,7 +613,7 @@ export const ManagerDashboard: React.FC = () => {
                           <div className="flex flex-col items-end gap-2">
                             <p className="text-xl font-bold text-red-700">{formatCurrency(outstanding)}</p>
                             <div className="flex gap-2">
-                              <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" onClick={() => handleOpenPayment(tenant.id, tenant.tenantName)}>
+                              <Button size="sm" className="bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => handleOpenPayment(tenant.id, tenant.tenantName)}>
                                 <DollarSign className="h-4 w-4 mr-1" /> Collect
                               </Button>
                               <Button size="sm" variant="outline" onClick={() => handleSendReminder(tenant.id, tenant.tenantName)}>
@@ -650,7 +650,7 @@ export const ManagerDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Billing Management</h2>
               <p className="text-slate-500">{pendingBills.length} unpaid bills across your estates</p>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => { setSelectedTenantId(null); setBillDialog(true); }}>
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => { setSelectedTenantId(null); setBillDialog(true); }}>
               <Plus className="h-4 w-4 mr-2" /> Add Charge
             </Button>
           </div>
@@ -1004,7 +1004,7 @@ export const ManagerDashboard: React.FC = () => {
                     <span className="text-slate-600">Collection Rate</span>
                     <div className="flex items-center gap-2">
                       <div className="w-32 bg-slate-200 rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min(overview?.collection_rate ?? 0, 100)}%` }} />
+                        <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full" style={{ width: `${Math.min(overview?.collection_rate ?? 0, 100)}%` }} />
                       </div>
                       <span className="font-semibold w-12 text-right">{overview?.collection_rate ?? 0}%</span>
                     </div>

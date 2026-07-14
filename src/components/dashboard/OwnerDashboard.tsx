@@ -503,7 +503,7 @@ export const OwnerDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Lease Management</h2>
               <p className="text-slate-500 dark:text-slate-400">Digital lease agreements and renewals</p>
             </div>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive">
               <Plus className="h-4 w-4 mr-2" /> Create New Lease
             </Button>
           </div>
@@ -571,7 +571,7 @@ export const OwnerDashboard: React.FC = () => {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Maintenance Management</h2>
               <p className="text-slate-500 dark:text-slate-400">Track and assign repair requests</p>
             </div>
-            <Button onClick={() => setAddMaintenanceDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setAddMaintenanceDialogOpen(true)} className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive">
               <Plus className="h-4 w-4 mr-2" /> New Request
             </Button>
           </div>
