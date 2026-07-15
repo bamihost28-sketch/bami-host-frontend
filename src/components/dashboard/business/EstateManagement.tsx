@@ -15,7 +15,6 @@ import { MoreVertical, Wand2, HelpCircle } from "lucide-react";
 import { EstateManagementSkeleton } from "@/components/ui/skeletons";
 import { EstateOverviewCards } from "./EstateOverviewCards";
 import { EstateSetupWizard } from "./EstateSetupWizard";
-import { SkillContextPanel } from "@/components/skills/SkillContextPanel";
 import { GuidedTour, type TourStep } from "@/components/ui/guided-tour";
 
 
@@ -403,26 +402,6 @@ export const EstateManagement = () => {
       <GuidedTour steps={ESTATE_TOUR_STEPS} storageKey="tour:estate-management:v1" startSignal={tourSignal} />
 
 
-      {/* Marketer AI activates immediately after a new estate is created */}
-      {newlyCreatedEstate && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SkillContextPanel
-            skill="marketer"
-            event="new_property_listed"
-            context={{ estate_name: newlyCreatedEstate }}
-            title="Marketer AI — Promote Your New Estate"
-            defaultPrompt="Write a launch post I can share on WhatsApp and Instagram for this estate."
-          />
-          <SkillContextPanel
-            skill="designer"
-            event="new_property_listed"
-            context={{ estate_name: newlyCreatedEstate }}
-            title="Designer AI — Brand This Estate"
-            defaultPrompt="What visual assets do I need before I can start marketing this estate?"
-            collapsed
-          />
-        </div>
-      )}
     </div>
   );
 };

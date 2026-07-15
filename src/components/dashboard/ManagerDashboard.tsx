@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { SkillsAssistant } from "@/components/skills/SkillsAssistant";
-import { SkillContextPanel } from "@/components/skills/SkillContextPanel";
 import { BusinessHealthWidget } from "@/components/dashboard/BusinessHealthWidget";
 import {
   Building, Users, Home, Wrench, AlertCircle, Shield,
@@ -509,19 +508,6 @@ export const ManagerDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Operations AI: surfaces when there are open issues */}
-          {openIssues.length > 0 && (
-            <SkillContextPanel
-              skill="operations"
-              event="issue_reported"
-              context={{
-                open_issues: openIssues.length,
-                high_priority: openIssues.filter((i: any) => i.priority === "high").length,
-              }}
-              title="Operations AI — Maintenance Strategy"
-              defaultPrompt="Which vendor should I assign to these issues?"
-            />
-          )}
         </TabsContent>
 
         {/* ─── PAYMENTS TAB ────────────────────────────────────────────── */}
@@ -614,17 +600,6 @@ export const ManagerDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Finance AI activates automatically when there are overdue tenants */}
-          <SkillContextPanel
-            skill="finance"
-            event="tenant_overdue"
-            context={{
-              overdue_count: tenants.filter((t: any) => (t.rentOutstanding + t.serviceChargeOutstanding) > 0).length,
-            }}
-            title="Finance AI — Arrears Recovery Plan"
-            defaultPrompt="Give me a script to call overdue tenants about their balance."
-            collapsed={tenants.filter((t: any) => (t.rentOutstanding + t.serviceChargeOutstanding) > 0).length === 0}
-          />
         </TabsContent>
 
         {/* ─── BILLING TAB ─────────────────────────────────────────────── */}
@@ -774,30 +749,6 @@ export const ManagerDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Sales AI activates automatically when there are pending enquiries */}
-          {enquiries.filter((e: any) => e.status === "pending").length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SkillContextPanel
-                skill="sales"
-                event="new_enquiry"
-                context={{
-                  pending_enquiries: enquiries.filter((e: any) => e.status === "pending").length,
-                }}
-                title="Sales AI — Convert These Enquiries"
-                defaultPrompt="What should I say to these prospective tenants to get them to sign?"
-              />
-              <SkillContextPanel
-                skill="marketer"
-                event="new_enquiry"
-                context={{
-                  pending_enquiries: enquiries.filter((e: any) => e.status === "pending").length,
-                }}
-                title="Marketer AI — Lead Source Analysis"
-                defaultPrompt="Which marketing channel is bringing in the best enquiries?"
-                collapsed
-              />
-            </div>
-          )}
         </TabsContent>
 
         {/* ─── APPLICATIONS TAB ────────────────────────────────────────── */}
@@ -891,26 +842,6 @@ export const ManagerDashboard: React.FC = () => {
             )}
           </div>
 
-          {/* Marketer + Designer AI auto-activate for vacant units */}
-          {vacantUnits.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <SkillContextPanel
-                skill="marketer"
-                event="vacancy_opened"
-                context={{ vacant_units: vacantUnits.length }}
-                title="Marketer AI — Fill These Units"
-                defaultPrompt="Write a WhatsApp broadcast message to attract tenants for these units."
-              />
-              <SkillContextPanel
-                skill="sales"
-                event="vacancy_opened"
-                context={{ vacant_units: vacantUnits.length }}
-                title="Sales AI — Convert Enquiries"
-                defaultPrompt="How do I turn the enquiries I have into signed tenants this week?"
-                collapsed
-              />
-            </div>
-          )}
         </TabsContent>
 
         {/* ─── ESTATES TAB ──────────────────────────────────────────────── */}
