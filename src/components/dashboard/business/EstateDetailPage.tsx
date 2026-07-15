@@ -36,7 +36,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { formatDate } from '@/utils/propertyUtils';
-import { SkillContextPanel } from '@/components/skills/SkillContextPanel';
 import { GuidedTour, type TourStep } from '@/components/ui/guided-tour';
 
 const ESTATE_DETAIL_TOUR_STEPS: TourStep[] = [
@@ -826,33 +825,6 @@ export const EstateDetailPage = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Business Skills — auto-activate when there are vacancies */}
-      {(vacantUnits?.data?.length ?? 0) > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SkillContextPanel
-            skill="marketer"
-            event="vacancy_opened"
-            context={{
-              estate_name: estate?.name ?? "this estate",
-              vacant_units: vacantUnits?.data?.length ?? 0,
-            }}
-            title="Marketer AI — Fill These Vacancies"
-            defaultPrompt="What should I post or send to attract tenants?"
-          />
-          <SkillContextPanel
-            skill="designer"
-            event="vacancy_opened"
-            context={{
-              estate_name: estate?.name ?? "this estate",
-              vacant_units: vacantUnits?.data?.length ?? 0,
-            }}
-            title="Designer AI — Listing Presentation"
-            defaultPrompt="How should I present this property visually?"
-            collapsed
-          />
-        </div>
-      )}
 
       {/* Edit Unit Fees Modal */}
       <Dialog open={editFeesOpen} onOpenChange={setEditFeesOpen}>
