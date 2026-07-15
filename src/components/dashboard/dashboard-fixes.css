@@ -1,111 +1,17 @@
 /* Dashboard responsive fixes */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-
-/* Ensure cards don't overflow */
-.financial-card {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.financial-card-elevated {
-  min-width: 0;
-  overflow: hidden;
-}
-
-/* Handle text overflow in financial amounts */
-.financial-amount {
-  word-break: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.2;
-}
-
-/* Responsive grid fixes */
-@media (max-width: 640px) {
-  .dashboard-container {
-    padding: 0.75rem;
-  }
-  
-  .financial-amount {
-    font-size: 1.25rem !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .financial-amount {
-    font-size: 1.5rem !important;
-  }
-}
-
-/* Prevent horizontal scroll */
-.dashboard-wrapper {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-/* Grid layout improvements */
-.responsive-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
-
-@media (min-width: 640px) {
-  .responsive-grid {
-    gap: 1.5rem;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-}
-
-/* Card content improvements */
-.card-content-responsive {
-  padding: 0.75rem;
-}
-
-@media (min-width: 640px) {
-  .card-content-responsive {
-    padding: 1rem;
-  }
-}
-
-/* Text truncation helpers */
-.truncate-responsive {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 640px) {
-  .truncate-responsive {
-    max-width: 200px;
-  }
-}
-
-/* Flexible spacing */
-.space-responsive {
-  gap: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .space-responsive {
-    gap: 1rem;
-  }
-}
-
-/* ===== MOBILE-FIRST RESPONSIVE STYLES ===== */
 
 /* ===== DASHBOARD TAB LIST ===== */
 
 /* Base: full-width, horizontal scroll, hidden scrollbar */
 .dashboard-tabs-list {
   width: 100%;
-  flex-wrap: nowrap !important;
+  flex-wrap: nowrap;
   overflow-x: auto;
   overflow-y: visible;
   scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
   justify-content: flex-start;
-  /* Fade-out at right edge as scroll hint */
   -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
   mask-image: linear-gradient(to right, black 85%, transparent 100%);
 }
@@ -131,89 +37,66 @@
 /* Tablet+: allow wrapping, no scroll needed, remove fade */
 @media (min-width: 768px) {
   .dashboard-tabs-list {
-    flex-wrap: wrap !important;
+    flex-wrap: wrap;
     overflow-x: visible;
     -webkit-mask-image: none;
     mask-image: none;
   }
 }
 
-/* Dashboard cards grid - mobile first */
+/* ===== MOBILE RESPONSIVE FIXES ===== */
+
+/* Tighten gap on mobile grids — scoped to dashboard content */
 @media (max-width: 640px) {
-  /* Tighten gap on mobile grids */
-  .grid {
-    gap: 0.5rem !important;
+  .p-6 .grid {
+    gap: 0.5rem;
   }
 }
 
-/* Card padding - smaller on mobile */
+/* Card padding — smaller on mobile, scoped to dashboard cards */
 @media (max-width: 640px) {
-  [class*="CardContent"] {
-    padding: 0.75rem !important;
+  .p-6 [class*="CardContent"] {
+    padding: 0.75rem;
   }
-  
-  [class*="CardHeader"] {
-    padding: 0.75rem 0.75rem 0.5rem !important;
+
+  .p-6 [class*="CardHeader"] {
+    padding: 0.75rem 0.75rem 0.5rem;
   }
 }
 
-/* Button sizing - touch-friendly (only primary action buttons) */
+/* Button sizing — touch-friendly */
 @media (max-width: 640px) {
-  /* Full width buttons on mobile */
-  .w-full\.md\:w-auto {
-    width: 100% !important;
-  }
-
-  /* Button grid */
   .grid.button-grid {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
   }
 
   .grid.button-grid-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
 }
 
-/* Input fields - touch-friendly */
+/* Input fields — touch-friendly, prevent iOS zoom */
 @media (max-width: 640px) {
-  input,
-  textarea,
-  select {
+  .p-6 input,
+  .p-6 textarea,
+  .p-6 select {
     min-height: 44px;
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  [class*="Input"],
-  [class*="SelectTrigger"] {
-    padding: 0.5rem 0.75rem;
+    font-size: 16px;
   }
 }
 
-/* List items - mobile friendly */
-@media (max-width: 640px) {
-  [class*="list-row"],
-  [class*="TableRow"] {
-    padding: 0.75rem 0.5rem;
-  }
-  
-  /* Stack content vertically on mobile */
-  .flex-col\.md\:flex-row > * {
-    width: 100%;
-  }
-}
-
-/* Dialog/Modal - near full screen on mobile with scroll */
+/* Dialog — near full screen on mobile with scroll */
 @media (max-width: 640px) {
   [class*="DialogContent"] {
-    max-width: calc(100vw - 2rem) !important;
-    max-height: 90dvh !important;
+    max-width: calc(100vw - 2rem);
+    max-height: 90dvh;
     overflow-y: auto;
   }
 }
 
-/* Scrollable areas */
+/* Scrollable areas — momentum scrolling */
 @media (max-width: 640px) {
   .overflow-auto,
   .overflow-y-auto {
@@ -221,56 +104,55 @@
   }
 }
 
-/* Font sizing for readability on mobile */
+/* Font sizing for readability on mobile — scoped to dashboard */
 @media (max-width: 640px) {
-  .text-2xl {
-    font-size: 1.25rem !important;
+  .p-6 .text-2xl {
+    font-size: 1.25rem;
   }
-  
-  .text-xl {
-    font-size: 1.125rem !important;
+
+  .p-6 .text-xl {
+    font-size: 1.125rem;
   }
-  
-  .text-lg {
-    font-size: 1rem !important;
+
+  .p-6 .text-lg {
+    font-size: 1rem;
   }
-  
-  /* Dashboard title */
-  h1 {
-    font-size: 1.5rem !important;
+
+  .p-6 h1 {
+    font-size: 1.5rem;
     line-height: 1.3;
   }
-  
-  h2 {
-    font-size: 1.25rem !important;
+
+  .p-6 h2 {
+    font-size: 1.25rem;
     line-height: 1.35;
   }
-  
-  h3 {
-    font-size: 1.125rem !important;
+
+  .p-6 h3 {
+    font-size: 1.125rem;
   }
 }
 
-/* Pading adjustments */
+/* Padding adjustments on mobile */
 @media (max-width: 640px) {
   .p-6 {
-    padding: 1rem !important;
+    padding: 1rem;
   }
-  
-  .space-y-6 > * + * {
+
+  .p-6 .space-y-6 > * + * {
     margin-top: 1rem;
   }
-  
-  .gap-4 {
+
+  .p-6 .gap-4 {
     gap: 0.75rem;
   }
-  
-  .gap-3 {
+
+  .p-6 .gap-3 {
     gap: 0.5rem;
   }
 }
 
-/* Badge sizing */
+/* Badge sizing on mobile */
 @media (max-width: 640px) {
   [class*="Badge"] {
     font-size: 0.625rem;

@@ -91,7 +91,7 @@ export const StatCard = ({ label, value, icon: Icon, change, changeLabel, varian
         {change !== undefined && (
           <div className={cn(
             "flex items-center gap-1 text-xs font-medium",
-            change > 0 && "text-emerald-600",
+            change > 0 && "text-success",
             change < 0 && "text-destructive",
             change === 0 && "text-muted-foreground"
           )}>

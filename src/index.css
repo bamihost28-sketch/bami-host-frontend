@@ -55,6 +55,8 @@
     --sidebar-border: 217 25% 15%;
     --sidebar-ring: 152 75% 40%;
 
+    --gradient-primary: linear-gradient(90deg, hsl(152 75% 35%), hsl(152 75% 50%));
+
     --shadow-color: 152 75% 20%;
     --radius: 0.75rem;
     --header-height: 3.75rem;
@@ -111,6 +113,8 @@
     --sidebar-accent: 217 33% 10%;
     --sidebar-border: 217 25% 13%;
     --sidebar-ring: 152 65% 42%;
+
+    --gradient-primary: linear-gradient(90deg, hsl(152 65% 40%), hsl(152 65% 55%));
 
     --shadow-color: 0 0% 0%;
   }
@@ -267,13 +271,13 @@
   /* ── Badge Variants ────────────────────────────────────────────── */
   .badge-green {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
-    background: hsl(152 60% 92%);
-    color: hsl(152 75% 20%);
+    background: hsl(var(--success-light));
+    color: hsl(var(--success));
   }
 
   .dark .badge-green {
-    background: hsl(152 65% 15%);
-    color: hsl(152 65% 65%);
+    background: hsl(var(--success-light));
+    color: hsl(var(--success));
   }
 
   /* ── Sidebar Pulse Line ────────────────────────────────────────── */
@@ -302,7 +306,7 @@
 
   /* ── Drag and Drop ─────────────────────────────────────────────── */
   .drag-over {
-    @apply ring-2 ring-green-500 bg-green-50 border-green-300;
+    @apply ring-2 ring-primary bg-primary/5 border-primary;
   }
 
   .dragging {
@@ -310,12 +314,12 @@
   }
 
   .drop-zone {
-    @apply border-2 border-dashed border-gray-300 bg-gray-50 rounded-lg;
+    @apply border-2 border-dashed border-border bg-muted/30 rounded-lg;
     transition: all 0.2s ease-in-out;
   }
 
   .drop-zone.drag-over {
-    @apply border-green-500 bg-green-50;
+    @apply border-primary bg-primary/5;
   }
 }
 

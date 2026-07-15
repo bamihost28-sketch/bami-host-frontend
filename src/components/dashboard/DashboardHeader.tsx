@@ -29,6 +29,8 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
             size="icon"
             className="md:hidden h-9 w-9 rounded-lg"
             onClick={onMenuClick}
+            aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+            aria-expanded={sidebarOpen}
           >
             {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </Button>
@@ -49,6 +51,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
             variant="ghost"
             size="icon"
             className="hidden sm:flex h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+            aria-label="Search"
           >
             <Search className="w-4 h-4" />
           </Button>
@@ -58,6 +61,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
             variant="ghost"
             size="icon"
             className="relative h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+            aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
@@ -72,6 +76,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
             variant="ghost"
             size="icon"
             className="hidden sm:flex h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
+            aria-label="Settings"
           >
             <Settings className="w-4 h-4" />
           </Button>
@@ -99,6 +104,7 @@ export const DashboardHeader = ({ onMenuClick, sidebarOpen, sidebarCollapsed }: 
             onClick={logout}
             className="hidden sm:flex h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
             title="Sign out"
+            aria-label="Sign out"
           >
             <LogOut className="w-4 h-4" />
           </Button>

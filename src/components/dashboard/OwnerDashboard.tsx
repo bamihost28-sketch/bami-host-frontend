@@ -96,7 +96,7 @@ export const OwnerDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 p-1 rounded-xl">
+        <TabsList className="dashboard-tabs-list bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="overview" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
           <TabsTrigger value="tenants" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Tenants</TabsTrigger>
           <TabsTrigger value="finances" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Finance</TabsTrigger>
@@ -516,21 +516,21 @@ export const OwnerDashboard: React.FC = () => {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Full Name</Label>
-              <Input placeholder="Enter tenant name" />
+              <Label htmlFor="tenant-name">Full Name</Label>
+              <Input id="tenant-name" placeholder="Enter tenant name" />
             </div>
             <div>
-              <Label>Email</Label>
-              <Input placeholder="Enter email" type="email" />
+              <Label htmlFor="tenant-email">Email</Label>
+              <Input id="tenant-email" placeholder="Enter email" type="email" />
             </div>
             <div>
-              <Label>Phone</Label>
-              <Input placeholder="Enter phone number" />
+              <Label htmlFor="tenant-phone">Phone</Label>
+              <Input id="tenant-phone" placeholder="Enter phone number" />
             </div>
             <div>
-              <Label>Property</Label>
+              <Label htmlFor="tenant-property">Property</Label>
               <Select>
-                <SelectTrigger><SelectValue placeholder="Select property" /></SelectTrigger>
+                <SelectTrigger id="tenant-property"><SelectValue placeholder="Select property" /></SelectTrigger>
                 <SelectContent>
                   {ownerData.properties.map(p => (
                     <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
@@ -539,12 +539,12 @@ export const OwnerDashboard: React.FC = () => {
               </Select>
             </div>
             <div>
-              <Label>Unit/Apartment</Label>
-              <Input placeholder="Enter unit number" />
+              <Label htmlFor="tenant-unit">Unit/Apartment</Label>
+              <Input id="tenant-unit" placeholder="Enter unit number" />
             </div>
             <div>
-              <Label>Monthly Rent</Label>
-              <Input placeholder="Enter rent amount" type="number" />
+              <Label htmlFor="tenant-rent">Monthly Rent</Label>
+              <Input id="tenant-rent" placeholder="Enter rent amount" type="number" />
             </div>
           </div>
           <DialogFooter>

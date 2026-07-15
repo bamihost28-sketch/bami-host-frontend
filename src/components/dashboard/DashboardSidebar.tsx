@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 import { usePermissions, useFilteredNavigation } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface DashboardSidebarProps {
   currentView: string;
@@ -95,12 +95,12 @@ const sidebarItems: SidebarItem[] = [
 ];
 
 const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
-  core: { label: "Dashboard", icon: LayoutDashboard, color: "text-emerald-400" },
-  financial: { label: "Financial", icon: DollarSign, color: "text-emerald-400" },
-  business: { label: "Business", icon: Briefcase, color: "text-amber-400" },
-  growth: { label: "Growth & AI", icon: Rocket, color: "text-green-400" },
-  team: { label: "Team", icon: UserCheck, color: "text-teal-400" },
-  system: { label: "System", icon: Settings, color: "text-slate-400" },
+  core: { label: "Dashboard", icon: LayoutDashboard, color: "text-primary" },
+  financial: { label: "Financial", icon: DollarSign, color: "text-success" },
+  business: { label: "Business", icon: Briefcase, color: "text-warning" },
+  growth: { label: "Growth & AI", icon: Rocket, color: "text-primary" },
+  team: { label: "Team", icon: UserCheck, color: "text-success" },
+  system: { label: "System", icon: Settings, color: "text-muted-foreground" },
 };
 
 const CATEGORY_ORDER = ["core", "business", "growth", "team", "financial", "system"];
@@ -117,6 +117,17 @@ export const DashboardSidebar = ({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  // Escape key closes mobile sidebar
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
   const filteredItems = useFilteredNavigation(sidebarItems);
 
@@ -160,6 +171,7 @@ export const DashboardSidebar = ({
         key={item.id}
         onClick={() => hasAccess && handleNavigation(item)}
         disabled={!hasAccess}
+        aria-current={isActive ? "page" : undefined}
         className={cn(
           "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all duration-200 group relative",
           isActive && "bg-primary/10 text-foreground",
@@ -211,6 +223,8 @@ export const DashboardSidebar = ({
       <div className="mb-0.5">
         <button
           onClick={() => toggleSection(sectionKey)}
+          aria-expanded={sectionOpen}
+          aria-controls={`sidebar-section-${sectionKey}`}
           className={cn(
             "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 group",
             hasActiveItem ? "text-sidebar-foreground/90" : "text-sidebar-foreground/40 hover:text-sidebar-foreground/60"
@@ -226,7 +240,7 @@ export const DashboardSidebar = ({
           />
         </button>
         {sectionOpen && (
-          <div className="mt-0.5 ml-1 space-y-0.5">
+          <div id={`sidebar-section-${sectionKey}`} className="mt-0.5 ml-1 space-y-0.5">
             {items.map((item) => (
               <NavItem key={item.id} item={item} />
             ))}
@@ -308,6 +322,9 @@ export const DashboardSidebar = ({
       )}
 
       <aside
+        ref={sidebarRef}
+        role="navigation"
+        aria-label="Main navigation"
         className={cn(
           "bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ease-out",
           "fixed left-0 top-[var(--header-height)] h-[calc(100vh-var(--header-height))] z-50",
@@ -406,7 +423,7 @@ export const DashboardSidebar = ({
                 </div>
                 <div className="w-full bg-sidebar-accent rounded-full h-1 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
                     style={{ width: `${(filteredItems.length / sidebarItems.length) * 100}%` }}
                   />
                 </div>

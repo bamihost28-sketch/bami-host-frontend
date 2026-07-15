@@ -1,16 +1,14 @@
 /* Settings Page Responsive Utilities */
 
-/* Milky white background for settings cards */
+/* Settings card using semantic tokens */
 .settings-card {
-  background-color: #fafafa;
-  border: 1px solid #e5e5e5;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
 }
 
-@media (prefers-color-scheme: dark) {
-  .settings-card {
-    background-color: #1e1e1e;
-    border: 1px solid #333;
-  }
+.dark .settings-card {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
 }
 
 /* Line clamp utility for text truncation */
@@ -72,7 +70,7 @@
 /* Settings page layout fixes */
 .settings-sidebar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
 .settings-sidebar::-webkit-scrollbar {
@@ -84,10 +82,10 @@
 }
 
 .settings-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(155, 155, 155, 0.5);
+  background: hsl(var(--border));
   border-radius: 2px;
 }
 
 .settings-sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(155, 155, 155, 0.7);
+  background: hsl(var(--muted-foreground));
 }

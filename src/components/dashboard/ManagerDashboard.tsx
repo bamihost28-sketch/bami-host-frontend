@@ -270,7 +270,7 @@ export const ManagerDashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 p-1 rounded-xl flex-wrap">
+        <TabsList className="dashboard-tabs-list bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="overview" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
           <TabsTrigger value="tenants" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Tenants</TabsTrigger>
           <TabsTrigger value="overdue" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overdue</TabsTrigger>
@@ -313,14 +313,14 @@ export const ManagerDashboard: React.FC = () => {
               Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             ) : (
               <>
-                <ManagerStatCard icon={Building} label="Estates Managed" value={overview?.managed_estates ?? 0} color="from-emerald-500 to-emerald-700" />
-                <ManagerStatCard icon={Home} label="Occupancy Rate" value={`${overview?.units?.occupancy_rate ?? 0}%`} color="from-green-500 to-green-700" />
-                <ManagerStatCard icon={Home} label="Vacant Units" value={overview?.units?.vacant ?? 0} color="from-red-500 to-red-700" />
-                <ManagerStatCard icon={Users} label="Total Tenants" value={overview?.tenants?.total ?? 0} color="from-purple-500 to-purple-700" />
-                <ManagerStatCard icon={DollarSign} label="Revenue (30d)" value={formatCurrency(overview?.revenue?.monthly ?? 0)} color="from-emerald-500 to-emerald-700" />
-                <ManagerStatCard icon={TrendingUp} label="Collection Rate" value={`${overview?.collection_rate ?? 0}%`} color="from-cyan-500 to-cyan-700" />
-                <ManagerStatCard icon={AlertTriangle} label="Overdue Tenants" value={overview?.tenants?.overdue ?? 0} color="from-orange-500 to-orange-700" />
-                <ManagerStatCard icon={Wrench} label="Open Issues" value={overview?.skills?.open_issues ?? 0} color="from-yellow-500 to-yellow-700" />
+                <ManagerStatCard icon={Building} label="Estates Managed" value={overview?.managed_estates ?? 0} color="from-primary to-primary/80" />
+                <ManagerStatCard icon={Home} label="Occupancy Rate" value={`${overview?.units?.occupancy_rate ?? 0}%`} color="from-primary to-primary/80" />
+                <ManagerStatCard icon={Home} label="Vacant Units" value={overview?.units?.vacant ?? 0} color="from-destructive to-destructive/80" />
+                <ManagerStatCard icon={Users} label="Total Tenants" value={overview?.tenants?.total ?? 0} color="from-primary to-primary/80" />
+                <ManagerStatCard icon={DollarSign} label="Revenue (30d)" value={formatCurrency(overview?.revenue?.monthly ?? 0)} color="from-primary to-primary/80" />
+                <ManagerStatCard icon={TrendingUp} label="Collection Rate" value={`${overview?.collection_rate ?? 0}%`} color="from-primary to-primary/80" />
+                <ManagerStatCard icon={AlertTriangle} label="Overdue Tenants" value={overview?.tenants?.overdue ?? 0} color="from-warning to-warning/80" />
+                <ManagerStatCard icon={Wrench} label="Open Issues" value={overview?.skills?.open_issues ?? 0} color="from-warning to-warning/80" />
               </>
             )}
           </div>
@@ -1184,7 +1184,7 @@ export const ManagerDashboard: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBillDialog(false)}>Cancel</Button>
-            <Button className="bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 btn-interactive" onClick={handleAddBill}>
+            <Button className="bg-primary hover:bg-primary/90 btn-interactive" onClick={handleAddBill}>
               <Plus className="h-4 w-4 mr-2" /> Add Charge
             </Button>
           </DialogFooter>
