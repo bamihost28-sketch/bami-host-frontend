@@ -896,6 +896,25 @@ export const estatesApi = createApi({
     resendTenantCredentials: builder.mutation<{ success: boolean; message?: string }, string>({
       query: (tenantId) => ({ url: `/api/tenants/${tenantId}/resend-credentials`, method: 'POST' }),
     }),
+    adjustTenantBalance: builder.mutation<
+      { success: boolean; message?: string; data?: { rentOutstanding: number; serviceChargeOutstanding: number; totalOutstanding: number } },
+      { tenantId: string; rentOutstanding?: number; serviceChargeOutstanding?: number; clear?: boolean; reason?: string }
+    >({
+      query: ({ tenantId, ...body }) => ({
+        url: `/api/tenants/${tenantId}/adjust-balance`,
+        method: 'POST',
+        body: {
+          rent_outstanding: body.rentOutstanding,
+          service_charge_outstanding: body.serviceChargeOutstanding,
+          clear: body.clear,
+          reason: body.reason,
+        },
+      }),
+      invalidatesTags: (result, error, { tenantId }) => [
+        { type: 'Tenant', id: tenantId },
+        { type: 'TenantList', id: 'LIST' },
+      ],
+    }),
     getTenantHistory: builder.query<TenantHistoryEntry[], string>({
       query: (tenantId) => `/api/tenants/${tenantId}/history`,
       providesTags: (result, error, tenantId) => [{ type: 'Tenant' as const, id: tenantId }],
@@ -1420,6 +1439,7 @@ export const {
   useUpdateTenantMutation,
   useDeleteTenantMutation,
   useResendTenantCredentialsMutation,
+  useAdjustTenantBalanceMutation,
   useGetTenantHistoryQuery,
   useGetTenantTransactionsQuery,
   useGetMyPaymentHistoryQuery,

@@ -92,7 +92,7 @@ export const TenantDetailPage = () => {
 
       {/* Financial Summary Cards */}
       <div data-tour="tenant-financial">
-        <FinancialSummaryCards overview={overview} tenant={tenant} detail={detail} />
+        <FinancialSummaryCards overview={overview} tenant={tenant} detail={detail} tenantId={tenantId} />
       </div>
 
       {/* Additional Information Row */}

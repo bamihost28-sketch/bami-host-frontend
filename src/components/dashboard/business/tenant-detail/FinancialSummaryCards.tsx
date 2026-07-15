@@ -1,17 +1,69 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Pencil } from 'lucide-react';
 import { formatDate } from '@/utils/propertyUtils';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useAdjustTenantBalanceMutation } from '@/services/estatesApi';
+import { toast } from '@/components/ui/use-toast';
 
 interface FinancialSummaryCardsProps {
   overview: any;
   tenant: any;
   detail: any;
+  tenantId?: string;
 }
 
-export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSummaryCardsProps) => {
+export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: FinancialSummaryCardsProps) => {
   const totalMonthlyCommitment = (overview?.rent || 0) + (overview?.serviceCharge || 0);
   const year1 = (overview as any)?.yearlyBreakdown?.year1;
   const year2 = (overview as any)?.yearlyBreakdown?.year2;
+
+  const { isOwner } = usePermissions();
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [rentInput, setRentInput] = useState('');
+  const [serviceInput, setServiceInput] = useState('');
+  const [reason, setReason] = useState('');
+  const [adjustBalance, { isLoading: adjusting }] = useAdjustTenantBalanceMutation();
+
+  const openAdjust = () => {
+    setRentInput(String((overview as any)?.rentOutstanding ?? 0));
+    setServiceInput(String((overview as any)?.serviceChargeOutstanding ?? 0));
+    setReason('');
+    setAdjustOpen(true);
+  };
+
+  const submitAdjust = async () => {
+    if (!tenantId) return;
+    try {
+      const res = await adjustBalance({
+        tenantId,
+        rentOutstanding: Number(rentInput) || 0,
+        serviceChargeOutstanding: Number(serviceInput) || 0,
+        reason: reason || undefined,
+      }).unwrap();
+      toast({ title: res?.message || 'Outstanding balance updated' });
+      setAdjustOpen(false);
+    } catch (e: any) {
+      toast({ title: e?.data?.detail || 'Failed to update balance', variant: 'destructive' });
+    }
+  };
+
+  const clearBalance = async () => {
+    if (!tenantId) return;
+    if (!confirm("Clear this tenant's entire outstanding balance to ₦0? This cannot be undone.")) return;
+    try {
+      const res = await adjustBalance({ tenantId, clear: true, reason: reason || undefined }).unwrap();
+      toast({ title: res?.message || 'Outstanding balance cleared' });
+      setAdjustOpen(false);
+    } catch (e: any) {
+      toast({ title: e?.data?.detail || 'Failed to clear balance', variant: 'destructive' });
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -170,14 +222,14 @@ export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSum
         </CardContent>
       </Card>
 
-      {(overview as any)?.hasOutstanding && (
+      {((overview as any)?.hasOutstanding || isOwner) && (
         <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
           <CardContent className="pt-4 pb-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-medium text-red-500 dark:text-red-400 uppercase tracking-wider">Outstanding Balance</p>
                 <p className="text-xl font-bold text-red-700 dark:text-red-300 mt-1">
-                  ₦{((overview as any).totalOutstanding ?? 0).toLocaleString()}
+                  ₦{((overview as any)?.totalOutstanding ?? 0).toLocaleString()}
                 </p>
                 <div className="text-xs text-red-500 dark:text-red-400 mt-0.5 space-y-0.5">
                   {(overview as any)?.rentOutstanding > 0 && (
@@ -186,16 +238,64 @@ export const FinancialSummaryCards = ({ overview, tenant, detail }: FinancialSum
                   {(overview as any)?.serviceChargeOutstanding > 0 && (
                     <div>Service: ₦{(overview as any).serviceChargeOutstanding.toLocaleString()}</div>
                   )}
+                  {!(overview as any)?.hasOutstanding && (
+                    <div className="text-slate-400 dark:text-slate-500">No outstanding balance</div>
+                  )}
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+              <div className="flex flex-col items-end gap-1.5">
+                <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                {isOwner && (
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40" onClick={openAdjust}>
+                    <Pencil className="w-3.5 h-3.5 mr-1" /> Adjust
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {isOwner && (
+        <Dialog open={adjustOpen} onOpenChange={setAdjustOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Update outstanding balance</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="adj-rent">Rent outstanding (₦)</Label>
+                <Input id="adj-rent" type="number" min={0} value={rentInput} onChange={(e) => setRentInput(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="adj-service">Service charge outstanding (₦)</Label>
+                <Input id="adj-service" type="number" min={0} value={serviceInput} onChange={(e) => setServiceInput(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="adj-reason">Reason (optional, kept on record)</Label>
+                <Input id="adj-reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. waived after part-cash payment" />
+              </div>
+              <p className="text-[11px] text-muted-foreground -mt-1">
+                Sets the balance to these exact amounts. This change is logged to the tenant's history.
+              </p>
+            </div>
+            <div className="flex justify-between gap-2 mt-2">
+              <Button variant="outline" onClick={clearBalance} disabled={adjusting} className="text-red-600 border-red-200 hover:bg-red-50">
+                Clear to ₦0
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setAdjustOpen(false)}>Cancel</Button>
+                <Button onClick={submitAdjust} disabled={adjusting}>
+                  {adjusting ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {year1 && (
