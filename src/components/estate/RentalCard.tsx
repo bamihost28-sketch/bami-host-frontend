@@ -43,7 +43,7 @@ export const RentalCard: React.FC<RentalCardProps> = React.memo(({
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                         {isNew && (
-                            <Badge className="absolute top-4 left-4 bg-blue-600 text-white font-bold border-none px-3 py-1 text-[10px] uppercase tracking-wider">
+                            <Badge className="absolute top-4 left-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold border-none px-3 py-1 text-[10px] uppercase tracking-wider">
                                 New Rental
                             </Badge>
                         )}
@@ -57,7 +57,7 @@ export const RentalCard: React.FC<RentalCardProps> = React.memo(({
 
                     <div className="p-5 space-y-4">
                         <div>
-                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                            <h3 className="text-lg font-bold text-slate-900 group-hover:text-green-600 transition-colors line-clamp-1">
                                 {title}
                             </h3>
                             <div className="flex items-center gap-1.2 text-slate-400 mt-1">
@@ -68,11 +68,11 @@ export const RentalCard: React.FC<RentalCardProps> = React.memo(({
 
                         <div className="flex items-center gap-6 pt-2 border-t border-slate-50">
                             <div className="flex items-center gap-2 text-slate-500">
-                                <Bed className="h-4 w-4 text-blue-500" />
+                                <Bed className="h-4 w-4 text-green-500" />
                                 <span className="text-xs font-bold">{beds} Beds</span>
                             </div>
                             <div className="flex items-center gap-2 text-slate-500">
-                                <Bath className="h-4 w-4 text-blue-500" />
+                                <Bath className="h-4 w-4 text-green-500" />
                                 <span className="text-xs font-bold">{baths} Baths</span>
                             </div>
                         </div>

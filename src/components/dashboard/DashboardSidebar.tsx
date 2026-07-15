@@ -16,12 +16,9 @@ import {
   ListChecks,
   DollarSign,
   UserCheck,
-  TrendingDown,
-  Scale,
   CreditCard,
   Briefcase,
   ShieldCheck,
-  Handshake,
   Combine,
   ChevronLeft,
   ChevronRight,
@@ -29,12 +26,8 @@ import {
   Zap,
   Radio,
   Rocket,
-  Palette,
-  Megaphone,
-  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -64,274 +57,53 @@ interface SidebarItem {
   label: string;
   icon: any;
   requiredPermissions?: string[];
-  category?: 'core' | 'business' | 'growth' | 'team' | 'financial' | 'system';
+  category?: "core" | "business" | "growth" | "team" | "financial" | "system";
   isPremium?: boolean;
   path?: string;
 }
 
 const sidebarItems: SidebarItem[] = [
-  {
-    id: "overview",
-    label: "Overview",
-    icon: LayoutDashboard,
-    category: 'core',
-    requiredPermissions: ['view_overview'],
-    path: '/dashboard/overview'
-  },
-  {
-    id: "billionaire-os",
-    label: "Billionaire OS",
-    icon: Rocket,
-    category: 'core',
-    requiredPermissions: ['view_big5'],
-    path: '/dashboard/billionaire-os'
-  },
-  {
-    id: "defining-your-number",
-    label: "Defining Your Number",
-    icon: ListChecks,
-    category: 'core',
-    requiredPermissions: ['view_big5'],
-    path: '/dashboard/defining-your-number'
-  },
-  {
-    id: "wallet",
-    label: "Wallet",
-    icon: Wallet,
-    category: 'financial',
-    requiredPermissions: ['view_wallet'],
-    isPremium: true,
-    path: '/dashboard/wallet'
-  },
-  {
-    id: "portfolio",
-    label: "Investment Portfolio",
-    icon: TrendingUp,
-    category: 'financial',
-    requiredPermissions: ['view_portfolio'],
-    isPremium: true,
-    path: '/dashboard/portfolio'
-  },
-  {
-    id: "split-tracker",
-    label: "50/30/20 Split",
-    icon: PieChart,
-    category: 'financial',
-    requiredPermissions: ['view_split_tracker'],
-    isPremium: true,
-    path: '/dashboard/split-tracker'
-  },
-  {
-    id: "goals",
-    label: "Financial Goals",
-    icon: Target,
-    category: 'financial',
-    requiredPermissions: ['view_goals'],
-    isPremium: true,
-    path: '/dashboard/goals'
-  },
-  {
-    id: "accounting",
-    label: "Accounting Management",
-    icon: Combine,
-    category: 'financial',
-    requiredPermissions: ['view_all_data'],
-    isPremium: true,
-    path: '/dashboard/accounting'
-  },
-  {
-    id: "contacts",
-    label: "Contacts",
-    icon: Users,
-    category: 'system',
-    requiredPermissions: ['view_contacts'],
-    path: '/dashboard/contacts'
-  },
-  {
-    id: "strategic-hiring-planner",
-    label: "Hire Like a Boss",
-    icon: UserCheck,
-    category: 'team',
-    requiredPermissions: ['view_strategic_hiring', 'view_hiring_triggers'],
-    isPremium: true,
-    path: '/dashboard/strategic-hiring-planner'
-  },
-  {
-    id: "managing-like-a-boss",
-    label: "Manage Like a Boss",
-    icon: ShieldCheck,
-    category: 'team',
-    requiredPermissions: ['view_managing_like_a_boss'],
-    isPremium: true,
-    path: '/dashboard/managing-like-a-boss'
-  },
-  {
-    id: "candidate-management",
-    label: "Candidates",
-    icon: UserCheck,
-    category: 'team',
-    requiredPermissions: ['view_strategic_hiring', 'manage_candidates'],
-    isPremium: true,
-    path: '/dashboard/candidate-management'
-  },
-  {
-    id: "people",
-    label: "People",
-    icon: Users,
-    category: 'system',
-    requiredPermissions: ['view_people', 'manage_users'],
-    path: '/dashboard/people'
-  },
-  {
-    id: "business-types",
-    label: "Business Types",
-    icon: Briefcase,
-    category: 'system',
-    requiredPermissions: ['view_business_types', 'manage_business_types'],
-    path: '/dashboard/business-types'
-  },
-  {
-    id: "library",
-    label: "Library",
-    icon: FileText,
-    category: 'system',
-    requiredPermissions: ['view_library'],
-    path: '/dashboard/library'
-  },
-  {
-    id: "assistant",
-    label: "Assistant",
-    icon: MessageSquare,
-    category: 'system',
-    requiredPermissions: ['view_assistant'],
-    path: '/dashboard/assistant'
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    icon: Settings,
-    category: 'core',
-    requiredPermissions: ['view_settings'],
-    path: '/dashboard/settings'
-  },
-  {
-    id: "estate",
-    label: "Estate Management",
-    icon: Building,
-    category: 'business',
-    requiredPermissions: ['view_estate'],
-    isPremium: true,
-    path: '/dashboard/estate'
-  },
-  {
-    id: "head-office",
-    label: "Head Office",
-    icon: Briefcase,
-    category: 'growth',
-    requiredPermissions: ['view_estate'],
-    path: '/dashboard/head-office'
-  },
-  {
-    // The 6 business skills (Designer, Marketer, Sales, Finance, Operations, HR)
-    // now run as autonomous background agents — surfaced in this one AI Agents hub.
-    id: "autopilot",
-    label: "AI Agents",
-    icon: Zap,
-    category: 'growth',
-    requiredPermissions: ['view_autopilot'],
-    isPremium: true,
-    path: '/dashboard/autopilot'
-  },
-  {
-    // Live visualization of the agent team at work — the Ops Room
-    id: "ai-ops",
-    label: "AI Ops Room",
-    icon: Radio,
-    category: 'growth',
-    requiredPermissions: ['view_autopilot'],
-    isPremium: true,
-    path: '/dashboard/ai-ops'
-  },
-  {
-    // Level 7 progress system — diagnose level, NPS/promoters, growth scorecard, pay-yourself-first
-    id: "scale",
-    label: "Scale · 7 Levels",
-    icon: TrendingUp,
-    category: 'growth',
-    requiredPermissions: ['view_autopilot'],
-    isPremium: true,
-    path: '/dashboard/scale'
-  },
-  {
-    id: "filling-station",
-    label: "Filling Station",
-    icon: Building,
-    category: 'business',
-    requiredPermissions: ['view_filling_station'],
-    isPremium: true,
-    path: '/dashboard/filling-station'
-  },
-  {
-    id: "equipment",
-    label: "Equipment Rental",
-    icon: Building,
-    category: 'business',
-    requiredPermissions: ['view_equipment'],
-    isPremium: true,
-    path: '/dashboard/equipment'
-  },
-  {
-    id: "personal-portfolios",
-    label: "Personal Life",
-    icon: Wallet,
-    category: 'financial',
-    requiredPermissions: ['view_personal_portfolios'],
-    isPremium: true,
-    path: '/dashboard/personal-portfolios'
-  },
-  {
-    id: "reports",
-    label: "Reports",
-    icon: FileText,
-    category: 'financial',
-    requiredPermissions: ['view_reports'],
-    isPremium: true,
-    path: '/dashboard/reports'
-  },
-  {
-    id: "transactions",
-    label: "Transactions",
-    icon: DollarSign,
-    category: 'financial',
-    requiredPermissions: ['view_all_data'],
-    path: '/dashboard/transactions'
-  },
-  {
-    id: "meters",
-    label: "Smart Meters",
-    icon: Zap,
-    category: 'business',
-    requiredPermissions: ['view_all_data'],
-    path: '/dashboard/meters'
-  },
-  {
-    id: "subscription",
-    label: "Subscription",
-    icon: CreditCard,
-    category: 'system',
-    requiredPermissions: ['view_subscription', 'manage_subscription'],
-    path: '/dashboard/subscription'
-  }
+  { id: "overview", label: "Overview", icon: LayoutDashboard, category: "core", requiredPermissions: ["view_overview"], path: "/dashboard/overview" },
+  { id: "billionaire-os", label: "Billionaire OS", icon: Rocket, category: "core", requiredPermissions: ["view_big5"], path: "/dashboard/billionaire-os" },
+  { id: "defining-your-number", label: "Defining Your Number", icon: ListChecks, category: "core", requiredPermissions: ["view_big5"], path: "/dashboard/defining-your-number" },
+  { id: "wallet", label: "Wallet", icon: Wallet, category: "financial", requiredPermissions: ["view_wallet"], isPremium: true, path: "/dashboard/wallet" },
+  { id: "portfolio", label: "Investment Portfolio", icon: TrendingUp, category: "financial", requiredPermissions: ["view_portfolio"], isPremium: true, path: "/dashboard/portfolio" },
+  { id: "split-tracker", label: "50/30/20 Split", icon: PieChart, category: "financial", requiredPermissions: ["view_split_tracker"], isPremium: true, path: "/dashboard/split-tracker" },
+  { id: "goals", label: "Financial Goals", icon: Target, category: "financial", requiredPermissions: ["view_goals"], isPremium: true, path: "/dashboard/goals" },
+  { id: "accounting", label: "Accounting", icon: Combine, category: "financial", requiredPermissions: ["view_all_data"], isPremium: true, path: "/dashboard/accounting" },
+  { id: "contacts", label: "Contacts", icon: Users, category: "system", requiredPermissions: ["view_contacts"], path: "/dashboard/contacts" },
+  { id: "strategic-hiring-planner", label: "Hire Like a Boss", icon: UserCheck, category: "team", requiredPermissions: ["view_strategic_hiring", "view_hiring_triggers"], isPremium: true, path: "/dashboard/strategic-hiring-planner" },
+  { id: "managing-like-a-boss", label: "Manage Like a Boss", icon: ShieldCheck, category: "team", requiredPermissions: ["view_managing_like_a_boss"], isPremium: true, path: "/dashboard/managing-like-a-boss" },
+  { id: "candidate-management", label: "Candidates", icon: UserCheck, category: "team", requiredPermissions: ["view_strategic_hiring", "manage_candidates"], isPremium: true, path: "/dashboard/candidate-management" },
+  { id: "people", label: "People", icon: Users, category: "system", requiredPermissions: ["view_people", "manage_users"], path: "/dashboard/people" },
+  { id: "business-types", label: "Business Types", icon: Briefcase, category: "system", requiredPermissions: ["view_business_types", "manage_business_types"], path: "/dashboard/business-types" },
+  { id: "library", label: "Library", icon: FileText, category: "system", requiredPermissions: ["view_library"], path: "/dashboard/library" },
+  { id: "assistant", label: "Assistant", icon: MessageSquare, category: "system", requiredPermissions: ["view_assistant"], path: "/dashboard/assistant" },
+  { id: "settings", label: "Settings", icon: Settings, category: "core", requiredPermissions: ["view_settings"], path: "/dashboard/settings" },
+  { id: "estate", label: "Estate Management", icon: Building, category: "business", requiredPermissions: ["view_estate"], isPremium: true, path: "/dashboard/estate" },
+  { id: "head-office", label: "Head Office", icon: Briefcase, category: "growth", requiredPermissions: ["view_estate"], path: "/dashboard/head-office" },
+  { id: "autopilot", label: "AI Agents", icon: Zap, category: "growth", requiredPermissions: ["view_autopilot"], isPremium: true, path: "/dashboard/autopilot" },
+  { id: "ai-ops", label: "AI Ops Room", icon: Radio, category: "growth", requiredPermissions: ["view_autopilot"], isPremium: true, path: "/dashboard/ai-ops" },
+  { id: "scale", label: "Scale \u00B7 7 Levels", icon: TrendingUp, category: "growth", requiredPermissions: ["view_autopilot"], isPremium: true, path: "/dashboard/scale" },
+  { id: "filling-station", label: "Filling Station", icon: Building, category: "business", requiredPermissions: ["view_filling_station"], isPremium: true, path: "/dashboard/filling-station" },
+  { id: "equipment", label: "Equipment Rental", icon: Building, category: "business", requiredPermissions: ["view_equipment"], isPremium: true, path: "/dashboard/equipment" },
+  { id: "personal-portfolios", label: "Personal Life", icon: Wallet, category: "financial", requiredPermissions: ["view_personal_portfolios"], isPremium: true, path: "/dashboard/personal-portfolios" },
+  { id: "reports", label: "Reports", icon: FileText, category: "financial", requiredPermissions: ["view_reports"], isPremium: true, path: "/dashboard/reports" },
+  { id: "transactions", label: "Transactions", icon: DollarSign, category: "financial", requiredPermissions: ["view_all_data"], path: "/dashboard/transactions" },
+  { id: "meters", label: "Smart Meters", icon: Zap, category: "business", requiredPermissions: ["view_all_data"], path: "/dashboard/meters" },
+  { id: "subscription", label: "Subscription", icon: CreditCard, category: "system", requiredPermissions: ["view_subscription", "manage_subscription"], path: "/dashboard/subscription" },
 ];
 
 const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
-  core: { label: 'Dashboard', icon: LayoutDashboard, color: 'text-green-400' },
-  financial: { label: 'Financial', icon: DollarSign, color: 'text-emerald-400' },
-  business: { label: 'Business', icon: Briefcase, color: 'text-amber-400' },
-  growth: { label: 'Growth & AI', icon: Rocket, color: 'text-green-500' },
-  team: { label: 'Team', icon: UserCheck, color: 'text-teal-400' },
-  system: { label: 'System', icon: Settings, color: 'text-emerald-500' },
+  core: { label: "Dashboard", icon: LayoutDashboard, color: "text-emerald-400" },
+  financial: { label: "Financial", icon: DollarSign, color: "text-emerald-400" },
+  business: { label: "Business", icon: Briefcase, color: "text-amber-400" },
+  growth: { label: "Growth & AI", icon: Rocket, color: "text-green-400" },
+  team: { label: "Team", icon: UserCheck, color: "text-teal-400" },
+  system: { label: "System", icon: Settings, color: "text-slate-400" },
 };
+
+const CATEGORY_ORDER = ["core", "business", "growth", "team", "financial", "system"];
 
 export const DashboardSidebar = ({
   currentView,
@@ -341,9 +113,8 @@ export const DashboardSidebar = ({
   isCollapsed = false,
   onToggleCollapse,
 }: DashboardSidebarProps) => {
-  const { userRole, hasPermission, canAccessNavigation, rolePriority } = usePermissions();
+  const { userRole, canAccessNavigation, rolePriority } = usePermissions();
   const { user, logout } = useAuth();
-  const isTenant = user?.role === 'tenant';
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -359,68 +130,57 @@ export const DashboardSidebar = ({
     onClose?.();
   };
 
-  const groupedItems = {
-    core: filteredItems.filter(item => item.category === 'core'),
-    business: filteredItems.filter(item => item.category === 'business'),
-    growth: filteredItems.filter(item => item.category === 'growth'),
-    team: filteredItems.filter(item => item.category === 'team'),
-    financial: filteredItems.filter(item => item.category === 'financial'),
-    system: filteredItems.filter(item => item.category === 'system'),
-  };
+  const groupedItems = Object.fromEntries(
+    CATEGORY_ORDER.map((cat) => [cat, filteredItems.filter((item) => item.category === cat)])
+  ) as Record<string, SidebarItem[]>;
 
-  // Determine which section is active so we can open it by default
-  const activeCategory = filteredItems.find(
-    item => (item.path && location.pathname === item.path) || currentView === item.id
-  )?.category ?? 'core';
+  const activeCategory =
+    filteredItems.find(
+      (item) => (item.path && location.pathname === item.path) || currentView === item.id
+    )?.category ?? "core";
 
   const [openSections, setOpenSections] = useState<Set<string>>(new Set([activeCategory]));
 
   const toggleSection = (key: string) => {
-    setOpenSections(prev => {
+    setOpenSections((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
 
-  const renderExpandedItem = (item: SidebarItem) => {
+  const NavItem = ({ item }: { item: SidebarItem }) => {
     const Icon = item.icon;
     const hasAccess = canAccessNavigation(item.id);
     const isActive = (item.path && location.pathname === item.path) || currentView === item.id;
 
     const button = (
-      <Button
+      <button
         key={item.id}
-        variant="ghost"
-        className={cn(
-          "w-full justify-start gap-3 text-left relative transition-all duration-200 group h-10 px-3 rounded-lg mx-1",
-          "hover:bg-slate-700/70 hover:text-slate-100",
-          isActive && "bg-gradient-to-r from-green-600/40 to-emerald-600/20 text-white shadow-lg border border-green-500/30",
-          !hasAccess && "opacity-50 cursor-not-allowed hover:bg-transparent",
-          hasAccess && !isActive && "text-slate-300 hover:text-white"
-        )}
         onClick={() => hasAccess && handleNavigation(item)}
         disabled={!hasAccess}
+        className={cn(
+          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all duration-200 group relative",
+          isActive && "bg-primary/10 text-foreground",
+          !hasAccess && "opacity-40 cursor-not-allowed",
+          hasAccess && !isActive && "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+        )}
       >
-        <Icon className={cn(
-          "w-4 h-4 shrink-0 transition-transform duration-200",
-          isActive && "text-green-400 scale-110",
-          !hasAccess && "text-slate-500",
-          hasAccess && !isActive && "group-hover:text-green-400 group-hover:scale-105"
-        )} />
-        <span className="flex-1 text-xs font-medium truncate">{item.label}</span>
-        {!hasAccess && <Lock className="w-3 h-3 text-slate-500 shrink-0" />}
-        {hasAccess && rolePriority < 40 && (
-          <Eye className="w-3 h-3 text-blue-400 shrink-0" />
-        )}
         {isActive && (
-          <div className="absolute right-2 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-primary rounded-r-full" />
         )}
-      </Button>
+        <Icon
+          className={cn(
+            "w-4 h-4 shrink-0 transition-colors duration-200",
+            isActive ? "text-primary" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80",
+            !hasAccess && "text-sidebar-foreground/30"
+          )}
+        />
+        <span className="flex-1 text-[13px] font-medium truncate">{item.label}</span>
+        {!hasAccess && <Lock className="w-3 h-3 text-sidebar-foreground/30 shrink-0" />}
+        {hasAccess && rolePriority < 40 && <Eye className="w-3 h-3 text-blue-400/60 shrink-0" />}
+      </button>
     );
 
     if (!hasAccess) {
@@ -429,72 +189,59 @@ export const DashboardSidebar = ({
           <Tooltip>
             <TooltipTrigger asChild>{button}</TooltipTrigger>
             <TooltipContent side="right">
-              <p>Access restricted for {userRole} role</p>
-              {item.requiredPermissions && (
-                <p className="text-xs opacity-75">Required: {item.requiredPermissions.join(', ')}</p>
-              )}
+              <p className="text-xs">Access restricted for {userRole}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       );
     }
-
     return button;
   };
 
-  const renderExpandedSection = (title: string, sectionKey: string, items: SidebarItem[]) => {
+  const NavSection = ({ title, sectionKey, items }: { title: string; sectionKey: string; items: SidebarItem[] }) => {
     if (items.length === 0) return null;
-    const isOpen = openSections.has(sectionKey);
+    const sectionOpen = openSections.has(sectionKey);
     const config = categoryConfig[sectionKey];
     const SectionIcon = config?.icon;
     const hasActiveItem = items.some(
-      item => (item.path && location.pathname === item.path) || currentView === item.id
+      (item) => (item.path && location.pathname === item.path) || currentView === item.id
     );
 
     return (
-      <div key={sectionKey} className="mb-1">
-        {/* Clickable section header */}
+      <div className="mb-0.5">
         <button
           onClick={() => toggleSection(sectionKey)}
           className={cn(
-            "w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 group",
-            "hover:bg-slate-700/40",
-            hasActiveItem && !isOpen && "bg-slate-700/30"
+            "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 group",
+            hasActiveItem ? "text-sidebar-foreground/90" : "text-sidebar-foreground/40 hover:text-sidebar-foreground/60"
           )}
         >
-          {SectionIcon && (
-            <SectionIcon className={cn("w-3.5 h-3.5 shrink-0", config.color)} />
-          )}
-          <span className={cn(
-            "flex-1 text-left text-[10px] font-bold uppercase tracking-widest",
-            hasActiveItem ? "text-slate-300" : "text-slate-500",
-            "group-hover:text-slate-300"
-          )}>
-            {title}
-          </span>
-          <span className="text-[10px] text-slate-600 mr-1">{items.length}</span>
-          <ChevronDown className={cn(
-            "w-3 h-3 text-slate-500 transition-transform duration-200 shrink-0",
-            isOpen ? "rotate-0" : "-rotate-90"
-          )} />
+          {SectionIcon && <SectionIcon className={cn("w-3.5 h-3.5 shrink-0", config.color, "opacity-60")} />}
+          <span className="flex-1 text-left text-[10px] font-bold uppercase tracking-[0.08em]">{title}</span>
+          <ChevronDown
+            className={cn(
+              "w-3 h-3 transition-transform duration-200 shrink-0 opacity-40",
+              sectionOpen ? "rotate-0" : "-rotate-90"
+            )}
+          />
         </button>
-
-        {/* Collapsible items */}
-        {isOpen && (
-          <div className="mt-0.5 space-y-0.5 pl-1">
-            {items.map(renderExpandedItem)}
+        {sectionOpen && (
+          <div className="mt-0.5 ml-1 space-y-0.5">
+            {items.map((item) => (
+              <NavItem key={item.id} item={item} />
+            ))}
           </div>
         )}
       </div>
     );
   };
 
-  const renderCollapsedSection = (category: string, items: SidebarItem[]) => {
+  const CollapsedDropdown = ({ category, items }: { category: string; items: SidebarItem[] }) => {
     if (items.length === 0) return null;
     const config = categoryConfig[category];
     const CatIcon = config.icon;
     const hasAnyActive = items.some(
-      item => (item.path && location.pathname === item.path) || currentView === item.id
+      (item) => (item.path && location.pathname === item.path) || currentView === item.id
     );
 
     return (
@@ -503,40 +250,32 @@ export const DashboardSidebar = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
                   className={cn(
-                    "w-10 h-10 rounded-lg transition-all duration-200 relative",
+                    "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 relative",
                     hasAnyActive
-                      ? "bg-gradient-to-br from-green-600/40 to-emerald-600/20 text-white border border-green-500/30"
-                      : "text-slate-400 hover:text-slate-100 hover:bg-slate-700/70"
+                      ? "bg-primary/15 text-primary"
+                      : "text-sidebar-foreground/40 hover:text-sidebar-foreground/70 hover:bg-sidebar-accent"
                   )}
                 >
-                  <CatIcon className={cn("w-5 h-5", config.color)} />
+                  <CatIcon className="w-[18px] h-[18px]" />
                   {hasAnyActive && (
-                    <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full" />
+                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full" />
                   )}
-                </Button>
+                </button>
               </DropdownMenuTrigger>
             </TooltipTrigger>
-            <TooltipContent side="right" className="font-medium">
+            <TooltipContent side="right" className="font-medium text-xs">
               {config.label}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
-        <DropdownMenuContent
-          side="right"
-          align="start"
-          sideOffset={8}
-          className="w-56 bg-slate-900 border-slate-700 shadow-2xl"
-        >
-          <DropdownMenuLabel className={cn("text-xs font-bold uppercase tracking-wider pb-1", config.color)}>
+        <DropdownMenuContent side="right" align="start" sideOffset={8} className="w-52 bg-popover border-border shadow-xl">
+          <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pb-1">
             {config.label}
           </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-slate-700" />
-          {items.map(item => {
+          <DropdownMenuSeparator className="bg-border" />
+          {items.map((item) => {
             const Icon = item.icon;
             const hasAccess = canAccessNavigation(item.id);
             const isActive = (item.path && location.pathname === item.path) || currentView === item.id;
@@ -546,14 +285,14 @@ export const DashboardSidebar = ({
                 onClick={() => hasAccess && handleNavigation(item)}
                 disabled={!hasAccess}
                 className={cn(
-                  "gap-2.5 cursor-pointer text-slate-300 focus:text-white focus:bg-slate-700",
-                  isActive && "bg-green-600/20 text-white font-medium",
-                  !hasAccess && "opacity-50 cursor-not-allowed"
+                  "gap-2.5 cursor-pointer text-muted-foreground focus:text-foreground focus:bg-accent",
+                  isActive && "bg-primary/10 text-foreground font-medium",
+                  !hasAccess && "opacity-40 cursor-not-allowed"
                 )}
               >
-                <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-green-400" : config.color)} />
+                <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : config.color)} />
                 <span className="flex-1 text-xs">{item.label}</span>
-                {!hasAccess && <Lock className="w-3 h-3 text-slate-500" />}
+                {!hasAccess && <Lock className="w-3 h-3 text-muted-foreground/50" />}
               </DropdownMenuItem>
             );
           })}
@@ -564,171 +303,138 @@ export const DashboardSidebar = ({
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-sm" onClick={onClose} />
       )}
 
-      <aside className={cn(
-        "bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 ease-in-out",
-        "fixed left-0 top-16 h-[calc(100vh-4rem)] z-50 shadow-xl",
-        "md:top-0 md:h-screen",
-        "overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 print:hidden",
-        isCollapsed ? "w-16" : "w-64",
-        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-      )}>
+      <aside
+        className={cn(
+          "bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-all duration-300 ease-out",
+          "fixed left-0 top-[var(--header-height)] h-[calc(100vh-var(--header-height))] z-50",
+          "md:top-0 md:h-screen md:shadow-sidebar",
+          "overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-sidebar-border scrollbar-track-transparent print:hidden",
+          isCollapsed ? "w-16" : "w-64",
+          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        )}
+      >
         {isCollapsed ? (
-          /* ── COLLAPSED MODE ── */
-          <div className="flex flex-col items-center py-4 gap-2 h-full">
-            {/* Brand icon */}
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-md mb-2 shrink-0">
-              <span className="text-white font-bold text-sm">B</span>
+          <div className="flex flex-col items-center py-4 gap-1.5 h-full">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-glow-green mb-3 shrink-0">
+              <span className="text-white font-bold text-sm font-display">B</span>
             </div>
-
-            {/* Category group dropdowns */}
-            <div className="flex flex-col items-center gap-1.5 flex-1 w-full px-3 overflow-y-auto">
-              {(Object.keys(groupedItems) as Array<keyof typeof groupedItems>).map(cat =>
-                renderCollapsedSection(cat, groupedItems[cat])
+            <div className="flex flex-col items-center gap-1 flex-1 w-full px-2 overflow-y-auto">
+              {(Object.keys(groupedItems) as Array<keyof typeof groupedItems>).map((cat) =>
+                CollapsedDropdown({ category: cat, items: groupedItems[cat] })
               )}
             </div>
-
-            {/* Logout icon */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={logout}
-                    className="w-10 h-10 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 shrink-0"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Sign Out</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {/* Toggle expand button */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onToggleCollapse}
-                    className="w-10 h-10 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-700/70 shrink-0 mt-1"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Expand sidebar</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        ) : (
-          /* ── EXPANDED MODE ── */
-          <div className="p-4 h-full flex flex-col">
-            {/* Mobile close button */}
-            <div className="md:hidden mb-4 flex justify-end">
-              <Button variant="ghost" size="sm" onClick={onClose} className="p-2 hover:bg-slate-700/50">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Header: brand + collapse toggle */}
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shadow-md shrink-0">
-                  <span className="text-white font-bold text-sm">B</span>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-100 leading-tight">Bami Host</p>
-                  <p className="text-[10px] text-slate-400 leading-tight capitalize">{userRole} Portal</p>
-                </div>
-              </div>
-              {/* Desktop collapse toggle */}
+            <div className="flex flex-col items-center gap-1 shrink-0">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
+                      onClick={logout}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-sidebar-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut className="w-[18px] h-[18px]" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Sign Out</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
                       onClick={onToggleCollapse}
-                      className="hidden md:flex w-7 h-7 rounded-md text-slate-400 hover:text-slate-100 hover:bg-slate-700/70"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Expand sidebar</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        ) : (
+          <div className="p-3 h-full flex flex-col">
+            <div className="md:hidden mb-3 flex justify-end">
+              <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-sidebar-accent transition-colors">
+                <X className="w-4 h-4 text-sidebar-foreground/60" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between mb-5 px-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-glow-green shrink-0">
+                  <span className="text-white font-bold text-sm font-display">B</span>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-sidebar-foreground leading-tight font-display tracking-tight">Bami Host</p>
+                  <p className="text-[10px] text-sidebar-foreground/50 leading-tight capitalize">{userRole?.replace(/_/g, " ")}</p>
+                </div>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={onToggleCollapse}
+                      className="hidden md:flex w-7 h-7 rounded-lg items-center justify-center text-sidebar-foreground/30 hover:text-sidebar-foreground/60 hover:bg-sidebar-accent transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                    </Button>
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">Collapse sidebar</TooltipContent>
+                  <TooltipContent side="right">Collapse</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
 
-            {/* Access level badge */}
-            <div className="mb-5 px-3 py-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-xl border border-green-500/20">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-medium text-slate-300">Access Level</span>
-              </div>
-              <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 text-xs font-medium">
-                {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
-              </Badge>
-            </div>
-
-            {/* Nav sections */}
-            <nav className="flex-1 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-slate-700">
-              {renderExpandedSection("Dashboard", "core", groupedItems.core)}
-              {renderExpandedSection("Business", "business", groupedItems.business)}
-              {renderExpandedSection("Growth & AI", "growth", groupedItems.growth)}
-              {renderExpandedSection("Team", "team", groupedItems.team)}
-              {renderExpandedSection("Financial", "financial", groupedItems.financial)}
-              {renderExpandedSection("System", "system", groupedItems.system)}
+            <nav className="flex-1 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-sidebar-border">
+              {NavSection({ title: "Dashboard", sectionKey: "core", items: groupedItems.core })}
+              {NavSection({ title: "Business", sectionKey: "business", items: groupedItems.business })}
+              {NavSection({ title: "Growth & AI", sectionKey: "growth", items: groupedItems.growth })}
+              {NavSection({ title: "Team", sectionKey: "team", items: groupedItems.team })}
+              {NavSection({ title: "Financial", sectionKey: "financial", items: groupedItems.financial })}
+              {NavSection({ title: "System", sectionKey: "system", items: groupedItems.system })}
             </nav>
 
-            {/* Mobile: user info + logout */}
-            <div className="md:hidden mt-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 flex-shrink-0">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center shrink-0">
-                  <span className="text-white text-sm font-medium">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
+            <div className="mt-3 pt-3 border-t border-sidebar-border space-y-3 shrink-0">
+              <div className="px-2">
+                <div className="flex justify-between items-center text-[11px] mb-1.5">
+                  <span className="text-sidebar-foreground/40 font-medium">Features</span>
+                  <span className="font-bold text-primary">{filteredItems.length}/{sidebarItems.length}</span>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-slate-100 truncate">{user?.name}</div>
-                  <div className="text-xs text-slate-400 capitalize">{userRole}</div>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { logout(); onClose?.(); }}
-                className="w-full justify-start gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </Button>
-            </div>
-
-            {/* Access summary */}
-            {!isTenant && (
-              <div className="mt-3 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 flex-shrink-0">
-                <div className="flex justify-between items-center text-xs mb-2">
-                  <span className="text-slate-400 font-medium">Features</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                    <span className="font-bold text-green-400">{filteredItems.length}/{sidebarItems.length}</span>
-                  </div>
-                </div>
-                <div className="w-full bg-slate-700 rounded-full h-1 overflow-hidden">
+                <div className="w-full bg-sidebar-accent rounded-full h-1 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-all duration-500"
                     style={{ width: `${(filteredItems.length / sidebarItems.length) * 100}%` }}
                   />
                 </div>
               </div>
-            )}
+
+              <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl bg-sidebar-accent/50">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shrink-0">
+                  <span className="text-white text-xs font-semibold font-display">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-medium text-sidebar-foreground truncate">{user?.name}</div>
+                  <div className="text-[10px] text-sidebar-foreground/40 capitalize">{userRole?.replace(/_/g, " ")}</div>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-1.5 rounded-lg text-sidebar-foreground/30 hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                  title="Sign out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
+
+        <div className="absolute top-0 right-0 w-[2px] h-full pointer-events-none sidebar-pulse" />
       </aside>
     </>
   );

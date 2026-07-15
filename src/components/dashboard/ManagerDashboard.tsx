@@ -10,7 +10,8 @@ import {
   ArrowDownRight, ArrowUpRight, RefreshCw, TrendingUp,
   Zap, ChevronRight, Eye,
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader, SectionHeader } from "./DashboardPrimitives";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,14 +48,14 @@ import {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const StatCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) => (
-  <Card className={`bg-gradient-to-br ${color}`}>
+const ManagerStatCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) => (
+  <Card className={`bg-gradient-to-br ${color} border-0`}>
     <CardContent className="p-4">
       <div className="flex items-center gap-3">
         <div className="bg-white/20 p-2 rounded-lg"><Icon className="h-5 w-5 text-white" /></div>
         <div>
           <p className="text-sm text-white/80">{label}</p>
-          <p className="text-2xl font-bold text-white">{value}</p>
+          <p className="text-2xl font-bold text-white font-display">{value}</p>
         </div>
       </div>
     </CardContent>
@@ -269,39 +270,38 @@ export const ManagerDashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="dashboard-tabs-list flex-wrap">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="tenants">Tenants</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue</TabsTrigger>
-          <TabsTrigger value="issues">Issues</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
-          <TabsTrigger value="service-requests">Requests</TabsTrigger>
-          <TabsTrigger value="enquiries">Enquiries</TabsTrigger>
-          <TabsTrigger value="feedback">Feedback</TabsTrigger>
-          <TabsTrigger value="applications">Applications</TabsTrigger>
-          <TabsTrigger value="vacancies">Vacancies</TabsTrigger>
-          <TabsTrigger value="estates">Estates</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+        <TabsList className="bg-muted/50 p-1 rounded-xl flex-wrap">
+          <TabsTrigger value="overview" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
+          <TabsTrigger value="tenants" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Tenants</TabsTrigger>
+          <TabsTrigger value="overdue" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overdue</TabsTrigger>
+          <TabsTrigger value="issues" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Issues</TabsTrigger>
+          <TabsTrigger value="payments" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Payments</TabsTrigger>
+          <TabsTrigger value="billing" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Billing</TabsTrigger>
+          <TabsTrigger value="service-requests" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Requests</TabsTrigger>
+          <TabsTrigger value="enquiries" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Enquiries</TabsTrigger>
+          <TabsTrigger value="feedback" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Feedback</TabsTrigger>
+          <TabsTrigger value="applications" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Applications</TabsTrigger>
+          <TabsTrigger value="vacancies" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Vacancies</TabsTrigger>
+          <TabsTrigger value="estates" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Estates</TabsTrigger>
+          <TabsTrigger value="reports" className="rounded-lg text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Reports</TabsTrigger>
         </TabsList>
 
         {/* ─── OVERVIEW TAB ─────────────────────────────────────────────── */}
         <TabsContent value="overview" className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Manager Dashboard</h1>
-              <p className="text-slate-500 dark:text-slate-400">
-                {overviewLoading ? "Loading..." : overview?.estate_names?.join(", ") || "Assigned Estates"}
-              </p>
-            </div>
+            <PageHeader
+              title="Manager Dashboard"
+              description={overviewLoading ? "Loading..." : overview?.estate_names?.join(", ") || "Assigned Estates"}
+              icon={Building}
+            />
             <div className="flex gap-2 flex-wrap">
-              <Button variant="outline" onClick={() => refetchOverview()}>
+              <Button variant="outline" size="sm" onClick={() => refetchOverview()}>
                 <RefreshCw className="h-4 w-4 mr-2" /> Refresh
               </Button>
-              <Button variant="outline" onClick={() => setNoticeDialog(true)}>
+              <Button variant="outline" size="sm" onClick={() => setNoticeDialog(true)}>
                 <Megaphone className="h-4 w-4 mr-2" /> Broadcast
               </Button>
-              <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => setIssueDialog(true)}>
+              <Button size="sm" className="bg-primary hover:bg-primary/90 btn-interactive" onClick={() => setIssueDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" /> Report Issue
               </Button>
             </div>
@@ -313,14 +313,14 @@ export const ManagerDashboard: React.FC = () => {
               Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
             ) : (
               <>
-                <StatCard icon={Building} label="Estates Managed" value={overview?.managed_estates ?? 0} color="from-emerald-500 to-emerald-700" />
-                <StatCard icon={Home} label="Occupancy Rate" value={`${overview?.units?.occupancy_rate ?? 0}%`} color="from-green-500 to-green-700" />
-                <StatCard icon={Home} label="Vacant Units" value={overview?.units?.vacant ?? 0} color="from-red-500 to-red-700" />
-                <StatCard icon={Users} label="Total Tenants" value={overview?.tenants?.total ?? 0} color="from-purple-500 to-purple-700" />
-                <StatCard icon={DollarSign} label="Revenue (30d)" value={formatCurrency(overview?.revenue?.monthly ?? 0)} color="from-emerald-500 to-emerald-700" />
-                <StatCard icon={TrendingUp} label="Collection Rate" value={`${overview?.collection_rate ?? 0}%`} color="from-cyan-500 to-cyan-700" />
-                <StatCard icon={AlertTriangle} label="Overdue Tenants" value={overview?.tenants?.overdue ?? 0} color="from-orange-500 to-orange-700" />
-                <StatCard icon={Wrench} label="Open Issues" value={overview?.skills?.open_issues ?? 0} color="from-yellow-500 to-yellow-700" />
+                <ManagerStatCard icon={Building} label="Estates Managed" value={overview?.managed_estates ?? 0} color="from-emerald-500 to-emerald-700" />
+                <ManagerStatCard icon={Home} label="Occupancy Rate" value={`${overview?.units?.occupancy_rate ?? 0}%`} color="from-green-500 to-green-700" />
+                <ManagerStatCard icon={Home} label="Vacant Units" value={overview?.units?.vacant ?? 0} color="from-red-500 to-red-700" />
+                <ManagerStatCard icon={Users} label="Total Tenants" value={overview?.tenants?.total ?? 0} color="from-purple-500 to-purple-700" />
+                <ManagerStatCard icon={DollarSign} label="Revenue (30d)" value={formatCurrency(overview?.revenue?.monthly ?? 0)} color="from-emerald-500 to-emerald-700" />
+                <ManagerStatCard icon={TrendingUp} label="Collection Rate" value={`${overview?.collection_rate ?? 0}%`} color="from-cyan-500 to-cyan-700" />
+                <ManagerStatCard icon={AlertTriangle} label="Overdue Tenants" value={overview?.tenants?.overdue ?? 0} color="from-orange-500 to-orange-700" />
+                <ManagerStatCard icon={Wrench} label="Open Issues" value={overview?.skills?.open_issues ?? 0} color="from-yellow-500 to-yellow-700" />
               </>
             )}
           </div>
@@ -328,33 +328,21 @@ export const ManagerDashboard: React.FC = () => {
           {/* Financial Summary */}
           {!overviewLoading && overview && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Outstanding Rent</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-red-600">{formatCurrency(overview.outstanding?.rent ?? 0)}</p>
-                  <p className="text-sm text-slate-500 mt-1">Across all managed estates</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Outstanding Service Charge</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-orange-600">{formatCurrency(overview.outstanding?.service_charge ?? 0)}</p>
-                  <p className="text-sm text-slate-500 mt-1">Service charges unpaid</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Monthly Rent Roll</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold text-green-600">{formatCurrency(overview.monthly_rent_roll ?? 0)}</p>
-                  <p className="text-sm text-slate-500 mt-1">Potential monthly income</p>
-                </CardContent>
-              </Card>
+              <div className="dash-card border-l-4 border-l-destructive">
+                <SectionHeader title="Outstanding Rent" />
+                <p className="text-2xl font-bold text-destructive font-display">{formatCurrency(overview.outstanding?.rent ?? 0)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Across all managed estates</p>
+              </div>
+              <div className="dash-card border-l-4 border-l-amber-400">
+                <SectionHeader title="Outstanding Service Charge" />
+                <p className="text-2xl font-bold text-amber-600 font-display">{formatCurrency(overview.outstanding?.service_charge ?? 0)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Service charges unpaid</p>
+              </div>
+              <div className="dash-card border-l-4 border-l-emerald-500">
+                <SectionHeader title="Monthly Rent Roll" />
+                <p className="text-2xl font-bold text-emerald-600 font-display">{formatCurrency(overview.monthly_rent_roll ?? 0)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Potential monthly income</p>
+              </div>
             </div>
           )}
 
@@ -366,103 +354,98 @@ export const ManagerDashboard: React.FC = () => {
 
           {/* High Priority Issues Alert */}
           {(overview?.skills?.high_priority_issues ?? 0) > 0 && (
-            <Card className="border-red-200 bg-red-50 dark:bg-red-900/20">
+            <div className="dash-card border-l-4 border-l-destructive bg-destructive/5">
               <CardContent className="p-4 flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="font-semibold text-red-800 dark:text-red-200">
+                  <p className="font-semibold text-foreground">
                     {overview.skills.high_priority_issues} High Priority Issue{overview.skills.high_priority_issues > 1 ? "s" : ""} Need Attention
                   </p>
-                  <p className="text-sm text-red-600 dark:text-red-400">Review the Issues tab immediately</p>
+                  <p className="text-sm text-muted-foreground">Review the Issues tab immediately</p>
                 </div>
-                <Button size="sm" variant="outline" className="border-red-300 text-red-700" onClick={() => setActiveTab("issues")}>
-                  View Issues <ChevronRight className="h-4 w-4 ml-1" />
+                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setActiveTab("issues")}>
+                  View Issues <ChevronRight className="h-3 w-3 ml-1" />
                 </Button>
               </CardContent>
-            </Card>
+            </div>
           )}
 
           {/* Overdue tenants quick list */}
           {(overview?.tenants?.overdue_list?.length ?? 0) > 0 && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Overdue Tenants</CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setActiveTab("overdue")}>View All</Button>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <div className="dash-card">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground font-display">Overdue Tenants</h3>
+                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setActiveTab("overdue")}>View All</Button>
+              </div>
+              <div className="space-y-2">
                 {overview!.tenants.overdue_list.map((t) => (
-                  <div key={t.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-destructive/5 border border-destructive/10">
                     <div>
-                      <p className="font-medium text-slate-900 dark:text-white">{t.name}</p>
-                      <p className="text-sm text-slate-500">{t.unit} · Due: {t.due_date ? formatDate(t.due_date) : "N/A"}</p>
+                      <p className="text-sm font-medium text-foreground">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.unit} &bull; Due: {t.due_date ? formatDate(t.due_date) : "N/A"}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-red-100 text-red-800">{formatCurrency(t.outstanding)}</Badge>
-                    </div>
+                    <Badge className="bg-destructive/10 text-destructive border-0 font-data">{formatCurrency(t.outstanding)}</Badge>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </TabsContent>
 
         {/* ─── TENANTS TAB ──────────────────────────────────────────────── */}
         <TabsContent value="tenants" className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Tenant Management</h2>
-              <p className="text-slate-500">{tenantsData?.total ?? 0} tenants across your estates</p>
-            </div>
-          </div>
+          <PageHeader
+            title="Tenant Management"
+            description={`${tenantsData?.total ?? 0} tenants across your estates`}
+            icon={Users}
+          />
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-slate-500" />
-                <Input
-                  placeholder="Search by name, unit, phone, email..."
-                  className="max-w-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <div className="dash-card">
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, unit, phone, email..."
+                className="max-w-sm h-9 bg-muted/30 border-0 focus-visible:ring-1"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
               {tenantsLoading ? (
                 Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
               ) : filteredTenants.length === 0 ? (
-                <p className="text-slate-500 text-center py-8">No tenants found.</p>
+                <p className="text-muted-foreground text-center py-8 text-sm">No tenants found.</p>
               ) : (
                 filteredTenants.map((tenant) => {
                   const outstanding = (tenant.rentOutstanding ?? 0) + (tenant.serviceChargeOutstanding ?? 0);
                   const isOverdue = outstanding > 0;
                   return (
-                    <div key={tenant.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                    <div key={tenant.id} className="flex items-center justify-between p-3 rounded-xl border border-border/60 hover:border-border hover:bg-muted/30 transition-all">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${isOverdue ? "bg-red-500" : "bg-green-500"}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm font-display ${isOverdue ? "bg-destructive" : "bg-gradient-to-br from-primary to-primary/80"}`}>
                           {tenant.tenantName?.charAt(0)?.toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-medium text-slate-900 dark:text-white">{tenant.tenantName}</p>
-                          <p className="text-sm text-slate-500">{tenant.unitLabel} · Due: {tenant.nextDueDate ? formatDate(tenant.nextDueDate) : "N/A"}</p>
+                          <p className="text-sm font-medium text-foreground">{tenant.tenantName}</p>
+                          <p className="text-xs text-muted-foreground">{tenant.unitLabel} &bull; Due: {tenant.nextDueDate ? formatDate(tenant.nextDueDate) : "N/A"}</p>
                           {isOverdue && (
-                            <p className="text-xs text-red-600 font-medium">Outstanding: {formatCurrency(outstanding)}</p>
+                            <p className="text-xs text-destructive font-medium font-data">Outstanding: {formatCurrency(outstanding)}</p>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={isOverdue ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
+                      <div className="flex items-center gap-1.5">
+                        <Badge className={isOverdue ? "bg-destructive/10 text-destructive border-0" : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-0"}>
                           {isOverdue ? "Overdue" : "Clear"}
                         </Badge>
-                        <Button size="sm" variant="outline" onClick={() => handleOpenPayment(tenant.id, tenant.tenantName)} title="Record Payment">
-                          <DollarSign className="h-4 w-4" />
+                        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => handleOpenPayment(tenant.id, tenant.tenantName)} title="Record Payment">
+                          <DollarSign className="h-3.5 w-3.5" />
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleSendReminder(tenant.id, tenant.tenantName)} title="Send Reminder">
-                          <Bell className="h-4 w-4" />
+                        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => handleSendReminder(tenant.id, tenant.tenantName)} title="Send Reminder">
+                          <Bell className="h-3.5 w-3.5" />
                         </Button>
                         {tenant.tenantPhone && (
                           <a href={`tel:${tenant.tenantPhone}`}>
-                            <Button size="sm" variant="outline" title="Call"><Phone className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" title="Call"><Phone className="h-3.5 w-3.5" /></Button>
                           </a>
                         )}
                       </div>
@@ -470,51 +453,52 @@ export const ManagerDashboard: React.FC = () => {
                   );
                 })
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ─── ISSUES / MAINTENANCE TAB ─────────────────────────────────── */}
         <TabsContent value="issues" className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Issues & Maintenance</h2>
-              <p className="text-slate-500">{openIssues.length} open issues</p>
-            </div>
-            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => setIssueDialog(true)}>
+            <PageHeader
+              title="Issues & Maintenance"
+              description={`${openIssues.length} open issues`}
+              icon={Wrench}
+            />
+            <Button size="sm" className="bg-primary hover:bg-primary/90 btn-interactive" onClick={() => setIssueDialog(true)}>
               <Plus className="h-4 w-4 mr-2" /> Log Issue
             </Button>
           </div>
 
-          <Card>
-            <CardContent className="space-y-4 pt-6">
+          <div className="dash-card">
+            <div className="space-y-2">
               {issuesLoading ? (
                 Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : issues.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">No issues found. ✅</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">No issues found.</p>
               ) : (
                 issues.map((issue) => (
-                  <div key={issue.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <div key={issue.id} className="p-4 rounded-xl border border-border/60 hover:border-border hover:bg-muted/30 transition-all">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`h-2 w-2 rounded-full ${issue.priority === "high" ? "bg-red-500" : issue.priority === "medium" ? "bg-yellow-500" : "bg-green-500"}`} />
-                          <p className="font-medium text-slate-900 dark:text-white">{issue.title}</p>
+                          <span className={`h-2 w-2 rounded-full ${issue.priority === "high" ? "bg-destructive" : issue.priority === "medium" ? "bg-amber-500" : "bg-emerald-500"}`} />
+                          <p className="text-sm font-medium text-foreground">{issue.title}</p>
                         </div>
-                        {issue.description && <p className="text-sm text-slate-500 mb-1">{issue.description}</p>}
-                        <p className="text-xs text-slate-400">{formatDate(issue.createdAt)}</p>
+                        {issue.description && <p className="text-xs text-muted-foreground mb-1">{issue.description}</p>}
+                        <p className="text-xs text-muted-foreground/60">{formatDate(issue.createdAt)}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge className={getPriorityColor(issue.priority)}>{issue.priority}</Badge>
                         <Badge className={getStatusColor(issue.status)}>{issue.status}</Badge>
                         {issue.status === "open" && (
-                          <Button size="sm" variant="outline" onClick={() => handleResolveIssue(issue.id, "in_progress")}>
+                          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleResolveIssue(issue.id, "in_progress")}>
                             Start
                           </Button>
                         )}
                         {issue.status === "in_progress" && (
-                          <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => handleResolveIssue(issue.id, "resolved")}>
-                            <CheckCircle className="h-4 w-4 mr-1" /> Resolve
+                          <Button size="sm" className="h-8 text-xs bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => handleResolveIssue(issue.id, "resolved")}>
+                            <CheckCircle className="h-3 w-3 mr-1" /> Resolve
                           </Button>
                         )}
                       </div>
@@ -522,8 +506,8 @@ export const ManagerDashboard: React.FC = () => {
                   </div>
                 ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Operations AI: surfaces when there are open issues */}
           {openIssues.length > 0 && (
@@ -542,82 +526,82 @@ export const ManagerDashboard: React.FC = () => {
 
         {/* ─── PAYMENTS TAB ────────────────────────────────────────────── */}
         <TabsContent value="payments" className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Payment Records</h2>
-              <p className="text-slate-500">All payments across your estates</p>
-            </div>
-          </div>
+          <PageHeader
+            title="Payment Records"
+            description="All payments across your estates"
+            icon={DollarSign}
+          />
 
-          <Card>
-            <CardContent className="space-y-3 pt-6">
+          <div className="dash-card">
+            <div className="space-y-2">
               {paymentsLoading ? (
                 Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)
               ) : payments.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">No payments found.</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">No payments found.</p>
               ) : (
                 payments.map((payment) => (
-                  <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg bg-slate-50 dark:bg-slate-800">
+                  <div key={payment.id} className="flex items-center justify-between p-3 rounded-xl border border-border/60 hover:border-border hover:bg-muted/30 transition-all">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${payment.paymentStatus === "completed" || payment.paymentStatus === "success" ? "bg-green-100" : "bg-yellow-100"}`}>
-                        <DollarSign className={`h-5 w-5 ${payment.paymentStatus === "completed" || payment.paymentStatus === "success" ? "text-green-600" : "text-yellow-600"}`} />
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${payment.paymentStatus === "completed" || payment.paymentStatus === "success" ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-amber-100 dark:bg-amber-900/30"}`}>
+                        <DollarSign className={`h-4 w-4 ${payment.paymentStatus === "completed" || payment.paymentStatus === "success" ? "text-emerald-600" : "text-amber-600"}`} />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{payment.paymentType}</p>
-                        <p className="text-sm text-slate-500">{formatDate(payment.createdAt)} · {payment.reference || "no ref"}</p>
+                        <p className="text-sm font-medium text-foreground">{payment.paymentType}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(payment.createdAt)} &bull; {payment.reference || "no ref"}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-slate-900 dark:text-white">{formatCurrency(payment.amount)}</p>
+                      <p className="text-sm font-semibold text-foreground font-data">{formatCurrency(payment.amount)}</p>
                       <Badge className={getStatusColor(payment.paymentStatus)}>{payment.paymentStatus}</Badge>
                     </div>
                   </div>
                 ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ─── OVERDUE TAB ──────────────────────────────────────────────── */}
         <TabsContent value="overdue" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Overdue Tenants</h2>
-            <p className="text-slate-500">Tenants with outstanding balances past due date</p>
-          </div>
+          <PageHeader
+            title="Overdue Tenants"
+            description="Tenants with outstanding balances past due date"
+            icon={AlertTriangle}
+          />
 
-          <Card>
-            <CardContent className="space-y-3 pt-6">
+          <div className="dash-card">
+            <div className="space-y-2">
               {tenantsLoading ? (
                 Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : (
                 (() => {
                   const overdue = tenants.filter(t => (t.rentOutstanding + t.serviceChargeOutstanding) > 0);
-                  if (overdue.length === 0) return <p className="text-center text-green-600 py-8 font-medium">✅ No overdue tenants — great job!</p>;
+                  if (overdue.length === 0) return <p className="text-center text-emerald-600 py-8 font-medium text-sm">No overdue tenants &mdash; great job!</p>;
                   return overdue.map((tenant) => {
                     const outstanding = tenant.rentOutstanding + tenant.serviceChargeOutstanding;
                     return (
-                      <div key={tenant.id} className="p-4 border border-red-100 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                      <div key={tenant.id} className="p-4 rounded-xl border border-destructive/20 bg-destructive/5">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                           <div>
-                            <p className="font-medium text-slate-900 dark:text-white">{tenant.tenantName}</p>
-                            <p className="text-sm text-slate-500">{tenant.unitLabel}</p>
-                            <div className="flex gap-4 mt-1 text-sm">
-                              <span className="text-red-700">Rent: {formatCurrency(tenant.rentOutstanding)}</span>
-                              <span className="text-orange-700">S.C: {formatCurrency(tenant.serviceChargeOutstanding)}</span>
+                            <p className="text-sm font-medium text-foreground">{tenant.tenantName}</p>
+                            <p className="text-xs text-muted-foreground">{tenant.unitLabel}</p>
+                            <div className="flex gap-4 mt-1 text-xs">
+                              <span className="text-destructive font-data">Rent: {formatCurrency(tenant.rentOutstanding)}</span>
+                              <span className="text-amber-600 font-data">S.C: {formatCurrency(tenant.serviceChargeOutstanding)}</span>
                             </div>
-                            <p className="text-xs text-slate-400 mt-1">
+                            <p className="text-xs text-muted-foreground/60 mt-1">
                               {tenant.tenantPhone && <span className="mr-3">{tenant.tenantPhone}</span>}
                               {tenant.tenantEmail}
                             </p>
                           </div>
                           <div className="flex flex-col items-end gap-2">
-                            <p className="text-xl font-bold text-red-700">{formatCurrency(outstanding)}</p>
+                            <p className="text-xl font-bold text-destructive font-display">{formatCurrency(outstanding)}</p>
                             <div className="flex gap-2">
-                              <Button size="sm" className="bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => handleOpenPayment(tenant.id, tenant.tenantName)}>
-                                <DollarSign className="h-4 w-4 mr-1" /> Collect
+                              <Button size="sm" className="bg-primary hover:bg-primary/90 btn-interactive h-8 text-xs" onClick={() => handleOpenPayment(tenant.id, tenant.tenantName)}>
+                                <DollarSign className="h-3 w-3 mr-1" /> Collect
                               </Button>
-                              <Button size="sm" variant="outline" onClick={() => handleSendReminder(tenant.id, tenant.tenantName)}>
-                                <Bell className="h-4 w-4 mr-1" /> Remind
+                              <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleSendReminder(tenant.id, tenant.tenantName)}>
+                                <Bell className="h-3 w-3 mr-1" /> Remind
                               </Button>
                             </div>
                           </div>
@@ -627,8 +611,8 @@ export const ManagerDashboard: React.FC = () => {
                   });
                 })()
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Finance AI activates automatically when there are overdue tenants */}
           <SkillContextPanel
@@ -646,72 +630,74 @@ export const ManagerDashboard: React.FC = () => {
         {/* ─── BILLING TAB ─────────────────────────────────────────────── */}
         <TabsContent value="billing" className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Billing Management</h2>
-              <p className="text-slate-500">{pendingBills.length} unpaid bills across your estates</p>
-            </div>
-            <Button className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 btn-interactive" onClick={() => { setSelectedTenantId(null); setBillDialog(true); }}>
+            <PageHeader
+              title="Billing Management"
+              description={`${pendingBills.length} unpaid bills across your estates`}
+              icon={CreditCard}
+            />
+            <Button size="sm" className="bg-primary hover:bg-primary/90 btn-interactive" onClick={() => { setSelectedTenantId(null); setBillDialog(true); }}>
               <Plus className="h-4 w-4 mr-2" /> Add Charge
             </Button>
           </div>
-          <Card>
-            <CardContent className="space-y-3 pt-6">
+          <div className="dash-card">
+            <div className="space-y-2">
               {billingLoading ? (
                 Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
               ) : pendingBills.length === 0 ? (
-                <p className="text-center text-green-600 py-8 font-medium">✅ No unpaid bills!</p>
+                <p className="text-center text-emerald-600 py-8 font-medium text-sm">No unpaid bills!</p>
               ) : (
                 pendingBills.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between p-4 border rounded-lg bg-slate-50 dark:bg-slate-800">
+                  <div key={bill.id} className="flex items-center justify-between p-3 rounded-xl border border-border/60 hover:border-border hover:bg-muted/30 transition-all">
                     <div>
-                      <p className="font-medium text-slate-900 dark:text-white">{bill.label}</p>
-                      <p className="text-sm text-slate-500">
-                        {bill.dueDate ? `Due: ${formatDate(bill.dueDate)}` : "No due date"} · {bill.itemType}
+                      <p className="text-sm font-medium text-foreground">{bill.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {bill.dueDate ? `Due: ${formatDate(bill.dueDate)}` : "No due date"} &bull; {bill.itemType}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <p className="font-bold text-red-600">{formatCurrency(bill.amount)}</p>
-                      <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => handleMarkBillPaid(bill.id, bill.label)}>
-                        <CheckCircle className="h-4 w-4 mr-1" /> Mark Paid
+                      <p className="text-sm font-bold text-destructive font-data">{formatCurrency(bill.amount)}</p>
+                      <Button size="sm" className="h-8 text-xs bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => handleMarkBillPaid(bill.id, bill.label)}>
+                        <CheckCircle className="h-3 w-3 mr-1" /> Mark Paid
                       </Button>
                     </div>
                   </div>
                 ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ─── SERVICE REQUESTS TAB ────────────────────────────────────── */}
         <TabsContent value="service-requests" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Service Requests</h2>
-            <p className="text-slate-500">Tenant-submitted requests across your estates</p>
-          </div>
-          <Card>
-            <CardContent className="space-y-4 pt-6">
+          <PageHeader
+            title="Service Requests"
+            description="Tenant-submitted requests across your estates"
+            icon={ClipboardList}
+          />
+          <div className="dash-card">
+            <div className="space-y-2">
               {srLoading ? (
                 Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : serviceRequests.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">No service requests found.</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">No service requests found.</p>
               ) : (
                 serviceRequests.map((req) => (
-                  <div key={req.id} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                  <div key={req.id} className="p-4 rounded-xl border border-border/60 hover:border-border hover:bg-muted/30 transition-all">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{req.title}</p>
-                        {req.description && <p className="text-sm text-slate-500 mt-1">{req.description}</p>}
-                        <p className="text-xs text-slate-400 mt-1">{formatDate(req.createdAt)}</p>
+                        <p className="text-sm font-medium text-foreground">{req.title}</p>
+                        {req.description && <p className="text-xs text-muted-foreground mt-1">{req.description}</p>}
+                        <p className="text-xs text-muted-foreground/60 mt-1">{formatDate(req.createdAt)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className={getPriorityColor(req.priority)}>{req.priority}</Badge>
                         <Badge className={getStatusColor(req.status)}>{req.status}</Badge>
                         {req.status === "pending" && (
-                          <Button size="sm" variant="outline" onClick={() => handleSRStatus(req.id, "in_progress")}>Start</Button>
+                          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleSRStatus(req.id, "in_progress")}>Start</Button>
                         )}
                         {req.status === "in_progress" && (
-                          <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => handleSRStatus(req.id, "completed")}>
-                            <CheckCircle className="h-4 w-4 mr-1" /> Complete
+                          <Button size="sm" className="h-8 text-xs bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => handleSRStatus(req.id, "completed")}>
+                            <CheckCircle className="h-3 w-3 mr-1" /> Complete
                           </Button>
                         )}
                       </div>
@@ -719,8 +705,8 @@ export const ManagerDashboard: React.FC = () => {
                   </div>
                 ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ─── FEEDBACK TAB ────────────────────────────────────────────── */}
@@ -730,52 +716,53 @@ export const ManagerDashboard: React.FC = () => {
 
         {/* ─── ENQUIRIES TAB ───────────────────────────────────────────── */}
         <TabsContent value="enquiries" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Property Enquiries</h2>
-            <p className="text-slate-500">Inbound interest from prospective tenants</p>
-          </div>
-          <Card>
-            <CardContent className="space-y-3 pt-6">
+          <PageHeader
+            title="Property Enquiries"
+            description="Inbound interest from prospective tenants"
+            icon={MessageSquare}
+          />
+          <div className="dash-card">
+            <div className="space-y-2">
               {enquiriesLoading ? (
                 Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : enquiries.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">No enquiries yet.</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">No enquiries yet.</p>
               ) : (
                 enquiries.map((enq) => (
-                  <div key={enq.id} className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-800">
+                  <div key={enq.id} className="p-4 rounded-xl border border-border/60 hover:border-border hover:bg-muted/30 transition-all">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-slate-900 dark:text-white">{enq.name}</p>
+                          <p className="text-sm font-medium text-foreground">{enq.name}</p>
                           <Badge className={getStatusColor(enq.status)}>{enq.status}</Badge>
                           {enq.leadScore != null && (
-                            <Badge className={`text-xs ${enq.leadScore >= 7 ? "bg-green-100 text-green-700" : enq.leadScore >= 4 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"}`}>
-                              🎯 {enq.leadScore}/10
+                            <Badge className={`text-xs ${enq.leadScore >= 7 ? "bg-emerald-100 text-emerald-700" : enq.leadScore >= 4 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>
+                              {enq.leadScore}/10
                             </Badge>
                           )}
 </div>
-                        <p className="text-sm text-slate-500">{enq.phone || enq.email} · {enq.enquiryType}</p>
-                        {enq.message && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 italic">"{enq.message}"</p>}
-                        <p className="text-xs text-slate-400 mt-1">{formatDate(enq.createdAt)}</p>
+                        <p className="text-xs text-muted-foreground">{enq.phone || enq.email} &bull; {enq.enquiryType}</p>
+                        {enq.message && <p className="text-xs text-muted-foreground mt-1 italic">"{enq.message}"</p>}
+                        <p className="text-xs text-muted-foreground/60 mt-1">{formatDate(enq.createdAt)}</p>
                       </div>
-                      <div className="flex gap-2 flex-wrap">
+                      <div className="flex gap-1.5 flex-wrap">
                         {enq.status === "pending" && (
-                          <Button size="sm" variant="outline" onClick={() => handleEnquiryStatus(enq.id, "contacted")}>
+                          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleEnquiryStatus(enq.id, "contacted")}>
                             Mark Contacted
                           </Button>
                         )}
                         {enq.status === "contacted" && (
-                          <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => handleEnquiryStatus(enq.id, "converted")}>
-                            Converted ✓
+                          <Button size="sm" className="h-8 text-xs bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => handleEnquiryStatus(enq.id, "converted")}>
+                            Converted
                           </Button>
                         )}
                         {enq.phone && (
                           <a href={`tel:${enq.phone}`}>
-                            <Button size="sm" variant="outline"><Phone className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0"><Phone className="h-3.5 w-3.5" /></Button>
                           </a>
                         )}
                         {enq.status !== "closed" && (
-                          <Button size="sm" variant="outline" onClick={() => handleEnquiryStatus(enq.id, "closed")}>
+                          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleEnquiryStatus(enq.id, "closed")}>
                             Close
                           </Button>
                         )}
@@ -784,8 +771,8 @@ export const ManagerDashboard: React.FC = () => {
                   </div>
                 ))
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Sales AI activates automatically when there are pending enquiries */}
           {enquiries.filter((e: any) => e.status === "pending").length > 0 && (
@@ -815,40 +802,39 @@ export const ManagerDashboard: React.FC = () => {
 
         {/* ─── APPLICATIONS TAB ────────────────────────────────────────── */}
         <TabsContent value="applications" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Rental Applications</h2>
-            <p className="text-slate-500">Review and approve or reject applicants</p>
-          </div>
-          <Card>
-            <CardContent className="space-y-4 pt-6">
+          <PageHeader
+            title="Rental Applications"
+            description="Review and approve or reject applicants"
+            icon={FileText}
+          />
+          <div className="dash-card">
+            <div className="space-y-2">
               {applicationsLoading ? (
                 Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
               ) : applications.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">No rental applications.</p>
+                <p className="text-center text-muted-foreground py-8 text-sm">No rental applications.</p>
               ) : (
                 applications.map((app) => {
                   const fullName = `${app.firstName} ${app.lastName}`.trim();
-                  const statusIcon = { pending: "🟡", approved: "✅", rejected: "❌" }[app.status] || "⚪";
                   return (
-                    <div key={app.id} className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-800">
+                    <div key={app.id} className="p-4 rounded-xl border border-border/60 hover:border-border hover:bg-muted/30 transition-all">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span>{statusIcon}</span>
-                            <p className="font-medium text-slate-900 dark:text-white">{fullName}</p>
+                            <p className="text-sm font-medium text-foreground">{fullName}</p>
                             <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
                           </div>
-                          <p className="text-sm text-slate-500">{app.phone || app.email}</p>
-                          <p className="text-sm text-slate-500">
-                            Move-in: {app.moveInDate ? formatDate(app.moveInDate) : "TBD"} · Applied: {formatDate(app.createdAt)}
+                          <p className="text-xs text-muted-foreground">{app.phone || app.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Move-in: {app.moveInDate ? formatDate(app.moveInDate) : "TBD"} &bull; Applied: {formatDate(app.createdAt)}
                           </p>
                         </div>
                         {app.status === "pending" && (
-                          <div className="flex gap-2">
-                            <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => handleApplicationAction(app.id, "approved", fullName)}>
-                              <CheckCircle className="h-4 w-4 mr-1" /> Approve
+                          <div className="flex gap-1.5">
+                            <Button size="sm" className="h-8 text-xs bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => handleApplicationAction(app.id, "approved", fullName)}>
+                              <CheckCircle className="h-3 w-3 mr-1" /> Approve
                             </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleApplicationAction(app.id, "rejected", fullName)}>
+                            <Button size="sm" variant="destructive" className="h-8 text-xs" onClick={() => handleApplicationAction(app.id, "rejected", fullName)}>
                               Reject
                             </Button>
                           </div>
@@ -858,58 +844,49 @@ export const ManagerDashboard: React.FC = () => {
                   );
                 })
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* ─── VACANCIES TAB ───────────────────────────────────────────── */}
         <TabsContent value="vacancies" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Vacant Units</h2>
-            <p className="text-slate-500">{vacantUnits.length} units currently available</p>
-          </div>
+          <PageHeader
+            title="Vacant Units"
+            description={`${vacantUnits.length} units currently available`}
+            icon={Home}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {vacanciesLoading ? (
               Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
             ) : vacantUnits.length === 0 ? (
               <div className="col-span-3 text-center py-12">
-                <Home className="h-12 w-12 mx-auto text-green-500 mb-3" />
-                <p className="text-green-600 font-semibold text-lg">Fully Occupied!</p>
-                <p className="text-slate-500 text-sm">All units are currently occupied.</p>
+                <Home className="h-12 w-12 mx-auto text-emerald-500 mb-3" />
+                <p className="text-emerald-600 font-semibold text-lg font-display">Fully Occupied!</p>
+                <p className="text-muted-foreground text-sm">All units are currently occupied.</p>
               </div>
             ) : (
               vacantUnits.map((unit) => (
-                <Card key={unit.id} className="border-2 border-dashed border-slate-200 dark:border-slate-700">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white text-lg">{unit.label}</p>
-                        <p className="text-sm text-slate-500">{unit.category}</p>
-                      </div>
-                      <Badge className="bg-yellow-100 text-yellow-800">Vacant</Badge>
+                <div key={unit.id} className="dash-card border-2 border-dashed border-border/60">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <p className="font-bold text-foreground text-lg font-display">{unit.label}</p>
+                      <p className="text-xs text-muted-foreground">{unit.category}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                      {unit.bedrooms != null && (
-                        <span className="text-slate-600">🛏 {unit.bedrooms} bed</span>
-                      )}
-                      {unit.bathrooms != null && (
-                        <span className="text-slate-600">🚿 {unit.bathrooms} bath</span>
-                      )}
-                      {unit.area != null && (
-                        <span className="text-slate-600">📐 {unit.area} sqm</span>
-                      )}
-                      {unit.availableDate && (
-                        <span className="text-slate-600">📅 {formatDate(unit.availableDate)}</span>
-                      )}
-                    </div>
-                    <div className="border-t pt-3">
-                      <p className="text-lg font-bold text-green-600">{formatCurrency(unit.monthlyPrice)}<span className="text-sm font-normal text-slate-500">/mo</span></p>
-                      {unit.serviceChargeMonthly && (
-                        <p className="text-xs text-slate-500">+ {formatCurrency(unit.serviceChargeMonthly)} service charge</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                    <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-0">Vacant</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                    {unit.bedrooms != null && <span className="text-muted-foreground">{unit.bedrooms} bed</span>}
+                    {unit.bathrooms != null && <span className="text-muted-foreground">{unit.bathrooms} bath</span>}
+                    {unit.area != null && <span className="text-muted-foreground">{unit.area} sqm</span>}
+                    {unit.availableDate && <span className="text-muted-foreground">{formatDate(unit.availableDate)}</span>}
+                  </div>
+                  <div className="border-t border-border/60 pt-3">
+                    <p className="text-lg font-bold text-emerald-600 font-display">{formatCurrency(unit.monthlyPrice)}<span className="text-xs font-normal text-muted-foreground">/mo</span></p>
+                    {unit.serviceChargeMonthly && (
+                      <p className="text-xs text-muted-foreground">+ {formatCurrency(unit.serviceChargeMonthly)} service charge</p>
+                    )}
+                  </div>
+                </div>
               ))
             )}
           </div>
@@ -938,90 +915,88 @@ export const ManagerDashboard: React.FC = () => {
 
         {/* ─── ESTATES TAB ──────────────────────────────────────────────── */}
         <TabsContent value="estates" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Estate Breakdown</h2>
-            <p className="text-slate-500">Performance per estate</p>
-          </div>
+          <PageHeader
+            title="Estate Breakdown"
+            description="Performance per estate"
+            icon={Building}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {overviewLoading ? (
               Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)
             ) : (overview?.estate_breakdown ?? []).map((estate) => (
-              <Card key={estate.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{estate.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">Occupancy</p>
-                      <p className="text-xl font-bold text-slate-900 dark:text-white">{estate.units.occupancy_rate}%</p>
-                      <p className="text-xs text-slate-500">{estate.units.occupied}/{estate.units.total} units</p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">Vacant</p>
-                      <p className="text-xl font-bold text-red-600">{estate.units.vacant}</p>
-                      <p className="text-xs text-slate-500">units available</p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">Tenants</p>
-                      <p className="text-xl font-bold text-slate-900 dark:text-white">{estate.tenants}</p>
-                      <p className="text-xs text-red-500">{estate.overdue} overdue</p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-center">
-                      <p className="text-xs text-slate-500">Revenue (30d)</p>
-                      <p className="text-lg font-bold text-green-600">{formatCurrency(estate.revenue_30d)}</p>
-                    </div>
+              <div key={estate.id} className="dash-card">
+                <h3 className="text-base font-semibold text-foreground font-display mb-3">{estate.name}</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Occupancy</p>
+                    <p className="text-xl font-bold text-foreground font-display">{estate.units.occupancy_rate}%</p>
+                    <p className="text-xs text-muted-foreground">{estate.units.occupied}/{estate.units.total} units</p>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Vacant</p>
+                    <p className="text-xl font-bold text-destructive font-display">{estate.units.vacant}</p>
+                    <p className="text-xs text-muted-foreground">units available</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Tenants</p>
+                    <p className="text-xl font-bold text-foreground font-display">{estate.tenants}</p>
+                    <p className="text-xs text-destructive">{estate.overdue} overdue</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Revenue (30d)</p>
+                    <p className="text-lg font-bold text-emerald-600 font-display">{formatCurrency(estate.revenue_30d)}</p>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </TabsContent>
 
         {/* ─── REPORTS TAB ─────────────────────────────────────────────── */}
         <TabsContent value="reports" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Manager Skills Report</h2>
-            <p className="text-slate-500">Your estate performance at a glance</p>
-          </div>
+          <PageHeader
+            title="Manager Skills Report"
+            description="Your estate performance at a glance"
+            icon={BarChart3}
+          />
 
           {overviewLoading ? <Skeleton className="h-64 w-full" /> : (
             <div className="space-y-4">
-              <Card>
-                <CardHeader><CardTitle>Portfolio Health</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
+              <div className="dash-card">
+                <h3 className="text-sm font-semibold text-foreground font-display mb-4">Portfolio Health</h3>
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-600">Occupancy Rate</span>
+                    <span className="text-sm text-muted-foreground">Occupancy Rate</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-32 bg-slate-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${overview?.units?.occupancy_rate ?? 0}%` }} />
+                      <div className="w-32 bg-muted rounded-full h-2 overflow-hidden">
+                        <div className="bg-emerald-500 h-2 rounded-full transition-all" style={{ width: `${overview?.units?.occupancy_rate ?? 0}%` }} />
                       </div>
-                      <span className="font-semibold w-12 text-right">{overview?.units?.occupancy_rate ?? 0}%</span>
+                      <span className="text-sm font-semibold w-12 text-right font-data">{overview?.units?.occupancy_rate ?? 0}%</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-600">Collection Rate</span>
+                    <span className="text-sm text-muted-foreground">Collection Rate</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-32 bg-slate-200 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full" style={{ width: `${Math.min(overview?.collection_rate ?? 0, 100)}%` }} />
+                      <div className="w-32 bg-muted rounded-full h-2 overflow-hidden">
+                        <div className="bg-gradient-to-r from-emerald-500 to-green-400 h-2 rounded-full transition-all" style={{ width: `${Math.min(overview?.collection_rate ?? 0, 100)}%` }} />
                       </div>
-                      <span className="font-semibold w-12 text-right">{overview?.collection_rate ?? 0}%</span>
+                      <span className="text-sm font-semibold w-12 text-right font-data">{overview?.collection_rate ?? 0}%</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-600">Overdue Ratio</span>
+                    <span className="text-sm text-muted-foreground">Overdue Ratio</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-32 bg-slate-200 rounded-full h-2">
-                        <div className="bg-red-500 h-2 rounded-full" style={{ width: `${overview?.tenants?.total ? (overview.tenants.overdue / overview.tenants.total) * 100 : 0}%` }} />
+                      <div className="w-32 bg-muted rounded-full h-2 overflow-hidden">
+                        <div className="bg-destructive h-2 rounded-full transition-all" style={{ width: `${overview?.tenants?.total ? (overview.tenants.overdue / overview.tenants.total) * 100 : 0}%` }} />
                       </div>
-                      <span className="font-semibold w-12 text-right">
+                      <span className="text-sm font-semibold w-12 text-right font-data">
                         {overview?.tenants?.total ? Math.round((overview.tenants.overdue / overview.tenants.total) * 100) : 0}%
                       </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card>
@@ -1209,7 +1184,7 @@ export const ManagerDashboard: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBillDialog(false)}>Cancel</Button>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700" onClick={handleAddBill}>
+            <Button className="bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 btn-interactive" onClick={handleAddBill}>
               <Plus className="h-4 w-4 mr-2" /> Add Charge
             </Button>
           </DialogFooter>

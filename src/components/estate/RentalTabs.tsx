@@ -23,7 +23,7 @@ export const RentalTabs: React.FC<RentalTabsProps> = ({ activeTab, onTabChange }
                         <TabsTrigger
                             key={category.id}
                             value={category.id}
-                            className="px-0 py-2 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent rounded-none font-bold text-slate-500 data-[state=active]:text-blue-600 transition-all text-xs md:text-sm whitespace-nowrap shadow-none"
+                            className="px-0 py-2 border-b-2 border-transparent data-[state=active]:border-green-600 data-[state=active]:bg-transparent rounded-none font-bold text-slate-500 data-[state=active]:text-green-600 transition-all text-xs md:text-sm whitespace-nowrap shadow-none"
                         >
                             {category.label}
                         </TabsTrigger>

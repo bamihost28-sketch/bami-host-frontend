@@ -87,7 +87,7 @@ export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agen
                                     placeholder="Your full name"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="bg-slate-50 border border-slate-200 rounded-xl h-11 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-600 focus-visible:ring-1"
+                                    className="bg-slate-50 border border-slate-200 rounded-xl h-11 text-slate-900 placeholder:text-slate-400 focus-visible:ring-green-600 focus-visible:ring-1"
                                 />
                             </div>
 
@@ -99,7 +99,7 @@ export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agen
                                     placeholder="email@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-slate-50 border border-slate-200 rounded-xl h-11 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-600 focus-visible:ring-1"
+                                    className="bg-slate-50 border border-slate-200 rounded-xl h-11 text-slate-900 placeholder:text-slate-400 focus-visible:ring-green-600 focus-visible:ring-1"
                                 />
                             </div>
 
@@ -109,7 +109,7 @@ export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agen
                                     required
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
-                                    className="bg-slate-50 border border-slate-200 rounded-xl min-h-[100px] resize-none text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-600 focus-visible:ring-1"
+                                    className="bg-slate-50 border border-slate-200 rounded-xl min-h-[100px] resize-none text-slate-900 placeholder:text-slate-400 focus-visible:ring-green-600 focus-visible:ring-1"
                                 />
                             </div>
 
@@ -117,7 +117,7 @@ export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agen
                                 <Button
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-xl transition-transform hover:scale-[1.02]"
+                                    className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold h-12 rounded-xl transition-transform hover:scale-[1.02] btn-interactive"
                                 >
                                     {isLoading ? "Sending…" : "Send Enquiry"}
                                 </Button>
@@ -132,9 +132,9 @@ export const PropertyAgentSidebar: React.FC<PropertyAgentSidebarProps> = ({ agen
             </Card>
 
             {/* Verified Badge */}
-            <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100/50 flex items-start gap-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                    <ShieldCheck className="h-5 w-5 text-blue-600" />
+            <div className="bg-green-50/50 rounded-2xl p-6 border border-green-100/50 flex items-start gap-4">
+                <div className="p-2 bg-green-100 rounded-lg">
+                    <ShieldCheck className="h-5 w-5 text-green-600" />
                 </div>
                 <div className="space-y-1">
                     <h5 className="text-sm font-bold text-slate-900">Verified Property</h5>
