@@ -15,9 +15,10 @@ interface TenantDetailHeaderProps {
   tenant: any;
   overview: any;
   onStartTour?: () => void;
+  tourSeen?: boolean;
 }
 
-export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour }: TenantDetailHeaderProps) => {
+export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, tourSeen }: TenantDetailHeaderProps) => {
   const navigate = useNavigate();
   const [updateTenant, { isLoading: updatingTenant }] = useUpdateTenantMutation();
   const [updateUnit, { isLoading: updatingUnit }] = useUpdateEstateUnitMutation();
@@ -120,7 +121,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour }: 
         <p className="text-muted-foreground text-sm">Profile, history, and transactions</p>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
-        {onStartTour && (
+        {onStartTour && !tourSeen && (
           <Button variant="ghost" size="sm" onClick={onStartTour}>
             <HelpCircle className="h-4 w-4 mr-1.5" />
             Take a tour

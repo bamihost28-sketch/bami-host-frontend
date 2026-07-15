@@ -36,7 +36,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { formatDate } from '@/utils/propertyUtils';
-import { GuidedTour, type TourStep } from '@/components/ui/guided-tour';
+import { GuidedTour, hasSeenTour, type TourStep } from '@/components/ui/guided-tour';
 
 const ESTATE_DETAIL_TOUR_STEPS: TourStep[] = [
   {
@@ -109,6 +109,7 @@ export const EstateDetailPage = () => {
 
   // Guided tour ("Take a tour" bumps this to (re)start it)
   const [tourSignal, setTourSignal] = useState(0);
+  const [tourSeen, setTourSeen] = useState(() => hasSeenTour('tour:estate-detail:v1'));
 
   // API hooks
   const { data: estate, isLoading, isError: estateError, error: estateErrObj, refetch: refetchEstate } = useGetEstateQuery(estateId as string, { skip: !estateId });
@@ -221,9 +222,11 @@ export const EstateDetailPage = () => {
           <p className="text-muted-foreground text-sm">Details and tenants</p>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)} className="gap-1.5">
-            <HelpCircle className="w-4 h-4" /> Take a tour
-          </Button>
+          {!tourSeen && (
+            <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)} className="gap-1.5">
+              <HelpCircle className="w-4 h-4" /> Take a tour
+            </Button>
+          )}
           <Button variant="outline" onClick={() => navigate('/dashboard/estate')} className="gap-2">
             <ArrowLeft className="w-4 h-4" /> Back
           </Button>
@@ -886,7 +889,7 @@ export const EstateDetailPage = () => {
       </Dialog>
 
       {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
-      <GuidedTour steps={ESTATE_DETAIL_TOUR_STEPS} storageKey="tour:estate-detail:v1" startSignal={tourSignal} />
+      <GuidedTour steps={ESTATE_DETAIL_TOUR_STEPS} storageKey="tour:estate-detail:v1" startSignal={tourSignal} onSeenChange={() => setTourSeen(true)} />
     </div>
   );
 };

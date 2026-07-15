@@ -21,13 +21,26 @@ interface GuidedTourProps {
   startSignal?: number;
   /** Auto-start the first time the user lands here. Defaults to true. */
   autoStart?: boolean;
+  /** Fired once the tour is marked seen (completed, skipped, or closed) — use
+   * this to hide the "Take a tour" button so it isn't offered again. */
+  onSeenChange?: () => void;
+}
+
+/** Has this tour already been completed/skipped? Use to hide "Take a tour"
+ * once there's no need to show it again. */
+export function hasSeenTour(storageKey: string): boolean {
+  try {
+    return localStorage.getItem(storageKey) === "1";
+  } catch {
+    return true;
+  }
 }
 
 const SPOTLIGHT_PADDING = 8;
 const TIP_WIDTH = 330;
 const GAP = 14;
 
-export function GuidedTour({ steps, storageKey, startSignal = 0, autoStart = true }: GuidedTourProps) {
+export function GuidedTour({ steps, storageKey, startSignal = 0, autoStart = true, onSeenChange }: GuidedTourProps) {
   const [running, setRunning] = useState(false);
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -43,9 +56,10 @@ export function GuidedTour({ steps, storageKey, startSignal = 0, autoStart = tru
         } catch {
           /* ignore private-mode storage errors */
         }
+        onSeenChange?.();
       }
     },
-    [storageKey],
+    [storageKey, onSeenChange],
   );
 
   const start = useCallback(() => {

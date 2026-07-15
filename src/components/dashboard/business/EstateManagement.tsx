@@ -15,7 +15,7 @@ import { MoreVertical, Wand2, HelpCircle } from "lucide-react";
 import { EstateManagementSkeleton } from "@/components/ui/skeletons";
 import { EstateOverviewCards } from "./EstateOverviewCards";
 import { EstateSetupWizard } from "./EstateSetupWizard";
-import { GuidedTour, type TourStep } from "@/components/ui/guided-tour";
+import { GuidedTour, hasSeenTour, type TourStep } from "@/components/ui/guided-tour";
 
 
 interface Estate { id: string; name: string; description?: string }
@@ -89,6 +89,7 @@ export const EstateManagement = () => {
 
   // Guided tour ("Take a tour" bumps this to (re)start it)
   const [tourSignal, setTourSignal] = useState(0);
+  const [tourSeen, setTourSeen] = useState(() => hasSeenTour('tour:estate-management:v1'));
 
   // Estates options from API
   const estateOptions = estatesPage?.data ?? [];
@@ -148,10 +149,12 @@ export const EstateManagement = () => {
           <p className="text-muted-foreground text-sm">Manage estates, units and tenants</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)}>
-            <HelpCircle className="h-4 w-4 mr-1.5" />
-            Take a tour
-          </Button>
+          {!tourSeen && (
+            <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)}>
+              <HelpCircle className="h-4 w-4 mr-1.5" />
+              Take a tour
+            </Button>
+          )}
           <Dialog open={createEstateOpen} onOpenChange={setCreateEstateOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" data-tour="estate-create">Quick Create</Button>
@@ -399,7 +402,7 @@ export const EstateManagement = () => {
       <EstateSetupWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
       {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
-      <GuidedTour steps={ESTATE_TOUR_STEPS} storageKey="tour:estate-management:v1" startSignal={tourSignal} />
+      <GuidedTour steps={ESTATE_TOUR_STEPS} storageKey="tour:estate-management:v1" startSignal={tourSignal} onSeenChange={() => setTourSeen(true)} />
 
 
     </div>

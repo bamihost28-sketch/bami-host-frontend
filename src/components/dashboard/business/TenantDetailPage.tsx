@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { BASE_API_URL } from '@/services/api';
-import { FileDown } from 'lucide-react';
 import { useGetTenantQuery, useGetTenantBillingQuery } from '@/services/estatesApi';
 import { TenantDetailSkeleton } from '@/components/ui/skeletons';
-import { GuidedTour, type TourStep } from '@/components/ui/guided-tour';
+import { GuidedTour, hasSeenTour, type TourStep } from '@/components/ui/guided-tour';
 import { TenantDetailHeader } from './tenant-detail/TenantDetailHeader';
 import { TenantOverviewCard } from './tenant-detail/TenantOverviewCard';
 import { FinancialSummaryCards } from './tenant-detail/FinancialSummaryCards';
@@ -40,17 +38,12 @@ const TENANT_DETAIL_TOUR_STEPS: TourStep[] = [
     content: 'A timeline of everything that has happened on this tenancy — payments, edits and notes.',
     placement: 'top',
   },
-  {
-    selector: '[data-tour="tenant-statement"]',
-    title: 'Download a statement',
-    content: 'Export a PDF payment statement for this tenant — handy for receipts and record-keeping.',
-    placement: 'top',
-  },
 ];
 
 export const TenantDetailPage = () => {
   const { tenantId } = useParams();
   const [tourSignal, setTourSignal] = useState(0);
+  const [tourSeen, setTourSeen] = useState(() => hasSeenTour('tour:tenant-detail:v1'));
   const { data: detail, isLoading } = useGetTenantQuery(
     tenantId ? { id: tenantId as string, expand: 'history,transactions' } : ('' as unknown as { id: string }),
     { skip: !tenantId }
@@ -85,6 +78,7 @@ export const TenantDetailPage = () => {
           tenant={tenant}
           overview={overview}
           onStartTour={() => setTourSignal((n) => n + 1)}
+          tourSeen={tourSeen}
         />
       </div>
 
@@ -123,23 +117,8 @@ export const TenantDetailPage = () => {
         billingData={billingData}
       />
 
-      {/* PDF Statement Download */}
-      {tenantId && (
-        <div className="flex justify-end" data-tour="tenant-statement">
-          <a
-            href={`${BASE_API_URL}/api/tenants/${tenantId}/statement.pdf`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg px-4 py-2 hover:bg-blue-50 transition-colors"
-          >
-            <FileDown className="h-4 w-4" />
-            Download Statement (PDF)
-          </a>
-        </div>
-      )}
-
       {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
-      <GuidedTour steps={TENANT_DETAIL_TOUR_STEPS} storageKey="tour:tenant-detail:v1" startSignal={tourSignal} />
+      <GuidedTour steps={TENANT_DETAIL_TOUR_STEPS} storageKey="tour:tenant-detail:v1" startSignal={tourSignal} onSeenChange={() => setTourSeen(true)} />
     </div>
   );
 };

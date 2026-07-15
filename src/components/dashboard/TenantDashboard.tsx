@@ -41,7 +41,7 @@ import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
 import { ReceiptsTab } from "./tenant/ReceiptsTab";
 import { formatCurrency, formatDate } from "./tenant/utils";
-import { GuidedTour, type TourStep } from "@/components/ui/guided-tour";
+import { GuidedTour, hasSeenTour, type TourStep } from "@/components/ui/guided-tour";
 
 const TENANT_TOUR_STEPS: TourStep[] = [
   {
@@ -94,6 +94,7 @@ export const TenantDashboard: React.FC = () => {
   const [rentPaymentMonths, setRentPaymentMonths] = useState<6 | 12>(12);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [tourSignal, setTourSignal] = useState(0);
+  const [tourSeen, setTourSeen] = useState(() => hasSeenTour('tour:tenant-dashboard:v1'));
 
   // Fetch dashboard overview from API
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
@@ -465,10 +466,12 @@ export const TenantDashboard: React.FC = () => {
                   <CardTitle className="text-xl sm:text-2xl text-slate-900 dark:text-white">Welcome back, {firstName}!</CardTitle>
                   <CardDescription className="text-slate-600 dark:text-slate-400">Here's your home overview</CardDescription>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)} className="shrink-0">
-                  <HelpCircle className="h-4 w-4 mr-1.5" />
-                  Take a tour
-                </Button>
+                {!tourSeen && (
+                  <Button variant="ghost" size="sm" onClick={() => setTourSignal((n) => n + 1)} className="shrink-0">
+                    <HelpCircle className="h-4 w-4 mr-1.5" />
+                    Take a tour
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -1672,7 +1675,7 @@ export const TenantDashboard: React.FC = () => {
       </Dialog>
 
       {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
-      <GuidedTour steps={TENANT_TOUR_STEPS} storageKey="tour:tenant-dashboard:v1" startSignal={tourSignal} />
+      <GuidedTour steps={TENANT_TOUR_STEPS} storageKey="tour:tenant-dashboard:v1" startSignal={tourSignal} onSeenChange={() => setTourSeen(true)} />
     </div>
   );
 };
