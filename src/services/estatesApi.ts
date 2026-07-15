@@ -897,8 +897,17 @@ export const estatesApi = createApi({
       query: (tenantId) => ({ url: `/api/tenants/${tenantId}/resend-credentials`, method: 'POST' }),
     }),
     adjustTenantBalance: builder.mutation<
-      { success: boolean; message?: string; data?: { rentOutstanding: number; serviceChargeOutstanding: number; totalOutstanding: number } },
-      { tenantId: string; rentOutstanding?: number; serviceChargeOutstanding?: number; clear?: boolean; reason?: string }
+      {
+        success: boolean; message?: string;
+        data?: {
+          rentOutstanding: number; serviceChargeOutstanding: number; totalOutstanding: number;
+          outstandingPeriodStart?: string | null; outstandingPeriodEnd?: string | null; outstandingDueDate?: string | null;
+        };
+      },
+      {
+        tenantId: string; rentOutstanding?: number; serviceChargeOutstanding?: number; clear?: boolean; reason?: string;
+        outstandingPeriodStart?: string; outstandingPeriodEnd?: string; outstandingDueDate?: string;
+      }
     >({
       query: ({ tenantId, ...body }) => ({
         url: `/api/tenants/${tenantId}/adjust-balance`,
@@ -908,6 +917,9 @@ export const estatesApi = createApi({
           service_charge_outstanding: body.serviceChargeOutstanding,
           clear: body.clear,
           reason: body.reason,
+          outstanding_period_start: body.outstandingPeriodStart,
+          outstanding_period_end: body.outstandingPeriodEnd,
+          outstanding_due_date: body.outstandingDueDate,
         },
       }),
       invalidatesTags: (result, error, { tenantId }) => [

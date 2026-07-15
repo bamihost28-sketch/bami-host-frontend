@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Pencil } from 'lucide-react';
-import { formatDate } from '@/utils/propertyUtils';
+import { formatDate, formatDateToDDMMYYYY, toDateInput } from '@/utils/propertyUtils';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAdjustTenantBalanceMutation } from '@/services/estatesApi';
 import { toast } from '@/components/ui/use-toast';
@@ -28,12 +28,18 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
   const [rentInput, setRentInput] = useState('');
   const [serviceInput, setServiceInput] = useState('');
   const [reason, setReason] = useState('');
+  const [periodStart, setPeriodStart] = useState('');
+  const [periodEnd, setPeriodEnd] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [adjustBalance, { isLoading: adjusting }] = useAdjustTenantBalanceMutation();
 
   const openAdjust = () => {
     setRentInput(String((overview as any)?.rentOutstanding ?? 0));
     setServiceInput(String((overview as any)?.serviceChargeOutstanding ?? 0));
     setReason('');
+    setPeriodStart(toDateInput((overview as any)?.outstandingPeriodStart));
+    setPeriodEnd(toDateInput((overview as any)?.outstandingPeriodEnd));
+    setDueDate(toDateInput((overview as any)?.outstandingDueDate));
     setAdjustOpen(true);
   };
 
@@ -45,6 +51,9 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
         rentOutstanding: Number(rentInput) || 0,
         serviceChargeOutstanding: Number(serviceInput) || 0,
         reason: reason || undefined,
+        outstandingPeriodStart: periodStart ? formatDateToDDMMYYYY(periodStart) : undefined,
+        outstandingPeriodEnd: periodEnd ? formatDateToDDMMYYYY(periodEnd) : undefined,
+        outstandingDueDate: dueDate ? formatDateToDDMMYYYY(dueDate) : undefined,
       }).unwrap();
       toast({ title: res?.message || 'Outstanding balance updated' });
       setAdjustOpen(false);
@@ -241,6 +250,14 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
                   {!(overview as any)?.hasOutstanding && (
                     <div className="text-slate-400 dark:text-slate-500">No outstanding balance</div>
                   )}
+                  {((overview as any)?.outstandingPeriodStart || (overview as any)?.outstandingPeriodEnd) && (
+                    <div>
+                      Covers: {formatDate((overview as any)?.outstandingPeriodStart)} – {formatDate((overview as any)?.outstandingPeriodEnd)}
+                    </div>
+                  )}
+                  {(overview as any)?.outstandingDueDate && (
+                    <div className="font-semibold">Due by: {formatDate((overview as any).outstandingDueDate)}</div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1.5">
@@ -274,6 +291,23 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
               <div className="grid gap-2">
                 <Label htmlFor="adj-service">Service charge outstanding (₦)</Label>
                 <Input id="adj-service" type="number" min={0} value={serviceInput} onChange={(e) => setServiceInput(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="adj-period-start">Covers from</Label>
+                  <Input id="adj-period-start" type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="adj-period-end">Covers to</Label>
+                  <Input id="adj-period-end" type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="adj-due-date">Remaining balance due by</Label>
+                <Input id="adj-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <p className="text-[10px] text-muted-foreground -mt-1">
+                  Since billing runs 6 months, this is when the tenant needs to settle the rest.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="adj-reason">Reason (optional, kept on record)</Label>
