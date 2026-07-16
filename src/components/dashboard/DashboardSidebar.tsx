@@ -13,7 +13,6 @@ import {
   Eye,
   X,
   LogOut,
-  ListChecks,
   DollarSign,
   UserCheck,
   CreditCard,
@@ -64,7 +63,6 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, category: "core", requiredPermissions: ["view_overview"], path: "/dashboard/overview" },
-  { id: "defining-your-number", label: "Defining Your Number", icon: ListChecks, category: "core", requiredPermissions: ["view_big5"], path: "/dashboard/defining-your-number" },
   { id: "wallet", label: "Wallet", icon: Wallet, category: "financial", requiredPermissions: ["view_wallet"], isPremium: true, path: "/dashboard/wallet" },
   { id: "portfolio", label: "Investment Portfolio", icon: TrendingUp, category: "financial", requiredPermissions: ["view_portfolio"], isPremium: true, path: "/dashboard/portfolio" },
   { id: "split-tracker", label: "50/30/20 Split", icon: PieChart, category: "financial", requiredPermissions: ["view_split_tracker"], isPremium: true, path: "/dashboard/split-tracker" },

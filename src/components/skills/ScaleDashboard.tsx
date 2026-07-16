@@ -1,14 +1,16 @@
-import { useState, useEffect, type ElementType } from "react";
+import { useState, useEffect, useMemo, type ElementType } from "react";
 import {
   TrendingUp, Star, Target, Wallet, Loader2, Send, Check, Lock,
-  CircleDollarSign, Users2, Sparkles,
+  CircleDollarSign, Users2, Sparkles, ListChecks, Clock, Square,
+  ArrowUp, ArrowDown, Save, RefreshCw, DollarSign,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/providers/ToastProvider";
 import {
   useGetScaleOverviewQuery, useGetNpsQuery, useRequestNpsMutation,
@@ -27,6 +29,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Trash2, Plus } from "lucide-react";
 import ScalableImpactPlanner from "@/components/scalable-impact/ScalableImpactPlanner";
+import type { TimeEntry, TaskItem, DelegationItem, HourlyRateConfig } from "@/types/hiring";
+import {
+  calculateDuration, formatDuration, calculateTimeValue, updateHourlyRateConfig,
+  analyzeProductivity, createTask, createDelegationItem, saveToStorage, loadFromStorage,
+  STORAGE_KEYS, formatDate as formatHiringDate,
+} from "@/lib/hiringUtils";
 
 const DOT: Record<string, string> = { green: "bg-green-500", amber: "bg-yellow-500", red: "bg-red-500" };
 const AGENT_EMOJI: Record<string, string> = {
@@ -64,16 +72,20 @@ export function ScaleDashboard() {
 
       {/* Cross-cutting tools that apply across every level */}
       <Tabs defaultValue="scorecard">
-        <TabsList>
+        <TabsList className="flex flex-wrap h-auto gap-1">
           <TabsTrigger value="scorecard" className="gap-1"><Target className="h-4 w-4" /> Scorecard</TabsTrigger>
           <TabsTrigger value="engines" className="gap-1"><Sparkles className="h-4 w-4" /> Value Engines</TabsTrigger>
           <TabsTrigger value="team" className="gap-1"><Users2 className="h-4 w-4" /> Team Canvas</TabsTrigger>
           <TabsTrigger value="playbooks" className="gap-1"><BookOpen className="h-4 w-4" /> Playbooks</TabsTrigger>
+          <TabsTrigger value="focus" className="gap-1"><ListChecks className="h-4 w-4" /> Focus (Big 5)</TabsTrigger>
+          <TabsTrigger value="time" className="gap-1"><Clock className="h-4 w-4" /> Time & Delegation</TabsTrigger>
         </TabsList>
         <TabsContent value="scorecard" className="mt-4"><ScorecardPanel /></TabsContent>
         <TabsContent value="engines" className="mt-4"><ValueEnginesPanel /></TabsContent>
         <TabsContent value="team" className="mt-4"><TeamCanvasPanel /></TabsContent>
         <TabsContent value="playbooks" className="mt-4"><PlaybooksPanel /></TabsContent>
+        <TabsContent value="focus" className="mt-4"><FocusPanel /></TabsContent>
+        <TabsContent value="time" className="mt-4"><TimeDelegationPanel /></TabsContent>
       </Tabs>
     </div>
   );
@@ -958,4 +970,383 @@ function Stat({ label, value, cls }: { label: string; value: number; cls?: strin
 }
 function Row({ label, value }: { label: string; value: string }) {
   return <div className="flex justify-between"><span className="text-slate-500">{label}</span><span className="font-semibold">{value}</span></div>;
+}
+
+// ── Focus (Big 5) — the few things only the owner should personally own ──────
+// Moved here from the old standalone "Defining Your Number" page, which was
+// merged into Scale. Kept as a simple local list (no backend yet) — same
+// storage key as before, so nothing anyone already filled in is lost.
+
+interface BigItem { id: string; title: string; description?: string; }
+const BIG5_STORAGE_KEY = "big5_items_v2";
+const createBig5Item = (): BigItem => ({ id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, title: "", description: "" });
+
+function FocusPanel() {
+  const [items, setItems] = useState<BigItem[]>(() => {
+    try {
+      const raw = localStorage.getItem(BIG5_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed) && parsed.length ? parsed : [createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item()];
+    } catch {
+      return [createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item()];
+    }
+  });
+
+  const filledCount = useMemo(() => items.filter((i) => i.title?.trim()).length, [items]);
+
+  const save = () => localStorage.setItem(BIG5_STORAGE_KEY, JSON.stringify(items));
+  const reset = () => { setItems([]); localStorage.setItem(BIG5_STORAGE_KEY, JSON.stringify([])); };
+  const addItem = () => setItems((prev) => [...prev, createBig5Item()]);
+  const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
+  const moveItem = (index: number, dir: -1 | 1) => {
+    setItems((prev) => {
+      const next = [...prev];
+      const newIndex = index + dir;
+      if (newIndex < 0 || newIndex >= next.length) return prev;
+      const [spliced] = next.splice(index, 1);
+      next.splice(newIndex, 0, spliced);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500">
+        Your <strong>Big 5</strong> — the few things only you should personally own. Keep each item crisp and
+        action-oriented; everything else is a candidate for the <strong>Time & Delegation</strong> tab.
+      </p>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-emerald-600" />
+            <div className="text-sm font-medium">Big 5 Items completed</div>
+          </div>
+          <div className="text-2xl font-bold">{filledCount}/{items.length}</div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Your Big Items</CardTitle>
+              <CardDescription>Keep each item crisp and action-oriented.</CardDescription>
+            </div>
+            <Button size="sm" onClick={addItem} className="gap-2"><Plus className="w-4 h-4" /> Add item</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {items.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No items yet. Click "Add item" to get started.</div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-4">
+              {items.map((item, i) => (
+                <div key={item.id} className="rounded-lg border bg-card p-4">
+                  <div className="text-sm font-medium mb-2">{i + 1}. {item.title?.trim() || "Add a title"}</div>
+                  <div className="text-xs text-muted-foreground whitespace-pre-wrap">{item.description?.trim() || "Optional description"}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Edit your list</CardTitle>
+          <CardDescription>Write what you own and will focus on. Add, remove, and reorder freely.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {items.length === 0 && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              Your list is empty.
+              <Button size="sm" variant="outline" onClick={addItem} className="gap-2"><Plus className="w-4 h-4" /> Add first item</Button>
+            </div>
+          )}
+          {items.map((item, idx) => (
+            <div key={item.id} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">{idx + 1}. Title</div>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => moveItem(idx, -1)} disabled={idx === 0} title="Move up"><ArrowUp className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => moveItem(idx, 1)} disabled={idx === items.length - 1} title="Move down"><ArrowDown className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)} title="Remove"><Trash2 className="w-4 h-4" /></Button>
+                </div>
+              </div>
+              <Input
+                placeholder="e.g. Create and publish content & be the face of the business"
+                value={item.title}
+                onChange={(e) => { const next = [...items]; next[idx] = { ...item, title: e.target.value }; setItems(next); }}
+              />
+              <div className="text-xs text-muted-foreground">Optional note</div>
+              <Textarea
+                placeholder="Add details if helpful (e.g., frequency, scope, ownership)"
+                value={item.description}
+                onChange={(e) => { const next = [...items]; next[idx] = { ...item, description: e.target.value }; setItems(next); }}
+              />
+            </div>
+          ))}
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={save} className="gap-2"><Save className="w-4 h-4" /> Save</Button>
+            <Button variant="outline" onClick={reset} className="gap-2"><RefreshCw className="w-4 h-4" /> Clear all</Button>
+            <Button variant="outline" onClick={addItem} className="gap-2"><Plus className="w-4 h-4" /> Add another</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ── Time & Delegation ("King's Audit") ────────────────────────────────────────
+// Also moved from the old "Defining Your Number" page. Tracks where time
+// actually goes, values it against your hourly rate, and builds a delegation
+// list. Complements Team Canvas's Hiring signal/pipeline (which tracks
+// candidates/people) — this tracks TASKS worth delegating and their cost.
+
+function TimeDelegationPanel() {
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>(() => loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, []));
+  const [tasks, setTasks] = useState<TaskItem[]>(() => loadFromStorage(STORAGE_KEYS.TASKS, []));
+  const [delegationItems, setDelegationItems] = useState<DelegationItem[]>(() => loadFromStorage(STORAGE_KEYS.DELEGATION_ITEMS, []));
+  const [hourlyRateConfig, setHourlyRateConfig] = useState<HourlyRateConfig>(() =>
+    loadFromStorage(STORAGE_KEYS.HOURLY_RATE_CONFIG, { weeklyIncome: 50000, workHoursPerWeek: 40, calculatedRate: 1250, lastUpdated: new Date() }));
+  const [currentTimeEntry, setCurrentTimeEntry] = useState<TimeEntry | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskCategory, setNewTaskCategory] = useState<"big5" | "below-the-line">("big5");
+  const [weeklyIncomeInput, setWeeklyIncomeInput] = useState(String(hourlyRateConfig.weeklyIncome));
+  const [workHoursInput, setWorkHoursInput] = useState(String(hourlyRateConfig.workHoursPerWeek));
+
+  const productivityAnalysis = useMemo(() => analyzeProductivity(timeEntries, hourlyRateConfig.calculatedRate), [timeEntries, hourlyRateConfig.calculatedRate]);
+  const big5Tasks = useMemo(() => tasks.filter((t) => t.category === "big5"), [tasks]);
+  const belowTheLineTasks = useMemo(() => tasks.filter((t) => t.category === "below-the-line"), [tasks]);
+
+  const startTimeTracking = (task: string, category: "big5" | "below-the-line") => {
+    if (currentTimeEntry) stopTimeTracking();
+    setCurrentTimeEntry({
+      id: `time_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      task, category, startTime: new Date(), hourlyRate: hourlyRateConfig.calculatedRate,
+    });
+  };
+  const stopTimeTracking = () => {
+    if (!currentTimeEntry) return;
+    const endTime = new Date();
+    const duration = calculateDuration(currentTimeEntry.startTime, endTime);
+    const value = calculateTimeValue(duration, hourlyRateConfig.calculatedRate);
+    const updated = [...timeEntries, { ...currentTimeEntry, endTime, duration, value }];
+    setTimeEntries(updated);
+    saveToStorage(STORAGE_KEYS.TIME_ENTRIES, updated);
+    setCurrentTimeEntry(null);
+  };
+  const addTask = () => {
+    if (!newTaskTitle.trim()) return;
+    const updated = [...tasks, createTask(newTaskTitle, newTaskCategory)];
+    setTasks(updated);
+    saveToStorage(STORAGE_KEYS.TASKS, updated);
+    setNewTaskTitle("");
+  };
+  const toggleTaskCompletion = (taskId: string) => {
+    const updated = tasks.map((t) => t.id === taskId ? { ...t, isCompleted: !t.isCompleted, completedAt: !t.isCompleted ? new Date() : undefined } : t);
+    setTasks(updated);
+    saveToStorage(STORAGE_KEYS.TASKS, updated);
+  };
+  const moveTaskToDelegation = (task: TaskItem) => {
+    const delegationItem = createDelegationItem(task.title, hourlyRateConfig.calculatedRate * 2, "within-week");
+    const updatedDelegation = [...delegationItems, delegationItem];
+    setDelegationItems(updatedDelegation);
+    saveToStorage(STORAGE_KEYS.DELEGATION_ITEMS, updatedDelegation);
+    const updatedTasks = tasks.map((t) => t.id === task.id ? { ...t, isDelegated: true } : t);
+    setTasks(updatedTasks);
+    saveToStorage(STORAGE_KEYS.TASKS, updatedTasks);
+  };
+  const updateHourlyRate = () => {
+    const newConfig = updateHourlyRateConfig(parseFloat(weeklyIncomeInput) || 0, parseFloat(workHoursInput) || 0);
+    setHourlyRateConfig(newConfig);
+    saveToStorage(STORAGE_KEYS.HOURLY_RATE_CONFIG, newConfig);
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500">
+        Track where your time actually goes, value it against your hourly rate, and build a delegation list —
+        for people/candidates, see the <strong>Team Canvas</strong> tab's hiring pipeline instead.
+      </p>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card><CardContent className="p-4">
+          <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-green-500" /><div className="text-sm font-medium">Big 5 Focus</div></div>
+          <div className="text-2xl font-bold">{Math.round(productivityAnalysis.big5Percentage)}%</div>
+          <div className="text-xs text-muted-foreground">of tracked time</div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <div className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-yellow-500" /><div className="text-sm font-medium">Potential Savings</div></div>
+          <div className="text-2xl font-bold">₦{Math.round(productivityAnalysis.potentialSavings).toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground">delegation opportunity</div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4">
+          <div className="flex items-center gap-2"><Wallet className="w-4 h-4 text-emerald-600" /><div className="text-sm font-medium">Hourly Rate</div></div>
+          <div className="text-2xl font-bold">₦{hourlyRateConfig.calculatedRate.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground">per hour</div>
+        </CardContent></Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Hourly Rate Calculator</CardTitle>
+          <CardDescription>Configure your hourly rate for accurate time-tracking value</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium">Weekly Income (₦)</label>
+              <Input type="number" value={weeklyIncomeInput} onChange={(e) => setWeeklyIncomeInput(e.target.value)} placeholder="50000" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Work Hours/Week</label>
+              <Input type="number" value={workHoursInput} onChange={(e) => setWorkHoursInput(e.target.value)} placeholder="40" />
+            </div>
+            <div className="flex flex-col justify-end">
+              <Button onClick={updateHourlyRate} className="gap-2"><Save className="w-4 h-4" /> Update Rate</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {currentTimeEntry && (
+        <Card className="border-destructive">
+          <CardHeader><CardTitle className="text-base text-destructive">Active Time Entry</CardTitle><CardDescription>Currently tracking: {currentTimeEntry.task}</CardDescription></CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">Started: {new Date(currentTimeEntry.startTime).toLocaleTimeString()}</div>
+              <Button onClick={stopTimeTracking} variant="destructive" className="gap-2"><Square className="w-4 h-4" /> Stop Tracking</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Start Time Tracking</CardTitle><CardDescription>Track your activities to analyze productivity</CardDescription></CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4">
+            <Button onClick={() => startTimeTracking("Big 5 Activity", "big5")} disabled={!!currentTimeEntry} className="gap-2 h-20 flex-col" variant="outline">
+              <Target className="w-6 h-6 text-blue-500" />
+              <div className="text-center"><div className="font-medium">Track Big 5 Activity</div><div className="text-xs text-muted-foreground">High-value strategic work</div></div>
+            </Button>
+            <Button onClick={() => startTimeTracking("Below the Line Task", "below-the-line")} disabled={!!currentTimeEntry} className="gap-2 h-20 flex-col" variant="outline">
+              <Clock className="w-6 h-6 text-orange-500" />
+              <div className="text-center"><div className="font-medium">Track Below the Line</div><div className="text-xs text-muted-foreground">Delegatable tasks</div></div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {timeEntries.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Recent Time Entries</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {timeEntries.slice(-10).reverse().map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between p-2 border rounded">
+                  <div>
+                    <div className="text-sm font-medium">{entry.task}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {entry.category === "big5" ? "🎯 Big 5" : "⏰ Below the Line"} · {formatDuration(entry.duration || 0)} · {formatHiringDate(new Date(entry.startTime))}
+                    </div>
+                  </div>
+                  <div className="text-sm font-medium">₦{(entry.value || 0).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Add New Task</CardTitle><CardDescription>Categorize tasks as Big 5 (strategic) or Below the Line (delegatable)</CardDescription></CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Input value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Enter task description..." onKeyDown={(e) => e.key === "Enter" && addTask()} />
+            <Select value={newTaskCategory} onValueChange={(v: "big5" | "below-the-line") => setNewTaskCategory(v)}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="big5">🎯 Big 5</SelectItem><SelectItem value="below-the-line">⏰ Below the Line</SelectItem></SelectContent>
+            </Select>
+            <Button onClick={addTask} disabled={!newTaskTitle.trim()} className="gap-2"><Plus className="w-4 h-4" /> Add</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Target className="w-4 h-4 text-blue-500" /> Big 5 Tasks ({big5Tasks.length})</CardTitle></CardHeader>
+          <CardContent className="space-y-2 max-h-60 overflow-y-auto">
+            {big5Tasks.length === 0 ? <div className="text-sm text-muted-foreground">No Big 5 tasks yet</div> : big5Tasks.map((task) => (
+              <div key={task.id} className="flex items-center gap-2 p-2 border rounded">
+                <input type="checkbox" checked={task.isCompleted} onChange={() => toggleTaskCompletion(task.id)} className="rounded" />
+                <span className={`text-sm ${task.isCompleted ? "line-through text-muted-foreground" : ""}`}>{task.title}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Clock className="w-4 h-4 text-orange-500" /> Below the Line Tasks ({belowTheLineTasks.length})</CardTitle></CardHeader>
+          <CardContent className="space-y-2 max-h-60 overflow-y-auto">
+            {belowTheLineTasks.length === 0 ? <div className="text-sm text-muted-foreground">No delegation candidates yet</div> : belowTheLineTasks.map((task) => (
+              <div key={task.id} className="flex items-center justify-between p-2 border rounded">
+                <div className="flex items-center gap-2 flex-1">
+                  <input type="checkbox" checked={task.isCompleted} onChange={() => toggleTaskCompletion(task.id)} className="rounded" />
+                  <span className={`text-sm ${task.isCompleted ? "line-through text-muted-foreground" : ""}`}>{task.title}</span>
+                </div>
+                {!task.isDelegated && !task.isCompleted && (
+                  <Button size="sm" variant="outline" onClick={() => moveTaskToDelegation(task)} className="gap-1"><ArrowUp className="w-3 h-3" /> Delegate</Button>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Delegation List</CardTitle>
+          <CardDescription>Tasks ready for delegation or outsourcing. Total estimated cost: ₦{delegationItems.reduce((sum, item) => sum + item.estimatedCost, 0).toLocaleString()}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {delegationItems.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-sm text-muted-foreground mb-4">No items in delegation list yet.</div>
+              <div className="text-xs text-muted-foreground">Move "Below the Line" tasks here to prepare for delegation.</div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {delegationItems.map((item) => (
+                <div key={item.id} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{item.task}</div>
+                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                        <span>Estimated Cost: ₦{item.estimatedCost.toLocaleString()}</span>
+                        <span>Urgency: {item.urgency.replace("-", " ")}</span>
+                        <span>Added: {formatHiringDate(new Date(item.createdAt))}</span>
+                      </div>
+                    </div>
+                    <Badge variant={item.urgency === "immediate" ? "destructive" : item.urgency === "within-week" ? "default" : "secondary"}>{item.urgency}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {delegationItems.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader><CardTitle className="text-base text-blue-800">Hiring Recommendation</CardTitle></CardHeader>
+          <CardContent>
+            <div className="text-sm text-blue-700"><strong>Analysis:</strong> You have {delegationItems.length} tasks ready for delegation with estimated total cost of ₦{delegationItems.reduce((sum, item) => sum + item.estimatedCost, 0).toLocaleString()}.</div>
+            <div className="text-sm text-blue-700 mt-2"><strong>Recommendation:</strong> {productivityAnalysis.recommendedAction.replace("-", " ").toUpperCase()}</div>
+            <div className="text-sm text-blue-700 mt-2"><strong>Potential Monthly Savings:</strong> ₦{Math.round(productivityAnalysis.potentialSavings * 4.33).toLocaleString()}</div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 }

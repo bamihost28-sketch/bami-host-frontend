@@ -31,7 +31,6 @@ import { SettingsPage } from '@/components/auth/SettingsPage';
 import { PortfolioDashboard, PersonalLifePortfolios } from '@/components/portfolio';
 import { SplitTracker } from '@/components/budget/SplitTracker';
 import { GoalsDashboard } from '@/components/goals/GoalsDashboard';
-import { Big5Dashboard } from '@/components/big5/Big5Dashboard';
 import StrategicHiringPlanner from '@/components/hiring/StrategicHiringPlanner';
 import ManagingLikeABoss from '@/components/management/ManagingLikeABoss';
 import CandidateManagement from '@/components/hiring/CandidateManagement';
@@ -93,7 +92,6 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('vendor-onboarding')) return 'vendor-onboarding';
     if (pathname.includes('personal-portfolios')) return 'personal-portfolios';
     if (pathname.includes('goals')) return 'goals';
-    if (pathname.includes('defining-your-number')) return 'defining-your-number';
     if (pathname.includes('strategic-hiring-planner')) return 'strategic-hiring-planner';
     if (pathname.includes('managing-like-a-boss')) return 'managing-like-a-boss';
     if (pathname.includes('candidate-management')) return 'candidate-management';
@@ -373,18 +371,12 @@ const DashboardRouter: React.FC = () => {
           }
         />
 
-        {/* Defining Your Number */}
+        {/* Defining Your Number — merged into the Scale dashboard (Focus + Your
+            Number tabs); this was a duplicate, localStorage-only page with its
+            own conflicting "set your Number" flow. */}
         <Route
           path="/defining-your-number"
-          element={
-            <ProtectedRoute
-              element={<Big5Dashboard />}
-              requiredPermissions={['view_big5']}
-              feature="Defining Your Number"
-              showUpgradePrompt={false}
-              viewName="defining-your-number"
-            />
-          }
+          element={<Navigate to="/dashboard/scale" replace />}
         />
 
 

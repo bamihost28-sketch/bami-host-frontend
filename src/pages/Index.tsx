@@ -23,7 +23,6 @@ import { SettingsPage } from "@/components/auth/SettingsPage";
 import { PortfolioDashboard, PersonalLifePortfolios } from "@/components/portfolio";
 import { SplitTracker } from "@/components/budget/SplitTracker";
 import { GoalsDashboard } from "@/components/goals/GoalsDashboard";
-import { Big5Dashboard } from "@/components/big5/Big5Dashboard";
 import StrategicHiringPlanner from "@/components/hiring/StrategicHiringPlanner";
 import CandidateManagement from "@/components/hiring/CandidateManagement";
 import { AdminPeople } from "@/components/dashboard/AdminPeople";
@@ -180,16 +179,9 @@ const Index = () => {
             <GoalsDashboard />
           </ProtectedComponent>
         );
-      case "defining-your-number":
-        return (
-          <ProtectedComponent 
-            requiredPermissions={['view_big5']}
-            feature="Defining Your Number"
-            showUpgradePrompt={false}
-          >
-            <Big5Dashboard />
-          </ProtectedComponent>
-        );
+      // "defining-your-number" removed — it was a duplicate, localStorage-only
+      // page with its own conflicting "set your Number" flow; merged into the
+      // Scale dashboard (/dashboard/scale) as the Focus + Time & Delegation tabs.
       // "scalable-impact-planner" removed — the planner now lives inside the Scale
       // dashboard (/dashboard/scale). This standalone case was unreachable and duplicated it.
 
