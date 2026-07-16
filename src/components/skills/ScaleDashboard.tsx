@@ -974,8 +974,8 @@ function CashWaterfallCard() {
 // ── Strategy (Starting Point / End Game / WHY / How + Taking Action) ─────────
 // Restored from the old "Defining Your Number" page. These are NOT duplicates
 // of anything already in Scale — the embedded planner's newer 6-step workbook
-// never rendered this content, so this was the only working UI for it. Same
-// localStorage keys as before, so anything already filled in carries over.
+// never rendered this content, so this was the only working UI for it.
+// Persisted to the real growth_plan API (same fields as before), not localStorage.
 
 const DEFAULT_STARTING_POINT = {
   currentRevenue: "", currentProfit: "", currentProfitMargin: "", currentValuation: "",
