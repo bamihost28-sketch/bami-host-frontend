@@ -42,7 +42,7 @@ const ESTATE_DETAIL_TOUR_STEPS: TourStep[] = [
   {
     selector: '[data-tour="estate-detail-overview"]',
     title: 'Estate at a glance',
-    content: "Occupancy, upcoming billing and recent revenue for this estate — all in one row.",
+    content: "Occupancy and recent revenue for this estate — all in one row.",
     placement: 'bottom',
   },
   {
@@ -249,7 +249,7 @@ export const EstateDetailPage = () => {
           {!overviewData ? (
             <div className="text-sm text-muted-foreground">{overviewError ? 'Failed to load overview.' : 'No overview.'}</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm">Occupancy</CardTitle>
@@ -267,16 +267,6 @@ export const EstateDetailPage = () => {
                   <div className="text-xs text-muted-foreground">
                     {overviewData?.data?.occupancy?.occupiedUnits ?? 0}/{overviewData?.data?.occupancy?.totalUnits ?? 0} occupied, {overviewData?.data?.occupancy?.vacantUnits ?? 0} vacant
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Upcoming Billing</CardTitle>
-                  <CardDescription>Due soon</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-bold">{overviewData?.data?.billing?.upcomingDueCount ?? 0}</div>
-                  <div className="text-xs text-muted-foreground">tenants with upcoming due</div>
                 </CardContent>
               </Card>
               <Card>
