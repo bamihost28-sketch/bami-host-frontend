@@ -124,17 +124,17 @@ export const OperatingSystemBuilder: React.FC<Props> = ({ data, onDataChange, on
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="border border-slate-200 bg-slate-50/50">
+      <Card className="border border-border bg-muted/40">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900">
-            <Settings className="w-6 h-6 text-slate-700" />
+          <CardTitle className="flex items-center gap-2 text-foreground font-display">
+            <Settings className="w-6 h-6 text-primary" />
             Level 3: Upgrade Your Operating System
-            <Badge variant="outline" className="bg-white text-slate-600">Make the business run without you</Badge>
+            <Badge variant="outline" className="bg-background text-muted-foreground">Make the business run without you</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-slate-600">
-          <Alert className="border-slate-200 bg-white">
-            <Lightbulb className="h-4 w-4 text-slate-600" />
+        <CardContent className="space-y-3 text-muted-foreground">
+          <Alert className="border-border bg-card">
+            <Lightbulb className="h-4 w-4 text-primary" />
             <AlertDescription>
               Most companies stall because they run on a "You OS". This step replaces it with a scalable operating system:
               Algorithms (SOPs), Common Language (dashboards & meetings), Desired Outputs (goals).

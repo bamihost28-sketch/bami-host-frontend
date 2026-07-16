@@ -59,17 +59,17 @@ export const GrowthFlywheelBuilder: React.FC<Props> = ({ data, onDataChange, onC
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card className="border border-slate-200 bg-slate-50/50">
+      <Card className="border border-border bg-muted/40">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900">
-            <TrendingUp className="w-6 h-6 text-slate-700" />
+          <CardTitle className="flex items-center gap-2 text-foreground font-display">
+            <TrendingUp className="w-6 h-6 text-primary" />
             Level 2: Build a Growth Flywheel
-            <Badge variant="outline" className="bg-white text-slate-600">Predictable, repeatable, scalable sales</Badge>
+            <Badge variant="outline" className="bg-background text-muted-foreground">Predictable, repeatable, scalable sales</Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-slate-600">
-          <Alert className="border-slate-200 bg-white">
-            <Lightbulb className="h-4 w-4 text-slate-600" />
+        <CardContent className="space-y-3 text-muted-foreground">
+          <Alert className="border-border bg-card">
+            <Lightbulb className="h-4 w-4 text-primary" />
             <AlertDescription>
               You only need one growth engine to break seven figures. Focus on one path that consistently turns awareness → leads → customers → promoters.
             </AlertDescription>

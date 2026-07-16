@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 // Import tab components
 import DoThisFirst from './tabs/DoThisFirst';
@@ -29,6 +30,8 @@ export interface Level1Data {
   isCompleted: boolean;
 }
 
+const tabTriggerCls = "text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm";
+
 interface Level1FirstTenCustomersProps {
   data: Level1Data;
   onDataChange: (data: Level1Data) => void;
@@ -43,31 +46,31 @@ export const Level1FirstTenCustomers: React.FC<Level1FirstTenCustomersProps> = (
   return (
     <div className="space-y-4">
       {/* Slim intro — the level hero above already sets the context */}
-      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-        <Target className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Target className="w-4 h-4 text-primary flex-shrink-0" />
         <span>Work through each tab to understand, complete and verify this level.</span>
-        <Badge variant="outline" className="ml-auto border-emerald-300 text-emerald-700 dark:text-emerald-300 text-[10px]">MANDATORY</Badge>
+        <Badge variant="outline" className="ml-auto border-primary/30 text-primary text-[10px]">MANDATORY</Badge>
       </div>
 
       {/* Tabs Navigation */}
       <Tabs defaultValue="do-this-first" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 gap-1 h-auto p-1 bg-slate-100 dark:bg-slate-800/60 rounded-xl">
-          <TabsTrigger value="do-this-first" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 gap-1 h-auto p-1 bg-muted rounded-xl">
+          <TabsTrigger value="do-this-first" className={cn(tabTriggerCls)}>
             Do This First
           </TabsTrigger>
-          <TabsTrigger value="problem" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="problem" className={cn(tabTriggerCls)}>
             Product-Market Fit
           </TabsTrigger>
-          <TabsTrigger value="first-10" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="first-10" className={cn(tabTriggerCls)}>
             Getting First 10
           </TabsTrigger>
-          <TabsTrigger value="survey" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="survey" className={cn(tabTriggerCls)}>
             One Question Survey
           </TabsTrigger>
-          <TabsTrigger value="model-10" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="model-10" className={cn(tabTriggerCls)}>
             Your Model 10
           </TabsTrigger>
-          <TabsTrigger value="ready" className="text-xs md:text-sm py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="ready" className={cn(tabTriggerCls)}>
             Ready to Level Up
           </TabsTrigger>
         </TabsList>
