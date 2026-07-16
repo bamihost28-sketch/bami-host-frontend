@@ -12,7 +12,6 @@ import {
 } from "@/services";
 
 export const CustomerDashboard = () => {
-  const { user } = useAuth();
   const [selectedContract, setSelectedContract] = useState<string | null>(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentType, setPaymentType] = useState<'installment' | 'full' | 'stage'>('installment');

@@ -33,7 +33,6 @@ const ScalableImpactPlanner: React.FC<{
   hideChrome?: boolean;
 }> = ({ embedded = false, controlledStep, hideChrome = false }) => {
   const { toast } = useToast();
-  const { user } = useAuth();
 
   // Step navigation state (limited to initial 2 steps on this page)
   const [currentStep, setCurrentStep] = useState<number>(1);
