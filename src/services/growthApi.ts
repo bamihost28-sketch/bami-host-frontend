@@ -43,7 +43,11 @@ export const growthApi = createApi({
     }),
     saveGrowthPlan: b.mutation<{ success: boolean }, SaveGrowthPlanBody>({
       query: (body) => ({ url: "/api/growth/plan", method: "PUT", body }),
-      // do NOT invalidate — we don't want to refetch & clobber local edits mid-session
+      // Safe to invalidate now: the backend merges `data` per top-level key (not a
+      // full replace) and every consumer hydrates its own local state ONCE on
+      // mount rather than continuously syncing from the cache — so a refetch
+      // after save can't clobber another panel's in-progress edits.
+      invalidatesTags: ["GrowthPlan"],
     }),
   }),
 });

@@ -34,12 +34,10 @@ import { EndGameSection } from "@/components/scalable-impact/EndGameSection";
 import WhySection from "@/components/scalable-impact/WhySection";
 import HowSection from "@/components/scalable-impact/HowSection";
 import TakingActionSection from "@/components/scalable-impact/TakingActionSection";
-import { useAuth } from "@/contexts/AuthContext";
 import type { TimeEntry, TaskItem, DelegationItem, HourlyRateConfig } from "@/types/hiring";
 import {
   calculateDuration, formatDuration, calculateTimeValue, updateHourlyRateConfig,
-  analyzeProductivity, createTask, createDelegationItem, saveToStorage, loadFromStorage,
-  STORAGE_KEYS, formatDate as formatHiringDate,
+  analyzeProductivity, createTask, createDelegationItem, formatDate as formatHiringDate,
 } from "@/lib/hiringUtils";
 
 const DOT: Record<string, string> = { green: "bg-green-500", amber: "bg-yellow-500", red: "bg-red-500" };
@@ -979,40 +977,47 @@ function CashWaterfallCard() {
 // never rendered this content, so this was the only working UI for it. Same
 // localStorage keys as before, so anything already filled in carries over.
 
+const DEFAULT_STARTING_POINT = {
+  currentRevenue: "", currentProfit: "", currentProfitMargin: "", currentValuation: "",
+  assessmentDate: "", revenueSource: "", businessStage: "owner-dependent" as "owner-dependent" | "professionalized",
+};
+const DEFAULT_END_GAME = {
+  targetRevenue: "", targetProfit: "", targetValuation: "", timeframe: "3-year" as "3-year",
+  growthStrategy: "", selectedBenchmark: "", targetProfitMargin: "",
+};
+const DEFAULT_WHY = {
+  me: { personalGoals: "", motivation: "", skillsDevelopment: "", personalWhy: "" },
+  us: { teamVision: "", companyMission: "", culturalValues: "", collectiveWhy: "" },
+  them: { customerImpact: "", marketProblem: "", socialContribution: "", externalWhy: "" },
+};
+const DEFAULT_HOW = { action1: "", action2: "", action3: "", action4: "", action5: "" };
+const DEFAULT_TAKING_ACTION = { currentAction1: "", currentAction2: "", currentAction3: "" };
+
 function StrategyPanel() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { data: plan, isLoading, isSuccess } = useGetGrowthPlanQuery();
+  const [saveGrowthPlan] = useSaveGrowthPlanMutation();
   const [subTab, setSubTab] = useState("starting-point");
 
-  const [startingPointData, setStartingPointData] = useState({
-    currentRevenue: "", currentProfit: "", currentProfitMargin: "", currentValuation: "",
-    assessmentDate: "", revenueSource: "", businessStage: "owner-dependent" as "owner-dependent" | "professionalized",
-  });
-  const [endGameData, setEndGameData] = useState({
-    targetRevenue: "", targetProfit: "", targetValuation: "", timeframe: "3-year" as "3-year",
-    growthStrategy: "", selectedBenchmark: "", targetProfitMargin: "",
-  });
-  const [whyStatement, setWhyStatement] = useState({
-    me: { personalGoals: "", motivation: "", skillsDevelopment: "", personalWhy: "" },
-    us: { teamVision: "", companyMission: "", culturalValues: "", collectiveWhy: "" },
-    them: { customerImpact: "", marketProblem: "", socialContribution: "", externalWhy: "" },
-  });
-  const [howStatement, setHowStatement] = useState({ action1: "", action2: "", action3: "", action4: "", action5: "" });
-  const [takingActionItems, setTakingActionItems] = useState({ currentAction1: "", currentAction2: "", currentAction3: "" });
+  const [startingPointData, setStartingPointData] = useState(DEFAULT_STARTING_POINT);
+  const [endGameData, setEndGameData] = useState(DEFAULT_END_GAME);
+  const [whyStatement, setWhyStatement] = useState(DEFAULT_WHY);
+  const [howStatement, setHowStatement] = useState(DEFAULT_HOW);
+  const [takingActionItems, setTakingActionItems] = useState(DEFAULT_TAKING_ACTION);
+  const hydratedRef = useState(() => ({ done: false }))[0];
 
   useEffect(() => {
-    if (!user?.id) return;
-    const sp = localStorage.getItem(`scalable_impact_starting_data_${user.id}`);
-    const eg = localStorage.getItem(`scalable_impact_endgame_data_${user.id}`);
-    const wy = localStorage.getItem(`scalable_impact_why_${user.id}`);
-    const hw = localStorage.getItem(`scalable_impact_how_${user.id}`);
-    const ta = localStorage.getItem(`scalable_impact_taking_action_${user.id}`);
-    if (sp) setStartingPointData(JSON.parse(sp));
-    if (eg) setEndGameData(JSON.parse(eg));
-    if (wy) setWhyStatement(JSON.parse(wy));
-    if (hw) setHowStatement(JSON.parse(hw));
-    if (ta) setTakingActionItems(JSON.parse(ta));
-  }, [user?.id]);
+    if (!isSuccess || hydratedRef.done) return;
+    hydratedRef.done = true;
+    const d = plan?.exists ? (plan.data || {}) : {};
+    if (d.starting_data) setStartingPointData(d.starting_data);
+    if (d.endgame_data) setEndGameData(d.endgame_data);
+    if (d.why) setWhyStatement(d.why);
+    if (d.how) setHowStatement(d.how);
+    if (d.taking_action) setTakingActionItems(d.taking_action);
+  }, [isSuccess, plan, hydratedRef]);
+
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
 
   return (
     <div className="space-y-4">
@@ -1031,11 +1036,13 @@ function StrategyPanel() {
         <TabsContent value="starting-point" className="space-y-6 mt-4">
           <StartingPointSection
             data={startingPointData}
-            onDataChange={(d) => {
-              setStartingPointData(d);
-              if (user?.id) localStorage.setItem(`scalable_impact_starting_data_${user.id}`, JSON.stringify(d));
+            onDataChange={setStartingPointData}
+            onComplete={async () => {
+              try {
+                await saveGrowthPlan({ data: { starting_data: startingPointData } }).unwrap();
+                toast({ title: "Starting point saved", description: "We updated your current metrics." });
+              } catch { toast({ title: "Couldn't save", description: "Please try again.", variant: "destructive" }); }
             }}
-            onComplete={() => toast({ title: "Starting point saved", description: "We updated your current metrics." })}
           />
         </TabsContent>
 
@@ -1043,11 +1050,19 @@ function StrategyPanel() {
           <EndGameSection
             data={endGameData}
             startingPoint={startingPointData}
-            onDataChange={(d) => {
-              setEndGameData(d);
-              if (user?.id) localStorage.setItem(`scalable_impact_endgame_data_${user.id}`, JSON.stringify(d));
+            onDataChange={setEndGameData}
+            onComplete={async () => {
+              const num = (v: string) => { const n = parseFloat(String(v || "").replace(/[^\d.]/g, "")); return isNaN(n) ? undefined : n; };
+              try {
+                await saveGrowthPlan({
+                  data: { endgame_data: endGameData },
+                  target_revenue: num(endGameData.targetRevenue),
+                  target_profit: num(endGameData.targetProfit),
+                  target_valuation: num(endGameData.targetValuation),
+                }).unwrap();
+                toast({ title: "End game set", description: "Your 3-year targets were saved — this also updates Your Number." });
+              } catch { toast({ title: "Couldn't save", description: "Please try again.", variant: "destructive" }); }
             }}
-            onComplete={() => toast({ title: "End game set", description: "Your 3-year targets were saved." })}
           />
         </TabsContent>
 
@@ -1081,9 +1096,14 @@ function StrategyPanel() {
               <WhySection
                 whyStatement={whyStatement}
                 setWhyStatement={setWhyStatement}
-                onSave={() => {
-                  if (user?.id) localStorage.setItem(`scalable_impact_why_${user.id}`, JSON.stringify(whyStatement));
-                  toast({ title: "WHY saved", description: "Your impact statement has been saved." });
+                onSave={async () => {
+                  const w = whyStatement;
+                  const why_summary = [w.me.personalWhy, w.us.collectiveWhy || w.us.companyMission, w.them.externalWhy || w.them.customerImpact]
+                    .filter(Boolean).join(" · ") || undefined;
+                  try {
+                    await saveGrowthPlan({ data: { why: whyStatement }, why_summary }).unwrap();
+                    toast({ title: "WHY saved", description: "Your impact statement has been saved — this also updates Your Number's why." });
+                  } catch { toast({ title: "Couldn't save", description: "Please try again.", variant: "destructive" }); }
                 }}
               />
             </CardContent>
@@ -1097,9 +1117,11 @@ function StrategyPanel() {
                 <HowSection
                   howStatement={howStatement}
                   setHowStatement={setHowStatement}
-                  onSave={() => {
-                    if (user?.id) localStorage.setItem(`scalable_impact_how_${user.id}`, JSON.stringify(howStatement));
-                    toast({ title: "Focus 5 saved", description: "Your 5 key actions have been saved." });
+                  onSave={async () => {
+                    try {
+                      await saveGrowthPlan({ data: { how: howStatement } }).unwrap();
+                      toast({ title: "Focus 5 saved", description: "Your 5 key actions have been saved." });
+                    } catch { toast({ title: "Couldn't save", description: "Please try again.", variant: "destructive" }); }
                   }}
                 />
               </CardContent>
@@ -1109,9 +1131,11 @@ function StrategyPanel() {
                 <TakingActionSection
                   takingActionItems={takingActionItems}
                   setTakingActionItems={setTakingActionItems}
-                  onSave={() => {
-                    if (user?.id) localStorage.setItem(`scalable_impact_taking_action_${user.id}`, JSON.stringify(takingActionItems));
-                    toast({ title: "Action plan saved", description: "Your current initiatives were saved." });
+                  onSave={async () => {
+                    try {
+                      await saveGrowthPlan({ data: { taking_action: takingActionItems } }).unwrap();
+                      toast({ title: "Action plan saved", description: "Your current initiatives were saved." });
+                    } catch { toast({ title: "Couldn't save", description: "Please try again.", variant: "destructive" }); }
                   }}
                 />
               </CardContent>
@@ -1132,28 +1156,38 @@ function Row({ label, value }: { label: string; value: string }) {
 
 // ── Focus (Big 5) — the few things only the owner should personally own ──────
 // Moved here from the old standalone "Defining Your Number" page, which was
-// merged into Scale. Kept as a simple local list (no backend yet) — same
-// storage key as before, so nothing anyone already filled in is lost.
+// merged into Scale. Persisted to the real growth_plan API (data.big5_items) —
+// same shape as before, so nothing anyone already filled in is lost.
 
 interface BigItem { id: string; title: string; description?: string; }
-const BIG5_STORAGE_KEY = "big5_items_v2";
 const createBig5Item = (): BigItem => ({ id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, title: "", description: "" });
+const DEFAULT_BIG5_ITEMS = [createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item()];
 
 function FocusPanel() {
-  const [items, setItems] = useState<BigItem[]>(() => {
-    try {
-      const raw = localStorage.getItem(BIG5_STORAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : null;
-      return Array.isArray(parsed) && parsed.length ? parsed : [createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item()];
-    } catch {
-      return [createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item(), createBig5Item()];
-    }
-  });
+  const { toast } = useToast();
+  const { data: plan, isLoading, isSuccess } = useGetGrowthPlanQuery();
+  const [saveGrowthPlan, { isLoading: saving }] = useSaveGrowthPlanMutation();
+  const [items, setItems] = useState<BigItem[]>(DEFAULT_BIG5_ITEMS);
+  const hydratedRef = useState(() => ({ done: false }))[0];
+
+  useEffect(() => {
+    if (!isSuccess || hydratedRef.done) return;
+    hydratedRef.done = true;
+    const saved = plan?.exists ? plan.data?.big5_items : null;
+    if (Array.isArray(saved) && saved.length) setItems(saved);
+  }, [isSuccess, plan, hydratedRef]);
 
   const filledCount = useMemo(() => items.filter((i) => i.title?.trim()).length, [items]);
 
-  const save = () => localStorage.setItem(BIG5_STORAGE_KEY, JSON.stringify(items));
-  const reset = () => { setItems([]); localStorage.setItem(BIG5_STORAGE_KEY, JSON.stringify([])); };
+  const persist = async (next: BigItem[]) => {
+    try {
+      await saveGrowthPlan({ data: { big5_items: next } }).unwrap();
+    } catch {
+      toast({ title: "Couldn't save your Big 5", description: "Please try again.", variant: "destructive" });
+    }
+  };
+  const save = () => persist(items).then(() => toast({ title: "Big 5 saved" }));
+  const reset = () => { setItems([]); persist([]); };
   const addItem = () => setItems((prev) => [...prev, createBig5Item()]);
   const removeItem = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
   const moveItem = (index: number, dir: -1 | 1) => {
@@ -1166,6 +1200,8 @@ function FocusPanel() {
       return next;
     });
   };
+
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
 
   return (
     <div className="space-y-4">
@@ -1246,8 +1282,8 @@ function FocusPanel() {
             </div>
           ))}
           <div className="flex flex-wrap gap-2">
-            <Button onClick={save} className="gap-2"><Save className="w-4 h-4" /> Save</Button>
-            <Button variant="outline" onClick={reset} className="gap-2"><RefreshCw className="w-4 h-4" /> Clear all</Button>
+            <Button onClick={save} disabled={saving} className="gap-2"><Save className="w-4 h-4" /> Save</Button>
+            <Button variant="outline" onClick={reset} disabled={saving} className="gap-2"><RefreshCw className="w-4 h-4" /> Clear all</Button>
             <Button variant="outline" onClick={addItem} className="gap-2"><Plus className="w-4 h-4" /> Add another</Button>
           </div>
         </CardContent>
@@ -1262,17 +1298,43 @@ function FocusPanel() {
 // list. Complements Team Canvas's Hiring signal/pipeline (which tracks
 // candidates/people) — this tracks TASKS worth delegating and their cost.
 
+const DEFAULT_HOURLY_RATE_CONFIG: HourlyRateConfig = { weeklyIncome: 50000, workHoursPerWeek: 40, calculatedRate: 1250, lastUpdated: new Date() };
+
 function TimeDelegationPanel() {
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>(() => loadFromStorage(STORAGE_KEYS.TIME_ENTRIES, []));
-  const [tasks, setTasks] = useState<TaskItem[]>(() => loadFromStorage(STORAGE_KEYS.TASKS, []));
-  const [delegationItems, setDelegationItems] = useState<DelegationItem[]>(() => loadFromStorage(STORAGE_KEYS.DELEGATION_ITEMS, []));
-  const [hourlyRateConfig, setHourlyRateConfig] = useState<HourlyRateConfig>(() =>
-    loadFromStorage(STORAGE_KEYS.HOURLY_RATE_CONFIG, { weeklyIncome: 50000, workHoursPerWeek: 40, calculatedRate: 1250, lastUpdated: new Date() }));
+  const { toast } = useToast();
+  const { data: plan, isLoading, isSuccess } = useGetGrowthPlanQuery();
+  const [saveGrowthPlan] = useSaveGrowthPlanMutation();
+
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [delegationItems, setDelegationItems] = useState<DelegationItem[]>([]);
+  const [hourlyRateConfig, setHourlyRateConfig] = useState<HourlyRateConfig>(DEFAULT_HOURLY_RATE_CONFIG);
   const [currentTimeEntry, setCurrentTimeEntry] = useState<TimeEntry | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskCategory, setNewTaskCategory] = useState<"big5" | "below-the-line">("big5");
-  const [weeklyIncomeInput, setWeeklyIncomeInput] = useState(String(hourlyRateConfig.weeklyIncome));
-  const [workHoursInput, setWorkHoursInput] = useState(String(hourlyRateConfig.workHoursPerWeek));
+  const [weeklyIncomeInput, setWeeklyIncomeInput] = useState(String(DEFAULT_HOURLY_RATE_CONFIG.weeklyIncome));
+  const [workHoursInput, setWorkHoursInput] = useState(String(DEFAULT_HOURLY_RATE_CONFIG.workHoursPerWeek));
+  const hydratedRef = useState(() => ({ done: false }))[0];
+
+  useEffect(() => {
+    if (!isSuccess || hydratedRef.done) return;
+    hydratedRef.done = true;
+    const d = plan?.exists ? (plan.data || {}) : {};
+    if (Array.isArray(d.time_entries)) setTimeEntries(d.time_entries);
+    if (Array.isArray(d.tasks)) setTasks(d.tasks);
+    if (Array.isArray(d.delegation_items)) setDelegationItems(d.delegation_items);
+    if (d.hourly_rate_config) {
+      setHourlyRateConfig(d.hourly_rate_config);
+      setWeeklyIncomeInput(String(d.hourly_rate_config.weeklyIncome));
+      setWorkHoursInput(String(d.hourly_rate_config.workHoursPerWeek));
+    }
+  }, [isSuccess, plan, hydratedRef]);
+
+  const persist = (key: string, value: unknown) => {
+    saveGrowthPlan({ data: { [key]: value } }).unwrap().catch(() => {
+      toast({ title: "Couldn't save", description: "Please try again.", variant: "destructive" });
+    });
+  };
 
   const productivityAnalysis = useMemo(() => analyzeProductivity(timeEntries, hourlyRateConfig.calculatedRate), [timeEntries, hourlyRateConfig.calculatedRate]);
   const big5Tasks = useMemo(() => tasks.filter((t) => t.category === "big5"), [tasks]);
@@ -1292,35 +1354,37 @@ function TimeDelegationPanel() {
     const value = calculateTimeValue(duration, hourlyRateConfig.calculatedRate);
     const updated = [...timeEntries, { ...currentTimeEntry, endTime, duration, value }];
     setTimeEntries(updated);
-    saveToStorage(STORAGE_KEYS.TIME_ENTRIES, updated);
+    persist("time_entries", updated);
     setCurrentTimeEntry(null);
   };
   const addTask = () => {
     if (!newTaskTitle.trim()) return;
     const updated = [...tasks, createTask(newTaskTitle, newTaskCategory)];
     setTasks(updated);
-    saveToStorage(STORAGE_KEYS.TASKS, updated);
+    persist("tasks", updated);
     setNewTaskTitle("");
   };
   const toggleTaskCompletion = (taskId: string) => {
     const updated = tasks.map((t) => t.id === taskId ? { ...t, isCompleted: !t.isCompleted, completedAt: !t.isCompleted ? new Date() : undefined } : t);
     setTasks(updated);
-    saveToStorage(STORAGE_KEYS.TASKS, updated);
+    persist("tasks", updated);
   };
   const moveTaskToDelegation = (task: TaskItem) => {
     const delegationItem = createDelegationItem(task.title, hourlyRateConfig.calculatedRate * 2, "within-week");
     const updatedDelegation = [...delegationItems, delegationItem];
     setDelegationItems(updatedDelegation);
-    saveToStorage(STORAGE_KEYS.DELEGATION_ITEMS, updatedDelegation);
+    persist("delegation_items", updatedDelegation);
     const updatedTasks = tasks.map((t) => t.id === task.id ? { ...t, isDelegated: true } : t);
     setTasks(updatedTasks);
-    saveToStorage(STORAGE_KEYS.TASKS, updatedTasks);
+    persist("tasks", updatedTasks);
   };
   const updateHourlyRate = () => {
     const newConfig = updateHourlyRateConfig(parseFloat(weeklyIncomeInput) || 0, parseFloat(workHoursInput) || 0);
     setHourlyRateConfig(newConfig);
-    saveToStorage(STORAGE_KEYS.HOURLY_RATE_CONFIG, newConfig);
+    persist("hourly_rate_config", newConfig);
   };
+
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
 
   return (
     <div className="space-y-4">
