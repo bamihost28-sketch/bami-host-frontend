@@ -9,6 +9,7 @@ import {
   Zap,
   Wrench,
   MessageSquare,
+  Briefcase,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetDashboardOverviewQuery } from "@/services/estatesApi";
@@ -22,6 +23,68 @@ const SKILL_EMOJI: Record<string, string> = {
   support: "💬", procurement: "🧾", compliance: "📋", finance: "💰",
   collections: "⏰", retention: "🔁", sales: "💼", marketer: "📣",
   designer: "🎨", hr: "👥", records: "🗂️",
+};
+
+// BamiHost manages MANY businesses — Real Estate is only one line, and more
+// get added over time. Each active line gets its OWN section with metrics
+// that actually fit it; a line with no dedicated renderer below still shows
+// via the generic fallback, so a brand-new business line never breaks this
+// page or gets silently dropped.
+
+function RealEstateSection({ data }: { data: any }) {
+  return (
+    <>
+      <SectionHeader title="Real Estate" subtitle={`${data.estates ?? 0} estate(s)`} />
+      <MetricGrid cols={4}>
+        <StatCard label="Units" value={data.units ?? 0} icon={Home} variant="green" />
+        <StatCard label="Occupied" value={`${data.occupancyRate ?? 0}%`} icon={Activity} variant="green" />
+        <StatCard label="Vacant" value={data.vacant ?? 0} icon={Home} variant="amber" />
+        <StatCard label="Tenants" value={data.tenants ?? 0} icon={Users} variant="green" />
+        <StatCard label="Overdue Tenants" value={data.overdueTenants ?? 0} icon={AlertCircle} variant={data.overdueTenants ? "red" : "default"} />
+        <StatCard label="Outstanding Rent" value={formatCurrency(data.outstanding?.rent ?? 0)} icon={AlertCircle} variant="amber" />
+        <StatCard label="Outstanding Service" value={formatCurrency(data.outstanding?.service ?? 0)} icon={AlertCircle} variant="amber" />
+        <StatCard label="Open Issues" value={data.openIssues ?? 0} icon={Wrench} variant={data.openIssues ? "amber" : "default"} />
+        <StatCard label="High-Priority Issues" value={data.highPriorityIssues ?? 0} icon={AlertCircle} variant={data.highPriorityIssues ? "red" : "default"} />
+        <StatCard label="Pending Enquiries" value={data.pendingEnquiries ?? 0} icon={MessageSquare} />
+      </MetricGrid>
+    </>
+  );
+}
+
+function SmartMeteringSection({ data }: { data: any }) {
+  return (
+    <>
+      <SectionHeader title="Smart Metering" subtitle={`${data.meters ?? 0} meter(s)`} />
+      <MetricGrid cols={3}>
+        <StatCard label="Online" value={data.online ?? 0} icon={Zap} variant="green" />
+        <StatCard label="Offline" value={data.offline ?? 0} icon={AlertCircle} variant={data.offline ? "red" : "default"} />
+        <StatCard label="Low Credit" value={data.lowCredit ?? 0} icon={AlertCircle} variant={data.lowCredit ? "amber" : "default"} />
+      </MetricGrid>
+    </>
+  );
+}
+
+// Any business line without a dedicated section above still renders here —
+// a plain key/value grid — so a newly added line is never invisible.
+function GenericLineSection({ name, data }: { name: string; data: any }) {
+  const entries = Object.entries(data || {}).filter(([, v]) => typeof v === "number" || typeof v === "string");
+  if (entries.length === 0) return null;
+  const label = (k: string) => k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
+  return (
+    <>
+      <SectionHeader title={name} />
+      <MetricGrid cols={4}>
+        {entries.map(([k, v]) => (
+          <StatCard key={k} label={label(k)} value={v as string | number} icon={Briefcase} />
+        ))}
+      </MetricGrid>
+    </>
+  );
+}
+
+const LINE_RENDERERS: Record<string, (data: any) => JSX.Element> = {
+  "Real Estate": (data) => <RealEstateSection data={data} />,
+  "Smart Metering": (data) => <SmartMeteringSection data={data} />,
 };
 
 export const OwnerDashboard: React.FC = () => {
@@ -47,8 +110,9 @@ export const OwnerDashboard: React.FC = () => {
     );
   }
 
-  const totals = overview.totals || {};
-  const businessLines: string[] = overview.businessLines || [];
+  const company = overview.company || {};
+  const lines: Record<string, any> = overview.lines || {};
+  const lineNames: string[] = overview.businessLines || Object.keys(lines);
 
   return (
     <div className="space-y-6">
@@ -58,10 +122,10 @@ export const OwnerDashboard: React.FC = () => {
         icon={Building}
       />
 
-      {businessLines.length > 0 && (
+      {lineNames.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 -mt-2">
           <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Business lines:</span>
-          {businessLines.map((line) => (
+          {lineNames.map((line) => (
             <span key={line} className="text-xs rounded-full bg-primary/10 text-primary px-2 py-0.5 font-medium">
               {line}
             </span>
@@ -69,33 +133,32 @@ export const OwnerDashboard: React.FC = () => {
         </div>
       )}
 
-      <MetricGrid cols={4}>
-        <StatCard label="Estates" value={totals.estates ?? 0} icon={Building} variant="green" />
-        <StatCard label="Units" value={totals.units ?? 0} icon={Home} variant="green" />
-        <StatCard label="Occupied" value={`${overview.occupancyRate ?? 0}%`} icon={Activity} variant="green" />
-        <StatCard label="Vacant" value={totals.vacant ?? 0} icon={Home} variant="amber" />
-        <StatCard label="Tenants" value={totals.tenants ?? 0} icon={Users} variant="green" />
-        <StatCard label="Platform Users" value={totals.users ?? 0} icon={Users} />
-        {totals.meters > 0 && (
-          <StatCard label="Smart Meters" value={totals.meters} icon={Zap} variant="green" />
-        )}
-        <StatCard label="Overdue Tenants" value={overview.overdueTenants ?? 0} icon={AlertCircle} variant={overview.overdueTenants ? "red" : "default"} />
-      </MetricGrid>
-
-      <SectionHeader title="Revenue & Outstanding" />
-      <MetricGrid cols={4}>
-        <StatCard label="Revenue (all-time)" value={formatCurrency(overview.revenue?.allTime ?? 0)} icon={TrendingUp} variant="green" />
-        <StatCard label="Revenue (30 days)" value={formatCurrency(overview.revenue?.last30Days ?? 0)} icon={DollarSign} variant="green" />
-        <StatCard label="Outstanding Rent" value={formatCurrency(overview.outstanding?.rent ?? 0)} icon={AlertCircle} variant="amber" />
-        <StatCard label="Outstanding Service" value={formatCurrency(overview.outstanding?.service ?? 0)} icon={AlertCircle} variant="amber" />
-      </MetricGrid>
-
-      <SectionHeader title="Operations" />
+      {/* Company-wide — applies across every business line, not just one */}
+      <SectionHeader title="Company" subtitle="Whole-business numbers, not tied to a single line" />
       <MetricGrid cols={3}>
-        <StatCard label="Open Issues" value={overview.issues?.open ?? 0} icon={Wrench} variant={overview.issues?.open ? "amber" : "default"} />
-        <StatCard label="High-Priority Issues" value={overview.issues?.highPriority ?? 0} icon={AlertCircle} variant={overview.issues?.highPriority ? "red" : "default"} />
-        <StatCard label="Pending Enquiries" value={overview.pendingEnquiries ?? 0} icon={MessageSquare} />
+        <StatCard label="Platform Users" value={company.users ?? 0} icon={Users} />
+        <StatCard label="Revenue (all-time)" value={formatCurrency(company.revenue?.allTime ?? 0)} icon={TrendingUp} variant="green" />
+        <StatCard label="Revenue (30 days)" value={formatCurrency(company.revenue?.last30Days ?? 0)} icon={DollarSign} variant="green" />
       </MetricGrid>
+
+      {/* One section per ACTIVE business line — never a single line's shape
+          presented as if it were the whole system. */}
+      {lineNames.map((name) => {
+        const lineData = lines[name];
+        if (!lineData) return null;
+        const renderer = LINE_RENDERERS[name];
+        return (
+          <div key={name}>
+            {renderer ? renderer(lineData) : <GenericLineSection name={name} data={lineData} />}
+          </div>
+        );
+      })}
+
+      {lineNames.length === 0 && (
+        <div className="dash-card text-sm text-muted-foreground">
+          No business line has data yet — once you add estates, meters, or another business, it shows up here.
+        </div>
+      )}
 
       <SectionHeader title="AI Team Activity" subtitle="What the agent team has been doing across the business" />
       <div className="dash-card">
