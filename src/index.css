@@ -321,6 +321,16 @@
   .drop-zone.drag-over {
     @apply border-primary bg-primary/5;
   }
+
+  /* ── Scrollbar Utilities ───────────────────────────────────────── */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes pulse-line {
