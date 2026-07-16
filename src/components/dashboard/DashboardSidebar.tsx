@@ -64,7 +64,6 @@ interface SidebarItem {
 
 const sidebarItems: SidebarItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, category: "core", requiredPermissions: ["view_overview"], path: "/dashboard/overview" },
-  { id: "billionaire-os", label: "Billionaire OS", icon: Rocket, category: "core", requiredPermissions: ["view_big5"], path: "/dashboard/billionaire-os" },
   { id: "defining-your-number", label: "Defining Your Number", icon: ListChecks, category: "core", requiredPermissions: ["view_big5"], path: "/dashboard/defining-your-number" },
   { id: "wallet", label: "Wallet", icon: Wallet, category: "financial", requiredPermissions: ["view_wallet"], isPremium: true, path: "/dashboard/wallet" },
   { id: "portfolio", label: "Investment Portfolio", icon: TrendingUp, category: "financial", requiredPermissions: ["view_portfolio"], isPremium: true, path: "/dashboard/portfolio" },
