@@ -29,6 +29,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookOpen, Trash2, Plus } from "lucide-react";
 import ScalableImpactPlanner from "@/components/scalable-impact/ScalableImpactPlanner";
+import { StartingPointSection } from "@/components/scalable-impact/StartingPointSection";
+import { EndGameSection } from "@/components/scalable-impact/EndGameSection";
+import WhySection from "@/components/scalable-impact/WhySection";
+import HowSection from "@/components/scalable-impact/HowSection";
+import TakingActionSection from "@/components/scalable-impact/TakingActionSection";
+import { useAuth } from "@/contexts/AuthContext";
 import type { TimeEntry, TaskItem, DelegationItem, HourlyRateConfig } from "@/types/hiring";
 import {
   calculateDuration, formatDuration, calculateTimeValue, updateHourlyRateConfig,
@@ -77,6 +83,7 @@ export function ScaleDashboard() {
           <TabsTrigger value="engines" className="gap-1"><Sparkles className="h-4 w-4" /> Value Engines</TabsTrigger>
           <TabsTrigger value="team" className="gap-1"><Users2 className="h-4 w-4" /> Team Canvas</TabsTrigger>
           <TabsTrigger value="playbooks" className="gap-1"><BookOpen className="h-4 w-4" /> Playbooks</TabsTrigger>
+          <TabsTrigger value="strategy" className="gap-1"><Star className="h-4 w-4" /> Strategy</TabsTrigger>
           <TabsTrigger value="focus" className="gap-1"><ListChecks className="h-4 w-4" /> Focus (Big 5)</TabsTrigger>
           <TabsTrigger value="time" className="gap-1"><Clock className="h-4 w-4" /> Time & Delegation</TabsTrigger>
         </TabsList>
@@ -84,6 +91,7 @@ export function ScaleDashboard() {
         <TabsContent value="engines" className="mt-4"><ValueEnginesPanel /></TabsContent>
         <TabsContent value="team" className="mt-4"><TeamCanvasPanel /></TabsContent>
         <TabsContent value="playbooks" className="mt-4"><PlaybooksPanel /></TabsContent>
+        <TabsContent value="strategy" className="mt-4"><StrategyPanel /></TabsContent>
         <TabsContent value="focus" className="mt-4"><FocusPanel /></TabsContent>
         <TabsContent value="time" className="mt-4"><TimeDelegationPanel /></TabsContent>
       </Tabs>
@@ -962,6 +970,156 @@ function CashWaterfallCard() {
         <p className="text-xs text-slate-400 mt-3">Set your monthly operating expenses, tax %, and account balances in the fields above to drive this waterfall.</p>
       </CardContent>
     </Card>
+  );
+}
+
+// ── Strategy (Starting Point / End Game / WHY / How + Taking Action) ─────────
+// Restored from the old "Defining Your Number" page. These are NOT duplicates
+// of anything already in Scale — the embedded planner's newer 6-step workbook
+// never rendered this content, so this was the only working UI for it. Same
+// localStorage keys as before, so anything already filled in carries over.
+
+function StrategyPanel() {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const [subTab, setSubTab] = useState("starting-point");
+
+  const [startingPointData, setStartingPointData] = useState({
+    currentRevenue: "", currentProfit: "", currentProfitMargin: "", currentValuation: "",
+    assessmentDate: "", revenueSource: "", businessStage: "owner-dependent" as "owner-dependent" | "professionalized",
+  });
+  const [endGameData, setEndGameData] = useState({
+    targetRevenue: "", targetProfit: "", targetValuation: "", timeframe: "3-year" as "3-year",
+    growthStrategy: "", selectedBenchmark: "", targetProfitMargin: "",
+  });
+  const [whyStatement, setWhyStatement] = useState({
+    me: { personalGoals: "", motivation: "", skillsDevelopment: "", personalWhy: "" },
+    us: { teamVision: "", companyMission: "", culturalValues: "", collectiveWhy: "" },
+    them: { customerImpact: "", marketProblem: "", socialContribution: "", externalWhy: "" },
+  });
+  const [howStatement, setHowStatement] = useState({ action1: "", action2: "", action3: "", action4: "", action5: "" });
+  const [takingActionItems, setTakingActionItems] = useState({ currentAction1: "", currentAction2: "", currentAction3: "" });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const sp = localStorage.getItem(`scalable_impact_starting_data_${user.id}`);
+    const eg = localStorage.getItem(`scalable_impact_endgame_data_${user.id}`);
+    const wy = localStorage.getItem(`scalable_impact_why_${user.id}`);
+    const hw = localStorage.getItem(`scalable_impact_how_${user.id}`);
+    const ta = localStorage.getItem(`scalable_impact_taking_action_${user.id}`);
+    if (sp) setStartingPointData(JSON.parse(sp));
+    if (eg) setEndGameData(JSON.parse(eg));
+    if (wy) setWhyStatement(JSON.parse(wy));
+    if (hw) setHowStatement(JSON.parse(hw));
+    if (ta) setTakingActionItems(JSON.parse(ta));
+  }, [user?.id]);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500">
+        The strategic groundwork behind your Number — where you stand today, your 3-year destination, your WHY,
+        and the 5 actions that get you there.
+      </p>
+      <Tabs value={subTab} onValueChange={setSubTab}>
+        <TabsList className="flex flex-wrap h-auto gap-1">
+          <TabsTrigger value="starting-point">Starting Point</TabsTrigger>
+          <TabsTrigger value="end-game">End Game</TabsTrigger>
+          <TabsTrigger value="why">WHY</TabsTrigger>
+          <TabsTrigger value="focus5">How + Taking Action</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="starting-point" className="space-y-6 mt-4">
+          <StartingPointSection
+            data={startingPointData}
+            onDataChange={(d) => {
+              setStartingPointData(d);
+              if (user?.id) localStorage.setItem(`scalable_impact_starting_data_${user.id}`, JSON.stringify(d));
+            }}
+            onComplete={() => toast({ title: "Starting point saved", description: "We updated your current metrics." })}
+          />
+        </TabsContent>
+
+        <TabsContent value="end-game" className="space-y-6 mt-4">
+          <EndGameSection
+            data={endGameData}
+            startingPoint={startingPointData}
+            onDataChange={(d) => {
+              setEndGameData(d);
+              if (user?.id) localStorage.setItem(`scalable_impact_endgame_data_${user.id}`, JSON.stringify(d));
+            }}
+            onComplete={() => toast({ title: "End game set", description: "Your 3-year targets were saved." })}
+          />
+        </TabsContent>
+
+        <TabsContent value="why" className="space-y-6 mt-4">
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="text-base text-blue-800">Start with these three questions</CardTitle>
+              <CardDescription className="text-blue-700">Use them to guide your WHY for the next 3 years</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg border p-4">
+                  <div className="text-xs font-semibold text-blue-600 mb-1">THE "ME" QUESTION</div>
+                  <div className="text-sm font-bold">How do I want my life to look in 3 years?<br />What is my Level 7 Life?</div>
+                </div>
+                <div className="bg-white rounded-lg border p-4">
+                  <div className="text-xs font-semibold text-blue-600 mb-1">THE "US" QUESTION</div>
+                  <div className="text-sm font-bold">What do I want for the people closest to me?</div>
+                  <div className="text-xs text-muted-foreground">Family / Partners / Key Execs</div>
+                </div>
+                <div className="bg-white rounded-lg border p-4">
+                  <div className="text-xs font-semibold text-blue-600 mb-1">THE "THEM" QUESTION</div>
+                  <div className="text-sm font-bold">What dent do I want to make in my little corner of the universe?</div>
+                  <div className="text-xs text-muted-foreground">Industry / Community</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <WhySection
+                whyStatement={whyStatement}
+                setWhyStatement={setWhyStatement}
+                onSave={() => {
+                  if (user?.id) localStorage.setItem(`scalable_impact_why_${user.id}`, JSON.stringify(whyStatement));
+                  toast({ title: "WHY saved", description: "Your impact statement has been saved." });
+                }}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="focus5" className="space-y-6 mt-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <Card>
+              <CardContent>
+                <HowSection
+                  howStatement={howStatement}
+                  setHowStatement={setHowStatement}
+                  onSave={() => {
+                    if (user?.id) localStorage.setItem(`scalable_impact_how_${user.id}`, JSON.stringify(howStatement));
+                    toast({ title: "Focus 5 saved", description: "Your 5 key actions have been saved." });
+                  }}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <TakingActionSection
+                  takingActionItems={takingActionItems}
+                  setTakingActionItems={setTakingActionItems}
+                  onSave={() => {
+                    if (user?.id) localStorage.setItem(`scalable_impact_taking_action_${user.id}`, JSON.stringify(takingActionItems));
+                    toast({ title: "Action plan saved", description: "Your current initiatives were saved." });
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 
