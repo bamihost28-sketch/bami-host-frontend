@@ -25,6 +25,7 @@ import {
   Zap,
   Radio,
   Rocket,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -78,6 +79,7 @@ const sidebarItems: SidebarItem[] = [
   { id: "settings", label: "Settings", icon: Settings, category: "core", requiredPermissions: ["view_settings"], path: "/dashboard/settings" },
   { id: "estate", label: "Estate Management", icon: Building, category: "business", requiredPermissions: ["view_estate"], isPremium: true, path: "/dashboard/estate" },
   { id: "head-office", label: "Head Office", icon: Briefcase, category: "growth", requiredPermissions: ["view_estate"], path: "/dashboard/head-office" },
+  { id: "google-workspace", label: "Google Workspace", icon: Mail, category: "system", requiredPermissions: ["view_estate"], path: "/dashboard/google" },
   { id: "autopilot", label: "AI Agents", icon: Zap, category: "growth", requiredPermissions: ["view_autopilot"], isPremium: true, path: "/dashboard/autopilot" },
   { id: "ai-ops", label: "AI Ops Room", icon: Radio, category: "growth", requiredPermissions: ["view_autopilot"], isPremium: true, path: "/dashboard/ai-ops" },
   { id: "scale", label: "Scale \u00B7 7 Levels", icon: TrendingUp, category: "growth", requiredPermissions: ["view_autopilot"], isPremium: true, path: "/dashboard/scale" },

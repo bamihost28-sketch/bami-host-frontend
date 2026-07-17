@@ -14,6 +14,7 @@ import { WalletPage, DepositVerification } from '@/components/wallet';
 import { EstateManagement } from '@/components/dashboard/business/EstateManagement';
 import { EstateDetailPage } from '@/components/dashboard/business/EstateDetailPage';
 import HeadOfficePage from '@/components/dashboard/HeadOfficePage';
+import GoogleWorkspacePage from '@/components/dashboard/GoogleWorkspacePage';
 import { AddPropertyPage } from '@/components/dashboard/business/AddPropertyPage';
 import { TenantDetailPage } from '@/components/dashboard/business/TenantDetailPage';
 import { FillingStationManagement } from '@/components/dashboard/business/FillingStationManagement';
@@ -247,6 +248,19 @@ const DashboardRouter: React.FC = () => {
               element={<HeadOfficePage />}
               requiredPermissions={['view_estate']}
               feature="Head Office"
+              viewName="estate"
+            />
+          }
+        />
+
+        {/* Google Workspace — read/write access to the system Google account */}
+        <Route
+          path="/google"
+          element={
+            <ProtectedRoute
+              element={<GoogleWorkspacePage />}
+              requiredPermissions={['view_estate']}
+              feature="Google Workspace"
               viewName="estate"
             />
           }

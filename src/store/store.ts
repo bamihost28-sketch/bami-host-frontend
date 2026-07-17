@@ -21,6 +21,7 @@ import { scaleApi } from '../services/scaleApi';
 import { growthApi } from '../services/growthApi';
 import { personalFinanceApi } from '../services/personalFinanceApi';
 import { feedbackApi } from '../services/feedbackApi';
+import { googleWorkspaceApi } from '../services/googleWorkspaceApi';
 import authReducer from './authSlice';
 
 export const store = configureStore({
@@ -54,6 +55,7 @@ export const store = configureStore({
     [growthApi.reducerPath]: growthApi.reducer,
     [personalFinanceApi.reducerPath]: personalFinanceApi.reducer,
     [feedbackApi.reducerPath]: feedbackApi.reducer,
+    [googleWorkspaceApi.reducerPath]: googleWorkspaceApi.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -86,6 +88,7 @@ export const store = configureStore({
       growthApi.middleware,
       personalFinanceApi.middleware,
       feedbackApi.middleware,
+      googleWorkspaceApi.middleware,
     ),
 });
 
