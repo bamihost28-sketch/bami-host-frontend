@@ -686,7 +686,8 @@ export const TenantDashboard: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{cy.year}</p>
+                      {/* Owner wants the card labelled by the year the rent period runs INTO, not the year it started */}
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{cy.year + 1}</p>
 
                       {/* Paid progress */}
                       <div className="mb-4">
@@ -757,7 +758,7 @@ export const TenantDashboard: React.FC = () => {
                             </Badge>
                           </div>
                         </div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{ny.year}</p>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{ny.year + 1}</p>
 
                         <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-4">
                           <Calendar className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
