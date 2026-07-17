@@ -131,10 +131,20 @@ export default function HeadOfficePage() {
           if (payload === "[DONE]") continue;
           try {
             const p = JSON.parse(payload);
-            if (p.delta) {
+            if (p.status) {
+              // Transient tool-progress line ("Checking the inbox…") — replaced
+              // by the real answer when the first delta arrives.
               setMessages(m => {
                 const copy = [...m];
-                copy[copy.length - 1] = { role: "assistant", content: copy[copy.length - 1].content + p.delta };
+                copy[copy.length - 1] = { role: "assistant", content: `⚙ ${p.status}` };
+                return copy;
+              });
+            } else if (p.delta) {
+              setMessages(m => {
+                const copy = [...m];
+                const prev = copy[copy.length - 1].content;
+                const base = prev.startsWith("⚙ ") ? "" : prev;
+                copy[copy.length - 1] = { role: "assistant", content: base + p.delta };
                 return copy;
               });
             } else if (p.error) {
