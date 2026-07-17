@@ -41,6 +41,20 @@ function apiError(e: unknown): string {
   return "Something went wrong — please try again.";
 }
 
+function QueryErrorCard({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  return (
+    <Card className="border-destructive/30">
+      <CardContent className="py-10 text-center space-y-3">
+        <AlertTriangle className="h-8 w-8 mx-auto text-destructive/60" />
+        <p className="text-sm text-foreground max-w-xl mx-auto break-words">{apiError(error)}</p>
+        <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
+          <RefreshCw className="h-4 w-4" /> Try again
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function GoogleWorkspacePage() {
   const { data: status, isLoading, refetch } = useGetGoogleStatusQuery();
   const [connecting, setConnecting] = useState(false);
@@ -145,7 +159,7 @@ function MailTab() {
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
-  const { data, isLoading, isFetching, refetch } = useListGmailQuery({ q: query || undefined });
+  const { data, isLoading, isFetching, refetch, error } = useListGmailQuery({ q: query || undefined });
   const [sendGmail, { isLoading: sending }] = useSendGmailMutation();
   const [composeOpen, setComposeOpen] = useState(false);
   const [compose, setCompose] = useState({ to: "", subject: "", body: "" });
@@ -207,6 +221,8 @@ function MailTab() {
 
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
+      ) : error ? (
+        <QueryErrorCard error={error} onRetry={refetch} />
       ) : !data?.messages.length ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">
           <Inbox className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
@@ -286,7 +302,7 @@ function DriveTab() {
   const folderId = crumbs[crumbs.length - 1].id;
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
-  const { data, isLoading, isFetching, refetch } = useListDriveQuery(
+  const { data, isLoading, isFetching, refetch, error } = useListDriveQuery(
     query ? { q: query } : { folderId },
   );
   const [uploadFile, { isLoading: uploading }] = useUploadDriveFileMutation();
@@ -401,6 +417,8 @@ function DriveTab() {
 
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
+      ) : error ? (
+        <QueryErrorCard error={error} onRetry={refetch} />
       ) : files.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">
           <Folder className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
@@ -484,7 +502,7 @@ function DriveTab() {
 
 function CalendarTab() {
   const { toast } = useToast();
-  const { data, isLoading, isFetching, refetch } = useListCalendarQuery({ days: 60 });
+  const { data, isLoading, isFetching, refetch, error } = useListCalendarQuery({ days: 60 });
   const [createEvent, { isLoading: creating }] = useCreateCalendarEventMutation();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ summary: "", description: "", location: "", start: "", end: "", allDay: false });
@@ -569,6 +587,8 @@ function CalendarTab() {
 
       {isLoading ? (
         <Skeleton className="h-64 w-full" />
+      ) : error ? (
+        <QueryErrorCard error={error} onRetry={refetch} />
       ) : grouped.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">
           <CalendarIcon className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
