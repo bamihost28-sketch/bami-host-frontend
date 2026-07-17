@@ -111,7 +111,7 @@ export const DashboardSidebar = ({
   isCollapsed = false,
   onToggleCollapse,
 }: DashboardSidebarProps) => {
-  const { userRole, canAccessNavigation, rolePriority } = usePermissions();
+  const { userRole, canAccessNavigation, hasAnyPermission, rolePriority } = usePermissions();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -127,7 +127,14 @@ export const DashboardSidebar = ({
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  const filteredItems = useFilteredNavigation(sidebarItems);
+  // Double gate: the NAVIGATION_PERMISSIONS map AND the item's own
+  // requiredPermissions. canAccessNavigation defaults to "visible" for ids
+  // missing from the map — that default once leaked Smart Meters/Head Office/
+  // AI Ops/Google Workspace to tenants, so an item's declared permissions
+  // must also pass before it renders.
+  const filteredItems = useFilteredNavigation(sidebarItems).filter(
+    (item) => !item.requiredPermissions?.length || hasAnyPermission(item.requiredPermissions)
+  );
 
   const handleNavigation = (item: SidebarItem) => {
     if (!canAccessNavigation(item.id)) return;

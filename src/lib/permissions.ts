@@ -741,6 +741,11 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'skills-hr':         ['view_hr_skill'],
   // Autopilot
   'autopilot':         ['view_autopilot'],
+  'ai-ops':            ['view_autopilot'],
   // Scale — 7 Levels (owner/business feature; hidden from tenants & residents)
-  'scale':             ['view_autopilot']
+  'scale':             ['view_autopilot'],
+  // Owner tools (hidden from tenants & residents)
+  'head-office':       ['view_estate'],
+  'google-workspace':  ['view_estate'],
+  'meters':            ['view_all_data']
 };
