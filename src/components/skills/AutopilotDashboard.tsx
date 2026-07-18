@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   Bot, Zap, Play, X, Copy, CheckCircle, Loader2, RefreshCw,
   Megaphone, DollarSign, Settings2, TrendingUp, Users, Palette,
-  MessageCircle, Instagram, Facebook, Mail, Smartphone, FileText,
+  Instagram, Facebook, Mail, Smartphone, FileText,
   ChevronDown, ChevronUp, Send, Clock, BarChart3, Plus, SlidersHorizontal, Sparkles
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,8 +29,6 @@ import {
   useGetAutopilotSettingsQuery,
   useUpdateAutopilotSettingsMutation,
   useRunAutoExecuteMutation,
-  useSendTenantBroadcastMutation,
-  useSendPaymentLinksMutation,
   type AutopilotAction,
 } from "@/services/autopilotApi";
 
@@ -69,8 +67,6 @@ const PRIORITY_COLOR: Record<string, string> = {
 };
 
 const PLATFORM_ICON: Record<string, React.ElementType> = {
-  telegram:  MessageCircle,
-  whatsapp:  MessageCircle,   // legacy compat
   instagram: Instagram,
   facebook:  Facebook,
   email:     Mail,
@@ -80,8 +76,6 @@ const PLATFORM_ICON: Record<string, React.ElementType> = {
 };
 
 const PLATFORM_LABEL: Record<string, string> = {
-  telegram:  "Telegram",
-  whatsapp:  "Telegram",     // legacy compat
   instagram: "Instagram",
   facebook:  "Facebook",
   email:     "Email",
@@ -91,8 +85,7 @@ const PLATFORM_LABEL: Record<string, string> = {
 };
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
-  telegram_blast:   "Telegram Blast",
-  whatsapp_blast:   "Telegram Blast",   // legacy compat
+  tenant_blast:     "Tenant Blast",
   instagram_post:   "Instagram Post",
   facebook_post:    "Facebook Post",
   payment_reminder: "Payment Reminder",
@@ -132,7 +125,7 @@ function ActionCard({ action, onExecute, onDismiss }: {
   const [copied, setCopied] = useState(false);
   const SkillIcon = SKILL_ICON[action.skill] ?? Bot;
   const PlatformIcon = PLATFORM_ICON[action.platform ?? "internal"] ?? FileText;
-  const isMessaging = ["telegram", "whatsapp", "sms"].includes(action.platform ?? "");
+  const isMessaging = ["sms"].includes(action.platform ?? "");
   const isDone = action.status === "done";
 
   const copy = () => {
@@ -275,7 +268,7 @@ function ActionCard({ action, onExecute, onDismiss }: {
 
 function ContentGenerator() {
   const { toast } = useToast();
-  const [platform, setPlatform] = useState("telegram");
+  const [platform, setPlatform] = useState("sms");
   const [topic, setTopic] = useState("");
   const [context, setContext] = useState("");
   const [result, setResult] = useState("");
@@ -321,7 +314,7 @@ function ContentGenerator() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["telegram", "instagram", "facebook", "twitter", "email", "sms"].map(p => (
+                {["instagram", "facebook", "twitter", "email", "sms"].map(p => (
                   <SelectItem key={p} value={p}>{PLATFORM_LABEL[p]}</SelectItem>
                 ))}
               </SelectContent>
@@ -378,87 +371,12 @@ function ContentGenerator() {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
-function BroadcastTab() {
-  const { toast } = useToast();
-  const [message, setMessage] = useState("");
-  const [sendBroadcast, { isLoading: broadcasting }] = useSendTenantBroadcastMutation();
-  const [sendPaymentLinks, { isLoading: sendingLinks }] = useSendPaymentLinksMutation();
-
-  const handleBroadcast = async () => {
-    if (!message.trim()) { toast({ title: "Enter a message", variant: "destructive" }); return; }
-    try {
-      const res = await sendBroadcast({ message }).unwrap();
-      toast({ title: `Sent to ${res.sent} tenants via Telegram` });
-      setMessage("");
-    } catch {
-      toast({ title: "Broadcast failed", variant: "destructive" });
-    }
-  };
-
-  const handlePaymentLinks = async () => {
-    try {
-      const res = await sendPaymentLinks().unwrap();
-      toast({ title: `Payment links sent to ${res.telegram_sent} overdue tenants` });
-    } catch {
-      toast({ title: "Failed to send payment links", variant: "destructive" });
-    }
-  };
-
-  return (
-    <div className="space-y-5">
-      {/* Telegram blast */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <MessageCircle className="h-4 w-4 text-blue-600" /> Telegram Broadcast to All Tenants
-          </CardTitle>
-          <p className="text-xs text-slate-500">Sends to all tenants who have connected the Telegram bot (/tenant)</p>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Textarea
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            rows={5}
-            placeholder="Type your message here. Supports *bold* and _italic_ Markdown.&#10;&#10;Example: 🏠 Dear tenants, our office will be closed on 25 Dec. Happy holidays!"
-          />
-          <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-            onClick={handleBroadcast} disabled={broadcasting || !message.trim()}>
-            {broadcasting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
-            Send Telegram Broadcast
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Payment links */}
-      <Card className="border-amber-100">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-amber-600" /> Send Payment Links to Overdue Tenants
-          </CardTitle>
-          <p className="text-xs text-slate-500">
-            Generates a Paystack payment link for each overdue tenant and sends it via Telegram.
-            Requires PAYSTACK_SECRET_KEY in environment.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <Button variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-50 w-full"
-            onClick={handlePaymentLinks} disabled={sendingLinks}>
-            {sendingLinks ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <DollarSign className="h-4 w-4 mr-2" />}
-            Send Payment Links Now
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-
 const AUTO_EXECUTE_OPTIONS = [
-  { type: "follow_up",          label: "Sales Follow-Up (Telegram)",     desc: "Auto-send follow-up messages to new enquiries via Telegram" },
-  { type: "rent_reminder",      label: "Rent Reminder (Telegram)",       desc: "Auto-send rent reminders to overdue tenants via Telegram" },
-  { type: "vacancy_blast",      label: "Vacancy Telegram Blast",         desc: "Auto-blast vacancies to prospects when a unit becomes vacant" },
+  { type: "follow_up",          label: "Sales Follow-Up (SMS)",          desc: "Auto-send follow-up messages to new enquiries via SMS" },
+  { type: "rent_reminder",      label: "Rent Reminder (SMS)",            desc: "Auto-send rent reminders to overdue tenants via SMS" },
+  { type: "vacancy_blast",      label: "Vacancy Tenant Blast",           desc: "Auto-blast vacancies to prospects when a unit becomes vacant" },
   { type: "vendor_notification",label: "Vendor Notifications",           desc: "Auto-notify vendors when a matching issue is reported" },
-  { type: "welcome_message",    label: "Tenant Welcome (Telegram)",      desc: "Auto-send welcome Telegram message when a new tenant is added" },
+  { type: "welcome_message",    label: "Tenant Welcome (SMS)",           desc: "Auto-send welcome SMS when a new tenant is added" },
   { type: "lease_renewal",      label: "Lease Renewal Reminder",         desc: "Auto-send renewal offer when lease expires within 30 days" },
 ];
 
@@ -839,9 +757,6 @@ export function AutopilotDashboard() {
               </TabsTrigger>
               <TabsTrigger value="generate">Content Studio</TabsTrigger>
               <TabsTrigger value="email">Email Campaigns</TabsTrigger>
-              <TabsTrigger value="broadcast">
-                <MessageCircle className="h-3 w-3 mr-1" />Broadcast
-              </TabsTrigger>
               <TabsTrigger value="settings">
                 <SlidersHorizontal className="h-3 w-3 mr-1" />Settings
               </TabsTrigger>
@@ -890,9 +805,6 @@ export function AutopilotDashboard() {
           </TabsContent>
           <TabsContent value="email" className="mt-4">
             <EmailCampaignTab />
-          </TabsContent>
-          <TabsContent value="broadcast" className="mt-4">
-            <BroadcastTab />
           </TabsContent>
           <TabsContent value="settings" className="mt-4">
             <AutopilotSettingsTab />

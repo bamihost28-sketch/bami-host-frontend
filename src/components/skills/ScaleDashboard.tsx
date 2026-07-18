@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ElementType } from "react";
 import {
-  TrendingUp, Star, Target, Wallet, Loader2, Send, Check, Lock,
+  TrendingUp, Star, Target, Wallet, Loader2, Check, Lock,
   CircleDollarSign, Users2, Sparkles, ListChecks, Clock, Square,
   ArrowUp, ArrowDown, Save, RefreshCw, DollarSign,
 } from "lucide-react";
@@ -15,7 +15,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { cn } from "@/lib/utils";
 import { PageHeader, SectionHeader, StatCard, MetricGrid } from "@/components/dashboard/DashboardPrimitives";
 import {
-  useGetScaleOverviewQuery, useGetNpsQuery, useRequestNpsMutation,
+  useGetScaleOverviewQuery, useGetNpsQuery,
   useGetGrowthScorecardQuery, useGetScorecardQuery, useGetValueEnginesQuery,
   useGetTeamCanvasQuery, useGetFinancePlanQuery, useUpdateFinancePlanMutation,
   useGetPlaybooksQuery, useCreatePlaybookMutation, useUpdatePlaybookMutation, useDeletePlaybookMutation,
@@ -743,18 +743,7 @@ function ScorecardPanel() {
 }
 
 function NpsPanel() {
-  const { toast } = useToast();
   const { data, isLoading } = useGetNpsQuery();
-  const [requestNps, { isLoading: sending }] = useRequestNpsMutation();
-
-  const send = async () => {
-    try {
-      const r = await requestNps().unwrap();
-      toast({ title: "NPS sent", description: r.message });
-    } catch {
-      toast({ title: "Couldn't send", description: "Tenants must have connected the Telegram bot.", variant: "destructive" });
-    }
-  };
 
   if (isLoading) return <Skeleton className="h-48 w-full" />;
   if (!data) return null;
@@ -774,9 +763,6 @@ function NpsPanel() {
                 <div className="h-full rounded-full" style={{ width: `${data.progress_pct}%`, background: "var(--gradient-primary)" }} />
               </div>
             </div>
-            <Button onClick={send} disabled={sending}>
-              {sending ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending…</> : <><Send className="h-4 w-4 mr-2" /> Ask tenants for NPS</>}
-            </Button>
           </div>
           <MetricGrid cols={4} className="mt-5">
             <StatCard label="NPS Score" value={data.nps_score} />
@@ -821,7 +807,6 @@ function NpsPanel() {
                 <div key={s.id} className="flex items-center justify-between text-sm border-b border-border py-1.5">
                   <span className="font-medium text-foreground">{s.name} <span className="text-muted-foreground">· {s.unit}</span></span>
                   <span className="flex items-center gap-2">
-                    {!s.connected && <span className="text-[10px] text-muted-foreground">not on Telegram</span>}
                     {s.score == null ? <span className="text-muted-foreground/40">—</span>
                       : <span className={cn("px-2 py-0.5 rounded-full text-xs font-semibold",
                           s.score >= 9 ? "bg-success-light text-success" : s.score >= 7 ? "bg-warning-light text-warning" : "bg-destructive/10 text-destructive")}>{s.score}</span>}

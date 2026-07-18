@@ -117,15 +117,6 @@ export const autopilotApi = createApi({
     getHealthScore: builder.query<{ metrics: any; score: any }, void>({
       query: () => "/api/dashboard/health-score",
     }),
-    sendTenantBroadcast: builder.mutation<{ sent: number; failed: number }, {
-      message: string; tenant_ids?: string[];
-    }>({
-      query: (body) => ({ url: "/api/autopilot/broadcast", method: "POST", body }),
-    }),
-    sendPaymentLinks: builder.mutation<{ sent: number; failed: number }, void>({
-      query: () => ({ url: "/api/autopilot/payment-links", method: "POST" }),
-      invalidatesTags: ["AutopilotActions"],
-    }),
   }),
 });
 
@@ -144,6 +135,4 @@ export const {
   useUpdateAutopilotSettingsMutation,
   useRunAutoExecuteMutation,
   useGetHealthScoreQuery,
-  useSendTenantBroadcastMutation,
-  useSendPaymentLinksMutation,
 } = autopilotApi;

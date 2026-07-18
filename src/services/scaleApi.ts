@@ -38,7 +38,7 @@ export interface Model10 {
 export interface NpsData {
   promoters: number; passives: number; detractors: number; responses: number;
   total_tenants: number; nps_score: number; target: number; progress_pct: number;
-  scores: { id: string; name: string; unit: string; score: number | null; connected: boolean }[];
+  scores: { id: string; name: string; unit: string; score: number | null }[];
   model_10?: Model10;
 }
 export interface GrowthScorecard {
@@ -100,10 +100,6 @@ export const scaleApi = createApi({
       query: () => "/api/scale/nps",
       providesTags: ["Nps"],
     }),
-    requestNps: b.mutation<{ sent: number; total_connected: number; message: string }, void>({
-      query: () => ({ url: "/api/scale/nps/request", method: "POST" }),
-      invalidatesTags: ["Nps", "Scale"],
-    }),
     getGrowthScorecard: b.query<GrowthScorecard, void>({
       query: () => "/api/scale/growth-scorecard",
     }),
@@ -150,7 +146,6 @@ export const scaleApi = createApi({
 export const {
   useGetScaleOverviewQuery,
   useGetNpsQuery,
-  useRequestNpsMutation,
   useGetGrowthScorecardQuery,
   useGetScorecardQuery,
   useGetValueEnginesQuery,
