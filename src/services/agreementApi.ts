@@ -11,14 +11,38 @@ export interface AgreementParties {
   unit_label: string;
   rent_amount: number;
   rent_display: string;
+  caution_fee: number;
+  caution_fee_display: string;
+  legal_fee: number;
+  legal_fee_display: string;
   start_date: string | null;
   start_date_display: string;
+}
+
+export interface AgreementRegistration {
+  address?: string;
+  occupation?: string;
+  employer?: string;
+  idType?: string;
+  idNumber?: string;
+  idDocumentUrl?: string;
+  kinName?: string;
+  kinRelationship?: string;
+  kinPhone?: string;
+  witnessName?: string;
+  witnessAddress?: string;
+  witnessOccupation?: string;
+  witnessPhone?: string;
+  witnessRelationship?: string;
+  witnessTypedName?: string;
+  witnessSignatureImage?: string | null;
 }
 
 export interface AgreementData {
   id?: string;
   parties: AgreementParties;
   terms: string[];
+  registration: AgreementRegistration;
   typedName: string | null;
   signatureImage: string | null;
   signedAt: string | null;
@@ -28,6 +52,27 @@ export interface AgreementResponse {
   success: boolean;
   signed: boolean;
   data: AgreementData | null;
+}
+
+export interface SignAgreementRequest {
+  typedName: string;
+  signatureImage?: string | null;
+  address: string;
+  occupation: string;
+  employer?: string;
+  idType: string;
+  idNumber: string;
+  idDocumentUrl: string;
+  kinName: string;
+  kinRelationship: string;
+  kinPhone: string;
+  witnessName: string;
+  witnessAddress: string;
+  witnessOccupation: string;
+  witnessPhone?: string;
+  witnessRelationship: string;
+  witnessTypedName: string;
+  witnessSignatureImage?: string | null;
 }
 
 export const agreementApi = createApi({
@@ -46,9 +91,16 @@ export const agreementApi = createApi({
       query: () => '/api/tenants/me/agreement',
       providesTags: ['MyAgreement'],
     }),
-    signMyAgreement: builder.mutation<{ success: boolean; data: AgreementData }, { typedName: string; signatureImage?: string | null }>({
+    signMyAgreement: builder.mutation<{ success: boolean; data: AgreementData }, SignAgreementRequest>({
       query: (body) => ({ url: '/api/tenants/me/agreement/sign', method: 'POST', body }),
       invalidatesTags: ['MyAgreement'],
+    }),
+    uploadAgreementId: builder.mutation<{ success: boolean; data: { url: string } }, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return { url: '/api/tenants/me/agreement/upload-id', method: 'POST', body: formData };
+      },
     }),
     getTenantAgreement: builder.query<AgreementResponse, string>({
       query: (tenantId) => `/api/tenants/${tenantId}/agreement`,
@@ -76,6 +128,7 @@ export const agreementApi = createApi({
 export const {
   useGetMyAgreementQuery,
   useSignMyAgreementMutation,
+  useUploadAgreementIdMutation,
   useGetTenantAgreementQuery,
   useLazyDownloadMyAgreementQuery,
 } = agreementApi;
