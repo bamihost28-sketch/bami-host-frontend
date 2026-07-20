@@ -40,6 +40,7 @@ import { ReportIssueDialog } from "./tenant/ReportIssueDialog";
 import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
 import { ReceiptsTab } from "./tenant/ReceiptsTab";
+import { TenancyAgreementTab } from "./tenant/TenancyAgreementTab";
 import { formatCurrency, formatDate } from "./tenant/utils";
 import { GuidedTour, hasSeenTour, type TourStep } from "@/components/ui/guided-tour";
 
@@ -449,6 +450,7 @@ export const TenantDashboard: React.FC = () => {
         <TabsList className="dashboard-tabs-list" data-tour="tenant-nav">
           <TabsTrigger value="overview">Home</TabsTrigger>
           <TabsTrigger value="billing" data-tour="tenant-billing-tab">Billing</TabsTrigger>
+          <TabsTrigger value="agreement">Agreement</TabsTrigger>
           <TabsTrigger value="maintenance">Complaints</TabsTrigger>
           <TabsTrigger value="notices">Notices</TabsTrigger>
           <TabsTrigger value="documents">Docs</TabsTrigger>
@@ -1277,6 +1279,10 @@ export const TenantDashboard: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="agreement" className="space-y-6">
+          <TenancyAgreementTab />
         </TabsContent>
 
         <TabsContent value="maintenance" className="space-y-6">
