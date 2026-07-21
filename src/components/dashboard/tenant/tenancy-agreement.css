@@ -168,6 +168,42 @@
   border-left:3px solid var(--green);
 }
 
+.tenancy-doc__prepared-by{
+  max-width:480px;
+  margin:24px auto 0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  color:#CFC7AC;
+  font-size:12px;
+  line-height:1.6;
+}
+.tenancy-doc__prepared-by-line{
+  border-top:1px solid #4a5c4e;
+  width:160px;
+  margin-bottom:8px;
+}
+.tenancy-doc__prepared-by-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin:0 0 6px;
+  opacity:.75;
+}
+.tenancy-doc__prepared-by strong{
+  color:#EDE6D6;
+  font-family:'Zilla Slab',serif;
+}
+.tenancy-doc__prepared-by-seal{
+  width:60px; height:60px;
+  border-radius:50%;
+  object-fit:cover;
+  flex:0 0 auto;
+  border:1px solid #4a5c4e;
+}
+
 .tenancy-doc__idblock{
   background:#fff;
   border:1.5px dashed var(--green);

@@ -458,6 +458,19 @@ export const TenancyAgreementTab = () => {
           )}
         </div>
       </div>
+
+      <div className="tenancy-doc__prepared-by">
+        <div>
+          <div className="tenancy-doc__prepared-by-line" />
+          <p className="tenancy-doc__prepared-by-label">Prepared By:</p>
+          <p>
+            <strong>{parties.prepared_by_name}</strong><br />
+            {parties.prepared_by_address}<br />
+            G.S.M: {parties.prepared_by_phone}<br />
+            E-mail: {parties.prepared_by_email}
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

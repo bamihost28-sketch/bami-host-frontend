@@ -17,6 +17,10 @@ export interface AgreementParties {
   legal_fee_display: string;
   start_date: string | null;
   start_date_display: string;
+  prepared_by_name: string;
+  prepared_by_address: string;
+  prepared_by_phone: string;
+  prepared_by_email: string;
 }
 
 export interface AgreementRegistration {
