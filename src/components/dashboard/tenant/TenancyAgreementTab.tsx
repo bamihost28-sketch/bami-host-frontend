@@ -244,7 +244,8 @@ export const TenancyAgreementTab = () => {
         witnessTypedName: witnessTypedName.trim(),
         witnessSignatureImage,
       }).unwrap();
-      toast({ title: "Registration submitted", description: "Thank you — your signed copy is ready to download." });
+      toast({ title: "Registration submitted", description: "Downloading your signed copy…" });
+      await handleDownload();
     } catch (e: any) {
       toast({ title: "Couldn't sign", description: e?.data?.detail || "Try again.", variant: "destructive" });
     }
