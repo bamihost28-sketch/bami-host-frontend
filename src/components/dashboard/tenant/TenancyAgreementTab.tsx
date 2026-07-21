@@ -253,7 +253,7 @@ export const TenancyAgreementTab = () => {
 
   return (
     <div className="tenancy-doc tenancy-doc__desk">
-      <div className="tenancy-doc__desk-label">{parties.estate_name} · Digital Tenancy Registry</div>
+      <div className="tenancy-doc__desk-label">{parties.estateName} · Digital Tenancy Registry</div>
 
       <div className="tenancy-doc__paper">
         <div className="tenancy-doc__letterhead">
@@ -261,19 +261,19 @@ export const TenancyAgreementTab = () => {
             {data?.signed ? "Signed & On File" : "Prepared for your review"}
           </span>
           <h1>Tenancy Agreement</h1>
-          <p>Between {parties.landlord_name} and {parties.tenant_name}</p>
+          <p>Between {parties.landlordName} and {parties.tenantName}</p>
           <div className="tenancy-doc__refnum">
-            {parties.unit_label} · {parties.estate_name} · Rent {parties.rent_display}
+            {parties.unitLabel} · {parties.estateName} · Rent {parties.rentDisplay}
           </div>
         </div>
 
         <div className="tenancy-doc__recitals">
           <p>
-            This TENANCY AGREEMENT is made between <strong>{parties.landlord_name}</strong> ("the Landlord")
-            and <strong>{parties.tenant_name}</strong> ("the Tenant"), for the {parties.unit_label} at{" "}
-            {parties.estate_name}
-            {parties.estate_address ? `, ${parties.estate_address}` : ""}, commencing{" "}
-            {parties.start_date_display}, at a rent of {parties.rent_display}.
+            This TENANCY AGREEMENT is made between <strong>{parties.landlordName}</strong> ("the Landlord")
+            and <strong>{parties.tenantName}</strong> ("the Tenant"), for the {parties.unitLabel} at{" "}
+            {parties.estateName}
+            {parties.estateAddress ? `, ${parties.estateAddress}` : ""}, commencing{" "}
+            {parties.startDateDisplay}, at a rent of {parties.rentDisplay}.
           </p>
         </div>
 
@@ -285,10 +285,10 @@ export const TenancyAgreementTab = () => {
               <div className="tenancy-doc__section" style={{ marginTop: 0 }}>
                 <SectionHead num="01" title="Parties to the Agreement" />
                 <dl className="tenancy-doc__summary-grid mb-4">
-                  <dt>Landlord</dt><dd>{parties.landlord_name}</dd>
-                  <dt>Tenant</dt><dd>{parties.tenant_name}</dd>
-                  <dt>Phone</dt><dd>{parties.tenant_phone || "—"}</dd>
-                  <dt>Email</dt><dd>{parties.tenant_email || "—"}</dd>
+                  <dt>Landlord</dt><dd>{parties.landlordName}</dd>
+                  <dt>Tenant</dt><dd>{parties.tenantName}</dd>
+                  <dt>Phone</dt><dd>{parties.tenantPhone || "—"}</dd>
+                  <dt>Email</dt><dd>{parties.tenantEmail || "—"}</dd>
                 </dl>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2 space-y-1.5">
@@ -309,12 +309,12 @@ export const TenancyAgreementTab = () => {
               <div className="tenancy-doc__section">
                 <SectionHead num="02" title="Premises & Rent" />
                 <dl className="tenancy-doc__summary-grid">
-                  <dt>Unit</dt><dd>{parties.unit_label}</dd>
-                  <dt>Estate</dt><dd>{parties.estate_name}{parties.estate_address ? `, ${parties.estate_address}` : ""}</dd>
-                  <dt>Rent</dt><dd>{parties.rent_display}</dd>
-                  {!!parties.caution_fee && <><dt>Caution Fee</dt><dd>{parties.caution_fee_display}</dd></>}
-                  {!!parties.legal_fee && <><dt>Legal Fee</dt><dd>{parties.legal_fee_display}</dd></>}
-                  <dt>Tenancy Start</dt><dd>{parties.start_date_display}</dd>
+                  <dt>Unit</dt><dd>{parties.unitLabel}</dd>
+                  <dt>Estate</dt><dd>{parties.estateName}{parties.estateAddress ? `, ${parties.estateAddress}` : ""}</dd>
+                  <dt>Rent</dt><dd>{parties.rentDisplay}</dd>
+                  {!!parties.cautionFee && <><dt>Caution Fee</dt><dd>{parties.cautionFeeDisplay}</dd></>}
+                  {!!parties.legalFee && <><dt>Legal Fee</dt><dd>{parties.legalFeeDisplay}</dd></>}
+                  <dt>Tenancy Start</dt><dd>{parties.startDateDisplay}</dd>
                 </dl>
               </div>
 
@@ -403,7 +403,7 @@ export const TenancyAgreementTab = () => {
                     <div className="space-y-4">
                       <div className="space-y-1.5">
                         <Label className="tenancy-doc__label">Type your full name as signature *</Label>
-                        <Input className="tenancy-doc__typed-sig" value={typedName} onChange={(e) => setTypedName(e.target.value)} placeholder={parties.tenant_name} />
+                        <Input className="tenancy-doc__typed-sig" value={typedName} onChange={(e) => setTypedName(e.target.value)} placeholder={parties.tenantName} />
                       </div>
                       <div className="space-y-1.5">
                         <Label className="tenancy-doc__label">Or sign below with mouse or finger (optional)</Label>
@@ -464,10 +464,10 @@ export const TenancyAgreementTab = () => {
           <div className="tenancy-doc__prepared-by-line" />
           <p className="tenancy-doc__prepared-by-label">Prepared By:</p>
           <p>
-            <strong>{parties.prepared_by_name}</strong><br />
-            {parties.prepared_by_address}<br />
-            G.S.M: {parties.prepared_by_phone}<br />
-            E-mail: {parties.prepared_by_email}
+            <strong>{parties.preparedByName}</strong><br />
+            {parties.preparedByAddress}<br />
+            G.S.M: {parties.preparedByPhone}<br />
+            E-mail: {parties.preparedByEmail}
           </p>
         </div>
       </div>
@@ -481,7 +481,7 @@ function SignedView({ agreement, onDownload, downloading }: {
   downloading: boolean;
 }) {
   if (!agreement) return null;
-  const { parties, terms, registration } = agreement;
+  const { terms, registration } = agreement;
   return (
     <>
       <div className="tenancy-doc__signed-banner">

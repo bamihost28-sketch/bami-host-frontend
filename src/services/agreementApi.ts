@@ -1,26 +1,29 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BASE_API_URL } from './api';
 
+// The backend's global camelize middleware converts every JSON response from
+// snake_case to camelCase (see middleware/camelize.py) — these field names
+// match the wire format, not utils/tenancy_terms.py's Python dict literally.
 export interface AgreementParties {
-  landlord_name: string;
-  estate_name: string;
-  estate_address: string;
-  tenant_name: string;
-  tenant_email: string;
-  tenant_phone: string;
-  unit_label: string;
-  rent_amount: number;
-  rent_display: string;
-  caution_fee: number;
-  caution_fee_display: string;
-  legal_fee: number;
-  legal_fee_display: string;
-  start_date: string | null;
-  start_date_display: string;
-  prepared_by_name: string;
-  prepared_by_address: string;
-  prepared_by_phone: string;
-  prepared_by_email: string;
+  landlordName: string;
+  estateName: string;
+  estateAddress: string;
+  tenantName: string;
+  tenantEmail: string;
+  tenantPhone: string;
+  unitLabel: string;
+  rentAmount: number;
+  rentDisplay: string;
+  cautionFee: number;
+  cautionFeeDisplay: string;
+  legalFee: number;
+  legalFeeDisplay: string;
+  startDate: string | null;
+  startDateDisplay: string;
+  preparedByName: string;
+  preparedByAddress: string;
+  preparedByPhone: string;
+  preparedByEmail: string;
 }
 
 export interface AgreementRegistration {
