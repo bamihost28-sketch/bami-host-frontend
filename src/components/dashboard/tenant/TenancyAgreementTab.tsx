@@ -269,9 +269,12 @@ export const TenancyAgreementTab = () => {
 
         <div className="tenancy-doc__recitals">
           <p>
-            This TENANCY AGREEMENT is made between <strong>{parties.landlordName}</strong> ("the Landlord")
-            and <strong>{parties.tenantName}</strong> ("the Tenant"), for the {parties.unitLabel} at{" "}
-            {parties.estateName}
+            This TENANCY AGREEMENT is made this{" "}
+            {(data?.signed && agreement.signedAt ? new Date(agreement.signedAt) : new Date())
+              .toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+            , between <strong>{parties.landlordName}</strong> ("the Landlord") and{" "}
+            <strong>{parties.tenantName}</strong> ("the Tenant"), for the renting of a{" "}
+            {parties.bedroomCount} {parties.unitLabel} at {parties.estateName}
             {parties.estateAddress ? `, ${parties.estateAddress}` : ""}, commencing{" "}
             {parties.startDateDisplay}, at a rent of {parties.rentDisplay}.
           </p>

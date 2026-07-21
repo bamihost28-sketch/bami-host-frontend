@@ -12,6 +12,7 @@ export interface AgreementParties {
   tenantEmail: string;
   tenantPhone: string;
   unitLabel: string;
+  bedroomCount: string;
   rentAmount: number;
   rentDisplay: string;
   cautionFee: number;
