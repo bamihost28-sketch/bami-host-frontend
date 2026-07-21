@@ -171,10 +171,6 @@
 .tenancy-doc__prepared-by{
   max-width:480px;
   margin:24px auto 0;
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:20px;
   color:#CFC7AC;
   font-size:12px;
   line-height:1.6;
@@ -196,14 +192,6 @@
   color:#EDE6D6;
   font-family:'Zilla Slab',serif;
 }
-.tenancy-doc__prepared-by-seal{
-  width:60px; height:60px;
-  border-radius:50%;
-  object-fit:cover;
-  flex:0 0 auto;
-  border:1px solid #4a5c4e;
-}
-
 .tenancy-doc__idblock{
   background:#fff;
   border:1.5px dashed var(--green);
