@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -9,6 +10,7 @@ import React, {
 import { jsPDF } from "jspdf";
 import { FileSignature, Loader, Printer } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
+import { BASE_API_URL } from "@/services/api";
 import { NBA_SEAL_DATA } from "./nbaSealData";
 import "./tenancy-registration-form.css";
 
@@ -359,7 +361,7 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(20, 20, 20);
-  doc.text(LANDLORD_NAME, pageW / 2, cy, { align: "center" });
+  doc.text(d.landlord || LANDLORD_NAME, pageW / 2, cy, { align: "center" });
   cy += 16;
   doc.setFont("helvetica", "italic");
   doc.setFontSize(10);
@@ -645,6 +647,7 @@ export function TenancyRegistrationForm() {
   const landlordParagraphRef = useRef<HTMLParagraphElement>(null);
 
   const [formKey, setFormKey] = useState(0);
+  const [landlordName, setLandlordName] = useState(LANDLORD_NAME);
 
   const [tenantTitle, setTenantTitle] = useState("");
   const [tenantName, setTenantName] = useState("");
@@ -725,6 +728,52 @@ export function TenancyRegistrationForm() {
     }
   };
 
+  // Prefill everything the tenant's real record already has, so they're only
+  // typing what we genuinely don't know (address, occupation, ID, next of
+  // kin, witness). Silently no-ops if the fetch fails — the form still works
+  // blank, same as before this existed.
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_API_URL}/api/tenants/me/agreement`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const p = json?.data?.parties;
+        if (!p) return;
+
+        if (p.landlordName) {
+          setLandlordName(p.landlordName);
+          setLandlordTypedSig(p.landlordName);
+        }
+        if (p.tenantName) setTenantName(p.tenantName);
+        if (p.tenantPhone) setTenantPhone(p.tenantPhone);
+        if (p.tenantEmail) setTenantEmail(p.tenantEmail);
+
+        const apartment = [p.unitLabel, p.estateName, p.estateAddress].filter(Boolean).join(", ");
+        if (apartment) setApartmentAddress(apartment);
+
+        if (p.bedroomCount) {
+          const n = parseInt(String(p.bedroomCount), 10);
+          const match = Number.isFinite(n)
+            ? BEDROOM_OPTIONS.find((o) => o.startsWith(String(n)))
+            : BEDROOM_OPTIONS.find((o) => o === "Self-Contain");
+          setBedrooms(match || "");
+        }
+
+        if (p.rentAmount) handleRentYearChange(String(Math.round(p.rentAmount * 12)));
+        if (p.startDate) setStartDate(String(p.startDate).slice(0, 10));
+        if (p.cautionFee) setCaution(String(p.cautionFee));
+        if (p.legalFee) setLegalFee(String(p.legalFee));
+      } catch {
+        // No backend data available — form stays blank, exactly as before.
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleIdFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -770,7 +819,7 @@ export function TenancyRegistrationForm() {
     const ref = "TA-" + Date.now().toString().slice(-8);
     const data: SubmissionData = {
       ref,
-      landlord: "Mr. Alfred Ebami",
+      landlord: landlordName,
       tenant: `${tenantTitle} ${tenantName}`.trim(),
       phone: tenantPhone,
       email: tenantEmail,
@@ -842,7 +891,7 @@ export function TenancyRegistrationForm() {
     setTerms(DEFAULT_TERMS);
     setNewClauseText("");
     setAgreedTerms(false);
-    setLandlordTypedSig(LANDLORD_NAME);
+    setLandlordTypedSig(landlordName);
     setLandlordSigDate("");
     setLandlordWitnessName(""); setLandlordWitnessAddress(""); setLandlordWitnessOccupation(""); setLandlordWitnessRelationship("");
     setTypedSig("");
@@ -876,7 +925,7 @@ export function TenancyRegistrationForm() {
             <p className="tenancy-reg-form__cover-title">TENANCY AGREEMENT</p>
             <p className="tenancy-reg-form__cover-between">BETWEEN</p>
             <p className="tenancy-reg-form__cover-party">
-              {LANDLORD_NAME}<br /><span className="tenancy-reg-form__cover-role">(LANDLORD)</span>
+              {landlordName}<br /><span className="tenancy-reg-form__cover-role">(LANDLORD)</span>
             </p>
             <p className="tenancy-reg-form__cover-and">AND</p>
             <p className="tenancy-reg-form__cover-party">
@@ -1015,7 +1064,7 @@ export function TenancyRegistrationForm() {
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field">
                       <label className="tenancy-reg-form__label">Landlord</label>
-                      <input className="tenancy-reg-form__control" type="text" value={LANDLORD_NAME.replace(/^MR\. /, "Mr. ")} readOnly />
+                      <input className="tenancy-reg-form__control" type="text" value={landlordName.replace(/^MR\. /, "Mr. ")} readOnly />
                     </div>
                     <div className="tenancy-reg-form__field">
                       <label className="tenancy-reg-form__label">Prepared By (Solicitor)</label>
@@ -1271,7 +1320,7 @@ export function TenancyRegistrationForm() {
 
                   <div className="tenancy-reg-form__witness-block">
                     <p className="tenancy-reg-form__witness-heading">Signed and Delivered by the within named &ldquo;LANDLORD&rdquo;</p>
-                    <p className="tenancy-reg-form__witness-name">{LANDLORD_NAME}</p>
+                    <p className="tenancy-reg-form__witness-name">{landlordName}</p>
                     <div className="tenancy-reg-form__row">
                       <SignatureField
                         padRef={landlordSigRef}
