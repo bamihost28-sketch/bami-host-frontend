@@ -671,6 +671,7 @@ export function TenancyRegistrationForm() {
   const [idNumber, setIdNumber] = useState("");
   const [idFileName, setIdFileName] = useState<string | null>(null);
   const [idPreviewUrl, setIdPreviewUrl] = useState<string | null>(null);
+  const [idFile, setIdFile] = useState<File | null>(null);
 
   const [kinName, setKinName] = useState("");
   const [kinRelation, setKinRelation] = useState("");
@@ -712,6 +713,10 @@ export function TenancyRegistrationForm() {
   const [formErrorVisible, setFormErrorVisible] = useState(false);
   const [submission, setSubmission] = useState<SubmissionData | null>(null);
   const [generating, setGenerating] = useState<"tenant" | "landlord" | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [alreadySubmittedAt, setAlreadySubmittedAt] = useState<string | null>(null);
+  const [downloadingSigned, setDownloadingSigned] = useState(false);
 
   const sigDateParts = useMemo(() => dateParts(sigDate), [sigDate]);
   const startDateParts = useMemo(() => dateParts(startDate), [startDate]);
@@ -741,6 +746,10 @@ export function TenancyRegistrationForm() {
         });
         if (!res.ok) return;
         const json = await res.json();
+        if (json?.signed) {
+          setAlreadySubmitted(true);
+          setAlreadySubmittedAt(json?.data?.signedAt || null);
+        }
         const p = json?.data?.parties;
         if (!p) return;
 
@@ -778,6 +787,7 @@ export function TenancyRegistrationForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     setIdFileName(file.name);
+    setIdFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setIdPreviewUrl(ev.target?.result as string);
     reader.readAsDataURL(file);
@@ -806,7 +816,57 @@ export function TenancyRegistrationForm() {
       .filter(Boolean);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const persistSignedAgreement = async (data: SubmissionData): Promise<boolean> => {
+    try {
+      const token = localStorage.getItem("token");
+      const authHeaders: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+
+      let idDocumentUrl = "";
+      if (idFile) {
+        const form = new FormData();
+        form.append("file", idFile);
+        const uploadRes = await fetch(`${BASE_API_URL}/api/tenants/me/agreement/upload-id`, {
+          method: "POST",
+          headers: authHeaders,
+          body: form,
+        });
+        if (!uploadRes.ok) return false;
+        const uploadJson = await uploadRes.json();
+        idDocumentUrl = uploadJson?.data?.url || "";
+      }
+      if (!idDocumentUrl) return false;
+
+      const signRes = await fetch(`${BASE_API_URL}/api/tenants/me/agreement/sign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        body: JSON.stringify({
+          typedName: data.typedSig,
+          signatureImage: data.sigImage || null,
+          address: data.homeAddress,
+          occupation: data.occupation,
+          employer: data.employer || undefined,
+          idType: data.idType,
+          idNumber: data.idNumber,
+          idDocumentUrl,
+          kinName: data.kinName,
+          kinRelationship: data.kinRelation,
+          kinPhone: data.kinPhone,
+          witnessName: data.tenantWitnessName,
+          witnessAddress: data.tenantWitnessAddress,
+          witnessOccupation: data.tenantWitnessOccupation,
+          witnessPhone: data.tenantWitnessPhone || undefined,
+          witnessRelationship: data.tenantWitnessRelationship,
+          witnessTypedName: data.tenantWitnessName,
+          witnessSignatureImage: data.tenantWitnessSigImage || null,
+        }),
+      });
+      return signRes.ok;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const requiredSigsMissing = !tenantSigRef.current?.hasSignature() || !tenantWitnessSigRef.current?.hasSignature();
     if (!formRef.current?.checkValidity() || requiredSigsMissing) {
@@ -864,8 +924,21 @@ export function TenancyRegistrationForm() {
       submittedAt: new Date().toLocaleString(),
     };
     setSubmission(data);
-    toast({ title: "Registration recorded", description: "Download your tenant and landlord copies below." });
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setSubmitting(true);
+    const saved = await persistSignedAgreement(data);
+    setSubmitting(false);
+    if (saved) {
+      setAlreadySubmitted(true);
+      toast({ title: "Registration recorded", description: "Download your tenant and landlord copies below." });
+    } else {
+      toast({
+        title: "Registration recorded, but not saved permanently",
+        description: "Your copies are ready to download below, but this device couldn't confirm it with the server — you may be asked to submit again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDownload = async (copyLabel: "tenant" | "landlord") => {
@@ -875,6 +948,30 @@ export function TenancyRegistrationForm() {
       buildPdf(submission, copyLabel === "tenant" ? "TENANT'S COPY" : "LANDLORD'S COPY");
     } finally {
       setGenerating(null);
+    }
+  };
+
+  const handleDownloadSigned = async () => {
+    setDownloadingSigned(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${BASE_API_URL}/api/tenants/me/agreement/pdf`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("download failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "tenancy-agreement.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({ title: "Couldn't download", description: "Try again in a moment.", variant: "destructive" });
+    } finally {
+      setDownloadingSigned(false);
     }
   };
 
@@ -905,6 +1002,43 @@ export function TenancyRegistrationForm() {
   };
 
   const refDisplay = submission ? `Reference No: ${submission.ref}` : "Reference will be issued on submission";
+
+  // Already signed in an earlier session — lock the form out entirely so the
+  // tenant can't submit a second registration. `submission` being set means
+  // they just signed THIS session, which still uses the normal confirmation
+  // view below, not this locked one.
+  if (alreadySubmitted && !submission) {
+    return (
+      <div className="tenancy-reg-form">
+        <div className="tenancy-reg-form__desk">
+          <div className="tenancy-reg-form__desk-header">
+            Delta State &middot; Warri South Local Government Area &mdash; Digital Tenancy Registry
+          </div>
+          <div className="tenancy-reg-form__paper">
+            <div className="tenancy-reg-form__letterhead">
+              <span className="tenancy-reg-form__ribbon">Signed &amp; On File</span>
+              <h1>Tenancy Registration Form</h1>
+              <p className="tenancy-reg-form__sub">
+                You've already submitted and signed this tenancy registration
+                {alreadySubmittedAt ? ` on ${new Date(alreadySubmittedAt).toLocaleDateString()}` : ""}.
+              </p>
+            </div>
+            <div style={{ padding: "8px 48px 48px", textAlign: "center" }}>
+              <button
+                type="button"
+                className="tenancy-reg-form__btn-submit"
+                onClick={handleDownloadSigned}
+                disabled={downloadingSigned}
+              >
+                {downloadingSigned ? <Loader className="h-4 w-4 mr-1.5 inline animate-spin" /> : <FileSignature className="h-4 w-4 mr-1.5 inline" />}
+                Download Your Signed Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="tenancy-reg-form">
@@ -1449,9 +1583,9 @@ export function TenancyRegistrationForm() {
                     of any caution fee already paid.
                   </p>
                   <div>
-                    <button type="submit" className="tenancy-reg-form__btn-submit">
-                      <FileSignature className="h-4 w-4 mr-1.5 inline" />
-                      Submit Registration
+                    <button type="submit" className="tenancy-reg-form__btn-submit" disabled={submitting}>
+                      {submitting ? <Loader className="h-4 w-4 mr-1.5 inline animate-spin" /> : <FileSignature className="h-4 w-4 mr-1.5 inline" />}
+                      {submitting ? "Submitting…" : "Submit Registration"}
                     </button>
                     {formErrorVisible && (
                       <div className="tenancy-reg-form__err-msg">
