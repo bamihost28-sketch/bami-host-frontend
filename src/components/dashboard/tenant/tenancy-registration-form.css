@@ -1,0 +1,631 @@
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+.tenancy-reg-form{
+  --ink:#16241C;
+  --paper:#EDE6D6;
+  --paper-dark:#E2D9C4;
+  --green:#2F5233;
+  --green-deep:#1E3823;
+  --seal:#A6321B;
+  --gold:#B08D3E;
+  --muted:#5B5747;
+  font-family:'Source Serif 4', Georgia, serif;
+  color:var(--ink);
+}
+
+.tenancy-reg-form__desk{
+  border-radius:6px;
+  padding:24px 12px 32px;
+  background:
+    radial-gradient(1000px 500px at 20% -20%, #1a2b1e 0%, transparent 60%),
+    radial-gradient(900px 450px at 100% 0%, #17281c 0%, transparent 55%),
+    #0F1B14;
+}
+
+.tenancy-reg-form__desk-header{
+  text-align:center;
+  color:#CFC7AC;
+  margin-bottom:18px;
+  letter-spacing:.14em;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  text-transform:uppercase;
+  opacity:.75;
+}
+
+.tenancy-reg-form__paper{
+  background:var(--paper);
+  background-image:linear-gradient(var(--paper-dark) 1px, transparent 1px);
+  background-size:100% 34px;
+  border-radius:2px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.4) inset,
+    0 24px 48px -18px rgba(0,0,0,.6),
+    0 6px 16px rgba(0,0,0,.3);
+  position:relative;
+  overflow:hidden;
+  border:1px solid #d8cdae;
+}
+
+.tenancy-reg-form__paper::before{
+  content:"";
+  position:absolute; top:0; left:0; right:0; height:6px;
+  background:repeating-linear-gradient(90deg, var(--green) 0 18px, var(--gold) 18px 20px);
+  opacity:.9;
+}
+
+.tenancy-reg-form__letterhead{
+  padding:36px 32px 22px;
+  text-align:center;
+  border-bottom:2px solid var(--ink);
+  position:relative;
+}
+
+.tenancy-reg-form__ribbon{
+  display:inline-block;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:#fff;
+  background:var(--green-deep);
+  padding:5px 14px;
+  border-radius:2px;
+  margin-bottom:16px;
+}
+
+.tenancy-reg-form__letterhead h1{
+  font-family:'Zilla Slab', serif;
+  font-weight:700;
+  font-size:28px;
+  margin:0 0 6px;
+  letter-spacing:.02em;
+}
+
+.tenancy-reg-form__sub{
+  margin:0;
+  color:var(--muted);
+  font-size:13.5px;
+  font-style:italic;
+}
+
+.tenancy-reg-form__refnum{
+  margin-top:14px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:.05em;
+}
+
+.tenancy-reg-form__body{padding:8px 32px 40px;}
+
+.tenancy-reg-form__cover{
+  padding:44px 32px 32px;
+  text-align:center;
+  border-bottom:2px solid var(--ink);
+}
+
+.tenancy-reg-form__cover-title{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  font-size:24px;
+  letter-spacing:.06em;
+  margin:0 0 26px;
+}
+
+.tenancy-reg-form__cover-between,
+.tenancy-reg-form__cover-and{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:20px 0 12px;
+}
+
+.tenancy-reg-form__cover-party{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:.02em;
+  margin:0;
+  line-height:1.5;
+}
+
+.tenancy-reg-form__cover-role{
+  font-family:'Source Serif 4',serif;
+  font-weight:400;
+  font-style:italic;
+  font-size:13px;
+  color:var(--muted);
+  letter-spacing:0;
+}
+
+.tenancy-reg-form__cover-box{
+  max-width:520px;
+  margin:30px auto 0;
+  border:1.5px solid var(--ink);
+  padding:16px 20px;
+  text-align:left;
+  font-size:13.5px;
+  line-height:1.6;
+}
+
+.tenancy-reg-form__cover-prepared-row{
+  max-width:520px;
+  margin:36px auto 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  text-align:left;
+}
+
+.tenancy-reg-form__cover-prepared-label{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  font-size:13.5px;
+  letter-spacing:.04em;
+  margin:0;
+}
+
+.tenancy-reg-form__cover-seal{
+  width:76px; height:76px;
+  border-radius:50%;
+  object-fit:cover;
+  border:1px solid #cdbf8e;
+  box-shadow:0 4px 12px rgba(0,0,0,.25);
+}
+
+.tenancy-reg-form__cover-solicitor-sig{
+  max-width:520px;
+  margin:14px auto 0;
+  text-align:left;
+}
+
+.tenancy-reg-form__cover-solicitor-sig .tenancy-reg-form__sigwrap{
+  max-width:260px;
+}
+
+.tenancy-reg-form__cover-solicitor-sig canvas{height:84px;}
+
+.tenancy-reg-form__cover-solicitor{
+  max-width:520px;
+  margin:12px auto 0;
+  text-align:left;
+  font-size:12.5px;
+  line-height:1.7;
+  border-top:1px solid #c9bd9a;
+  padding-top:12px;
+}
+
+.tenancy-reg-form__cover-solicitor strong{font-family:'Zilla Slab',serif;}
+
+.tenancy-reg-form__recitals{
+  padding:28px 32px 8px;
+  font-family:'Source Serif 4', Georgia, serif;
+  font-size:13px;
+  line-height:1.65;
+  color:var(--ink);
+  border-bottom:1px solid #c9bd9a;
+  margin-bottom:4px;
+}
+
+.tenancy-reg-form__recitals-title{
+  text-align:center;
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:.05em;
+  margin:0 0 14px;
+}
+
+.tenancy-reg-form__recitals-label{
+  text-align:center;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:14px 0 8px;
+}
+
+.tenancy-reg-form__recitals p{margin:0 0 14px;}
+.tenancy-reg-form__recitals-list{margin:0 0 6px; padding-left:20px;}
+.tenancy-reg-form__recitals-list li{margin-bottom:12px;}
+
+.tenancy-reg-form__recitals p[contenteditable="true"]{
+  cursor:text; border-radius:2px; padding:2px 4px; margin-left:-4px;
+}
+.tenancy-reg-form__recitals p[contenteditable="true"]:hover{background:#f3ede0;}
+.tenancy-reg-form__recitals p[contenteditable="true"]:focus{outline:1px dashed var(--green); background:#fbf6e8;}
+
+.tenancy-reg-form__recitals-hint{
+  font-size:11px; color:var(--muted); font-style:italic; margin:6px 0 0;
+  text-align:center;
+}
+
+.tenancy-reg-form__blank{
+  display:inline-block;
+  border-bottom:1.4px dotted #9c927a;
+  padding:0 3px 1px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12.5px;
+  color:#a89a6e;
+  font-style:italic;
+}
+
+.tenancy-reg-form__blank--filled{
+  color:var(--green-deep);
+  font-style:normal;
+  font-weight:600;
+  border-bottom-style:solid;
+  border-bottom-color:var(--green);
+}
+
+.tenancy-reg-form__section{margin-top:32px; padding-top:12px;}
+
+.tenancy-reg-form__section-head{
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  border-bottom:1px solid #c9bd9a;
+  padding-bottom:8px;
+  margin-bottom:18px;
+}
+
+.tenancy-reg-form__section-num{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  font-size:20px;
+  color:var(--green-deep);
+  min-width:26px;
+}
+
+.tenancy-reg-form__section-head h2{
+  font-family:'Zilla Slab', serif;
+  font-size:15.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin:0;
+  color:var(--ink);
+}
+
+.tenancy-reg-form__section-hint{
+  margin-left:auto;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+
+.tenancy-reg-form__row{display:flex; gap:18px; flex-wrap:wrap; margin-bottom:16px;}
+.tenancy-reg-form__field{flex:1 1 220px; display:flex; flex-direction:column;}
+.tenancy-reg-form__field--full{flex-basis:100%;}
+
+.tenancy-reg-form__label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--muted);
+  margin-bottom:6px;
+  display:block;
+}
+
+.tenancy-reg-form__req{color:var(--seal); margin-left:2px;}
+
+.tenancy-reg-form__control,
+.tenancy-reg-form__select{
+  font-family:'Source Serif 4', Georgia, serif;
+  font-size:14.5px;
+  padding:8px 4px;
+  background:transparent;
+  border:none;
+  border-bottom:1.5px solid #9c927a;
+  color:var(--ink);
+  outline:none;
+  transition:border-color .15s;
+  width:100%;
+}
+
+.tenancy-reg-form__control:focus,
+.tenancy-reg-form__select:focus{border-bottom-color:var(--green);}
+.tenancy-reg-form__select{cursor:pointer;}
+
+.tenancy-reg-form__name-group{display:flex; gap:10px; align-items:flex-end;}
+.tenancy-reg-form__name-group .tenancy-reg-form__select{flex:0 0 84px;}
+.tenancy-reg-form__name-group .tenancy-reg-form__control{flex:1;}
+
+.tenancy-reg-form__note{font-size:12px; color:var(--muted); margin-top:5px; font-style:italic;}
+
+.tenancy-reg-form__idblock{
+  background:#fff;
+  border:1.5px dashed var(--green);
+  border-radius:3px;
+  padding:20px;
+  margin-top:6px;
+}
+.tenancy-reg-form__idblock .tenancy-reg-form__row{margin-bottom:14px;}
+
+.tenancy-reg-form__upload-area{
+  border:1.5px solid #c9bd9a;
+  border-radius:2px;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:#FBF9F3;
+  flex-wrap:wrap;
+}
+
+.tenancy-reg-form__upload-icon{
+  width:40px; height:40px; flex:0 0 auto;
+  border-radius:50%;
+  background:var(--green-deep);
+  display:flex; align-items:center; justify-content:center;
+}
+.tenancy-reg-form__upload-icon svg{width:20px;height:20px;stroke:#EDE6D6;}
+
+.tenancy-reg-form__upload-text{flex:1; min-width:160px;}
+.tenancy-reg-form__upload-text strong{display:block; font-size:13.5px; font-family:'Zilla Slab',serif;}
+.tenancy-reg-form__upload-text span{font-size:11.5px; color:var(--muted);}
+
+.tenancy-reg-form__btn-choose{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+  background:var(--paper); border:1.2px solid var(--ink); border-radius:2px;
+  padding:8px 14px; cursor:pointer;
+}
+.tenancy-reg-form__btn-choose:hover{background:var(--ink); color:var(--paper);}
+
+.tenancy-reg-form__preview-thumb{
+  margin-top:12px; display:flex;
+  align-items:center; gap:12px;
+}
+.tenancy-reg-form__preview-thumb img{width:64px; height:64px; object-fit:cover; border-radius:2px; border:1px solid #c9bd9a;}
+.tenancy-reg-form__preview-fname{font-size:12px; color:var(--muted); font-family:'IBM Plex Mono',monospace;}
+
+.tenancy-reg-form__clauses{
+  max-height:240px;
+  overflow-y:auto;
+  background:#fff;
+  border:1px solid #c9bd9a;
+  border-radius:2px;
+  padding:14px 18px;
+  margin-bottom:14px;
+}
+.tenancy-reg-form__clauses ol{margin:0; padding-left:20px;}
+.tenancy-reg-form__clauses li{font-size:13px; line-height:1.6; margin-bottom:10px; color:#2a2a24;}
+
+.tenancy-reg-form__term-text[contenteditable="true"]{cursor:text; border-radius:2px; padding:1px 3px; margin-left:-3px;}
+.tenancy-reg-form__term-text[contenteditable="true"]:hover{background:#f3ede0;}
+.tenancy-reg-form__term-text[contenteditable="true"]:focus{outline:1px dashed var(--green); background:#fbf6e8;}
+
+.tenancy-reg-form__clauses-hint{font-size:11.5px; color:var(--muted); font-style:italic; margin-bottom:10px;}
+
+.tenancy-reg-form__add-clause-row{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+.tenancy-reg-form__add-clause-row input[type=text]{
+  flex:1;
+  min-width:200px;
+  font-family:'Source Serif 4', Georgia, serif;
+  font-size:13.5px;
+  padding:9px 10px;
+  background:#fff;
+  border:1px solid #c9bd9a;
+  border-radius:2px;
+}
+.tenancy-reg-form__add-clause-row button{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+  background:var(--paper); border:1.2px solid var(--green-deep); color:var(--green-deep);
+  border-radius:2px; padding:0 16px; cursor:pointer; white-space:nowrap;
+}
+.tenancy-reg-form__add-clause-row button:hover{background:var(--green-deep); color:#fff;}
+
+.tenancy-reg-form__clause-added{background:#f3ede0;}
+.tenancy-reg-form__remove-clause{
+  margin-left:8px; font-family:'IBM Plex Mono',monospace; font-size:10px;
+  color:var(--seal); cursor:pointer; text-decoration:underline; text-transform:uppercase;
+}
+
+.tenancy-reg-form__agree-row{
+  display:flex; align-items:flex-start; gap:10px;
+  background:var(--paper-dark);
+  padding:12px 14px;
+  border-radius:2px;
+  border-left:3px solid var(--green);
+}
+.tenancy-reg-form__agree-row input[type=checkbox]{margin-top:3px; width:16px; height:16px; accent-color:var(--green-deep);}
+.tenancy-reg-form__agree-row label{
+  font-family:'Source Serif 4',serif;
+  text-transform:none;
+  font-size:13px;
+  letter-spacing:0;
+  color:var(--ink);
+  margin:0;
+}
+
+.tenancy-reg-form__sigwrap{
+  border:1.5px solid #9c927a;
+  border-radius:2px;
+  background:#fff;
+  padding:8px;
+}
+.tenancy-reg-form__sigwrap canvas{
+  width:100%; height:130px; display:block; touch-action:none; cursor:crosshair;
+  background:repeating-linear-gradient(#fff, #fff 27px, #d8cdae 28px);
+}
+.tenancy-reg-form__sig-tools{display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:8px;}
+.tenancy-reg-form__sig-tools button{
+  font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
+  background:none; border:1px solid var(--muted); color:var(--muted);
+  padding:6px 10px; border-radius:2px; cursor:pointer;
+}
+.tenancy-reg-form__sig-tools button:hover{border-color:var(--ink); color:var(--ink);}
+
+.tenancy-reg-form__typed-sig{font-family:'Zilla Slab',serif; font-style:italic;}
+
+.tenancy-reg-form__witness-intro{
+  font-size:13px; font-style:italic; color:var(--muted); line-height:1.6;
+  margin:0 0 20px; padding:14px 16px; background:var(--paper-dark); border-left:3px solid var(--gold);
+}
+.tenancy-reg-form__witness-block{
+  background:#fff; border:1px solid #c9bd9a; border-radius:2px;
+  padding:18px 20px; margin-bottom:18px;
+}
+.tenancy-reg-form__witness-heading{
+  font-family:'Zilla Slab',serif; font-weight:700; font-size:13.5px;
+  margin:0 0 10px; color:var(--ink);
+}
+.tenancy-reg-form__witness-name{
+  font-family:'Zilla Slab',serif; font-weight:700; font-size:14.5px;
+  letter-spacing:.03em; margin:0 0 6px; color:var(--green-deep);
+}
+.tenancy-reg-form__witness-note{
+  font-size:12px; font-style:italic; color:var(--muted); margin:0 0 14px;
+}
+.tenancy-reg-form__witness-subheading{
+  font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
+  letter-spacing:.06em; color:var(--muted); margin:16px 0 12px;
+  border-top:1px dashed #c9bd9a; padding-top:14px;
+}
+
+.tenancy-reg-form__submit-area{
+  margin-top:40px;
+  padding-top:20px;
+  border-top:2px solid var(--ink);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.tenancy-reg-form__disclaim{font-size:11.5px; color:var(--muted); max-width:420px; line-height:1.5;}
+
+.tenancy-reg-form__btn-submit{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  font-size:14.5px;
+  letter-spacing:.03em;
+  background:var(--green-deep);
+  color:#EDE6D6;
+  border:none;
+  padding:14px 28px;
+  border-radius:2px;
+  cursor:pointer;
+  box-shadow:0 6px 14px -6px rgba(0,0,0,.5);
+  transition:transform .12s, background .15s;
+}
+.tenancy-reg-form__btn-submit:hover{background:var(--green); transform:translateY(-1px);}
+.tenancy-reg-form__btn-submit:active{transform:translateY(0);}
+.tenancy-reg-form__btn-submit:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+
+.tenancy-reg-form__err-msg{
+  color:var(--seal); font-size:12px; font-family:'IBM Plex Mono',monospace;
+  margin-top:6px;
+}
+
+.tenancy-reg-form__seal-wrap{
+  display:flex; flex-direction:column; align-items:center; padding:56px 32px 48px;
+}
+.tenancy-reg-form__seal{
+  width:140px; height:140px;
+  border-radius:50%;
+  border:3px solid var(--seal);
+  object-fit:cover;
+  display:block;
+  position:relative;
+  box-shadow:0 10px 24px -8px rgba(0,0,0,.5);
+  transform:scale(0) rotate(-25deg);
+  animation:tenancyRegStamp .55s cubic-bezier(.2,1.4,.4,1) forwards .15s;
+}
+.tenancy-reg-form__seal-caption{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  color:var(--seal);
+  text-align:center;
+  font-size:12px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  margin-top:12px;
+}
+@keyframes tenancyRegStamp{
+  0%{transform:scale(0) rotate(-25deg); opacity:0;}
+  60%{transform:scale(1.08) rotate(-8deg); opacity:1;}
+  100%{transform:scale(1) rotate(-6deg); opacity:1;}
+}
+.tenancy-reg-form__confirm-title{
+  font-family:'Zilla Slab',serif; font-size:22px; text-align:center; margin:24px 0 6px;
+}
+.tenancy-reg-form__confirm-sub{text-align:center; color:var(--muted); font-size:13.5px; margin-bottom:28px;}
+.tenancy-reg-form__summary{
+  background:#fff; border:1px solid #c9bd9a; border-radius:2px;
+  padding:20px 24px; margin:0 auto; max-width:560px; width:100%;
+}
+.tenancy-reg-form__summary dl{display:grid; grid-template-columns:auto 1fr; gap:8px 18px; margin:0;}
+.tenancy-reg-form__summary dt{font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; color:var(--muted); align-self:start; white-space:nowrap;}
+.tenancy-reg-form__summary dd{margin:0; font-size:13.5px;}
+.tenancy-reg-form__confirm-actions{display:flex; gap:12px; justify-content:center; margin-top:28px; flex-wrap:wrap;}
+.tenancy-reg-form__confirm-actions button{
+  font-family:'IBM Plex Mono',monospace; font-size:11.5px; text-transform:uppercase;
+  padding:10px 18px; border-radius:2px; cursor:pointer; letter-spacing:.04em; border:none;
+}
+.tenancy-reg-form__btn-tenant-copy,
+.tenancy-reg-form__btn-landlord-copy{background:var(--seal); color:#fff;}
+.tenancy-reg-form__btn-print{background:var(--green-deep); color:#fff;}
+.tenancy-reg-form__btn-new{background:none; border:1px solid var(--ink) !important; color:var(--ink);}
+
+.tenancy-reg-form__footer-note{
+  text-align:center; color:#8a8367; font-size:11px; margin-top:18px;
+  font-family:'IBM Plex Mono',monospace; letter-spacing:.04em;
+}
+
+.tenancy-reg-form__prepared-by{
+  max-width:480px;
+  margin:32px auto 0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  color:#CFC7AC;
+  font-size:12.5px;
+  line-height:1.6;
+  flex-wrap:wrap;
+}
+.tenancy-reg-form__prepared-by-text{text-align:left;}
+.tenancy-reg-form__prepared-by-line{
+  border-top:1px solid #4a5c4e;
+  width:200px;
+  margin-bottom:10px;
+}
+.tenancy-reg-form__prepared-by-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin:0 0 6px;
+  opacity:.75;
+}
+.tenancy-reg-form__prepared-by-text strong{color:#EDE6D6; font-family:'Zilla Slab',serif;}
+.tenancy-reg-form__prepared-by-seal{
+  width:72px; height:72px;
+  border-radius:50%;
+  object-fit:cover;
+  flex:0 0 auto;
+  border:1px solid #4a5c4e;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+
+@media print{
+  .tenancy-reg-form__desk-header,
+  .tenancy-reg-form__footer-note{display:none;}
+  .tenancy-reg-form__paper{box-shadow:none; border:none;}
+}
+
+@media (max-width:600px){
+  .tenancy-reg-form__letterhead{padding:28px 18px 18px;}
+  .tenancy-reg-form__body{padding:8px 18px 32px;}
+  .tenancy-reg-form__cover{padding:32px 18px 24px;}
+  .tenancy-reg-form__recitals{padding:24px 18px 8px;}
+  .tenancy-reg-form__letterhead h1{font-size:22px;}
+}

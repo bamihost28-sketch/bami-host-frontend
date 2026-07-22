@@ -41,6 +41,7 @@ import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
 import { ReceiptsTab } from "./tenant/ReceiptsTab";
 import { TenancyAgreementTab } from "./tenant/TenancyAgreementTab";
+import { TenancyRegistrationForm } from "./tenant/TenancyRegistrationForm";
 import { formatCurrency, formatDate } from "./tenant/utils";
 import { GuidedTour, hasSeenTour, type TourStep } from "@/components/ui/guided-tour";
 
@@ -1475,11 +1476,9 @@ export const TenantDashboard: React.FC = () => {
               A printable copy of the tenancy agreement. Fill it in, sign, and download your PDF copy.
             </DialogDescription>
           </DialogHeader>
-          <iframe
-            src="/tenancy-agreement.html"
-            title="Tenancy Registration Form"
-            className="flex-1 w-full border-0 rounded-b-lg"
-          />
+          <div className="flex-1 overflow-y-auto">
+            <TenancyRegistrationForm />
+          </div>
         </DialogContent>
       </Dialog>
 
