@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide covers the integration of payment processing and PDF receipt generation for the BamiHustle Tenant Dashboard.
+This guide covers the integration of payment processing and PDF receipt generation for the BamiHost Tenant Dashboard.
 
 ## Features Implemented
 

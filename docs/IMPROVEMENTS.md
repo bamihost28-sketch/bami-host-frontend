@@ -1,4 +1,4 @@
-# Core Improvements - BamiHustle Frontend
+# Core Improvements - BamiHost Frontend
 
 This document outlines the essential improvements made to the codebase.
 

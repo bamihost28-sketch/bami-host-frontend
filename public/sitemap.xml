@@ -6,7 +6,7 @@
 
   <!-- Homepage -->
   <url>
-    <loc>https://bamihustle.com/</loc>
+    <loc>https://bamihost.com/</loc>
     <lastmod>2025-01-14T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
 
   <!-- Personal Life Portfolios -->
   <url>
-    <loc>https://bamihustle.com/personal-portfolios</loc>
+    <loc>https://bamihost.com/personal-portfolios</loc>
     <lastmod>2025-01-14T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -22,7 +22,7 @@
 
   <!-- Dashboard -->
   <url>
-    <loc>https://bamihustle.com/dashboard</loc>
+    <loc>https://bamihost.com/dashboard</loc>
     <lastmod>2025-01-14T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
@@ -30,7 +30,7 @@
 
   <!-- Investment Portfolio -->
   <url>
-    <loc>https://bamihustle.com/portfolio</loc>
+    <loc>https://bamihost.com/portfolio</loc>
     <lastmod>2025-01-14T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -38,7 +38,7 @@
 
   <!-- Wallet -->
   <url>
-    <loc>https://bamihustle.com/wallet</loc>
+    <loc>https://bamihost.com/wallet</loc>
     <lastmod>2025-01-14T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
@@ -46,7 +46,7 @@
 
   <!-- Financial Goals -->
   <url>
-    <loc>https://bamihustle.com/goals</loc>
+    <loc>https://bamihost.com/goals</loc>
     <lastmod>2025-01-14T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -54,7 +54,7 @@
 
   <!-- Settings -->
   <url>
-    <loc>https://bamihustle.com/settings</loc>
+    <loc>https://bamihost.com/settings</loc>
     <lastmod>2025-01-14T00:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

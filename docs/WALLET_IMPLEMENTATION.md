@@ -303,7 +303,7 @@ Toast notifications for:
 ## Security
 
 - All payment data handled through Paystack (PCI DSS compliant)
-- No card details stored on BamiHustle servers
+- No card details stored on BamiHost servers
 - Duplicate transaction checks in backend
 - Atomic wallet updates using MongoDB operators
 

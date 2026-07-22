@@ -1,6 +1,6 @@
 {
-  "name": "Bami Hustle - Personal Growth & Financial Management Platform",
-  "short_name": "Bami Hustle",
+  "name": "Bami Host - Personal Growth & Financial Management Platform",
+  "short_name": "Bami Host",
   "description": "Comprehensive personal life and financial management platform tracking 7 key life categories for optimal personal growth",
   "start_url": "/",
   "display": "standalone",
@@ -23,14 +23,14 @@
       "sizes": "540x720",
       "type": "image/jpeg",
       "form_factor": "narrow",
-      "label": "Bami Hustle Dashboard"
+      "label": "Bami Host Dashboard"
     },
     {
       "src": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1024&h=768&fit=crop&crop=center",
       "sizes": "1024x768",
       "type": "image/jpeg",
       "form_factor": "wide",
-      "label": "Bami Hustle Desktop View"
+      "label": "Bami Host Desktop View"
     }
   ],
   "icons": [

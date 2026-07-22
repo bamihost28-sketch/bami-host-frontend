@@ -1,4 +1,4 @@
-# Bami Hustle - Personal Growth & Financial Management Platform
+# Bami Host - Personal Growth & Financial Management Platform
 # Allow all legitimate search engines and social media crawlers
 
 User-agent: Googlebot
@@ -20,7 +20,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://bamihustle.com/sitemap.xml
+Sitemap: https://bamihost.com/sitemap.xml
 
 # Block access to sensitive areas
 Disallow: /api/
