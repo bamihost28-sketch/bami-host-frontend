@@ -1,0 +1,277 @@
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+.tenancy-doc{
+  --ink:#16241C;
+  --paper:#EDE6D6;
+  --paper-dark:#E2D9C4;
+  --green:#2F5233;
+  --green-deep:#1E3823;
+  --seal:#A6321B;
+  --gold:#B08D3E;
+  --muted:#5B5747;
+  font-family:'Source Serif 4', Georgia, serif;
+  color:var(--ink);
+}
+
+.tenancy-doc__desk{
+  border-radius:6px;
+  padding:28px 16px 36px;
+  background:
+    radial-gradient(1000px 500px at 20% -20%, #1a2b1e 0%, transparent 60%),
+    radial-gradient(900px 450px at 100% 0%, #17281c 0%, transparent 55%),
+    #0F1B14;
+}
+
+.tenancy-doc__desk-label{
+  text-align:center;
+  color:#CFC7AC;
+  margin-bottom:18px;
+  letter-spacing:.14em;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  text-transform:uppercase;
+  opacity:.75;
+}
+
+.tenancy-doc__paper{
+  background:var(--paper);
+  background-image:linear-gradient(var(--paper-dark) 1px, transparent 1px);
+  background-size:100% 34px;
+  border-radius:2px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.4) inset,
+    0 24px 48px -18px rgba(0,0,0,.6),
+    0 6px 16px rgba(0,0,0,.3);
+  position:relative;
+  overflow:hidden;
+  border:1px solid #d8cdae;
+}
+
+.tenancy-doc__paper::before{
+  content:"";
+  position:absolute; top:0; left:0; right:0; height:6px;
+  background:repeating-linear-gradient(90deg, var(--green) 0 18px, var(--gold) 18px 20px);
+  opacity:.9;
+}
+
+.tenancy-doc__letterhead{
+  padding:36px 32px 22px;
+  text-align:center;
+  border-bottom:2px solid var(--ink);
+}
+
+.tenancy-doc__ribbon{
+  display:inline-block;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10px;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:#fff;
+  background:var(--green-deep);
+  padding:5px 14px;
+  border-radius:2px;
+  margin-bottom:16px;
+}
+
+.tenancy-doc__letterhead h1{
+  font-family:'Zilla Slab', serif;
+  font-weight:700;
+  font-size:26px;
+  margin:0 0 6px;
+  letter-spacing:.02em;
+}
+
+.tenancy-doc__letterhead p{
+  margin:0;
+  color:var(--muted);
+  font-size:13.5px;
+  font-style:italic;
+}
+
+.tenancy-doc__refnum{
+  margin-top:14px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:.04em;
+}
+
+.tenancy-doc__recitals{
+  padding:26px 32px 8px;
+  font-size:13.5px;
+  line-height:1.65;
+  border-bottom:1px solid #c9bd9a;
+  margin-bottom:6px;
+}
+
+.tenancy-doc__recitals p{margin:0 0 12px;}
+
+.tenancy-doc__body{padding:8px 32px 32px;}
+
+.tenancy-doc__section{margin-top:28px;}
+
+.tenancy-doc__section-head{
+  display:flex;
+  align-items:baseline;
+  gap:12px;
+  border-bottom:1px solid #c9bd9a;
+  padding-bottom:8px;
+  margin-bottom:16px;
+}
+
+.tenancy-doc__section-num{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  font-size:20px;
+  color:var(--green-deep);
+  min-width:24px;
+}
+
+.tenancy-doc__section-head h2{
+  font-family:'Zilla Slab', serif;
+  font-size:15.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin:0;
+  color:var(--ink);
+}
+
+.tenancy-doc__clauses{
+  max-height:320px;
+  overflow-y:auto;
+  background:#fff;
+  border:1px solid #c9bd9a;
+  border-radius:2px;
+  padding:16px 20px;
+}
+
+.tenancy-doc__clauses ol{margin:0; padding-left:20px;}
+.tenancy-doc__clauses li{font-size:13.5px; line-height:1.6; margin-bottom:10px; color:#2a2a24;}
+
+.tenancy-doc__sigwrap{
+  border:1.5px solid #9c927a;
+  border-radius:2px;
+  background:#fff;
+  padding:8px;
+}
+
+.tenancy-doc__sigwrap canvas{
+  width:100%; height:130px; display:block; touch-action:none; cursor:crosshair;
+  background:repeating-linear-gradient(#fff, #fff 27px, #d8cdae 28px);
+}
+
+.tenancy-doc__agree-row{
+  display:flex; align-items:flex-start; gap:10px;
+  background:var(--paper-dark);
+  padding:12px 14px;
+  border-radius:2px;
+  border-left:3px solid var(--green);
+}
+
+.tenancy-doc__prepared-by{
+  max-width:480px;
+  margin:24px auto 0;
+  color:#CFC7AC;
+  font-size:12px;
+  line-height:1.6;
+}
+.tenancy-doc__prepared-by-line{
+  border-top:1px solid #4a5c4e;
+  width:160px;
+  margin-bottom:8px;
+}
+.tenancy-doc__prepared-by-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin:0 0 6px;
+  opacity:.75;
+}
+.tenancy-doc__prepared-by strong{
+  color:#EDE6D6;
+  font-family:'Zilla Slab',serif;
+}
+.tenancy-doc__idblock{
+  background:#fff;
+  border:1.5px dashed var(--green);
+  border-radius:3px;
+  padding:18px;
+}
+
+.tenancy-doc__summary-grid{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:8px 18px;
+  background:#fff;
+  border:1px solid #c9bd9a;
+  border-radius:2px;
+  padding:16px 20px;
+  font-size:13.5px;
+}
+.tenancy-doc__summary-grid dt{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  text-transform:uppercase;
+  color:var(--muted);
+  white-space:nowrap;
+}
+.tenancy-doc__summary-grid dd{margin:0;}
+
+.tenancy-doc__signed-banner{
+  display:flex; align-items:center; gap:12px;
+  background:var(--paper-dark);
+  border-left:4px solid var(--seal);
+  border-radius:2px;
+  padding:16px 20px;
+}
+
+.tenancy-doc__seal{
+  width:52px; height:52px; border-radius:50%;
+  border:2.5px solid var(--seal);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--seal); flex:0 0 auto;
+  transform:rotate(-8deg);
+}
+
+.tenancy-doc__btn-primary{
+  font-family:'Zilla Slab',serif;
+  font-weight:700;
+  letter-spacing:.02em;
+  background:var(--green-deep);
+  color:#EDE6D6;
+  border:none;
+  border-radius:2px;
+  transition:background .15s, transform .1s;
+}
+.tenancy-doc__btn-primary:hover:not(:disabled){background:var(--green); transform:translateY(-1px);}
+
+.tenancy-doc__btn-seal{
+  background:var(--seal);
+  color:#fff;
+  border:none;
+  border-radius:2px;
+  font-family:'IBM Plex Mono',monospace;
+  letter-spacing:.03em;
+}
+.tenancy-doc__btn-seal:hover:not(:disabled){filter:brightness(1.08);}
+
+.tenancy-doc__typed-sig{
+  font-family:'Zilla Slab',serif;
+  font-style:italic;
+}
+
+.tenancy-doc__label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--muted);
+}
+
+@media (max-width:600px){
+  .tenancy-doc__letterhead{padding:26px 18px 18px;}
+  .tenancy-doc__recitals{padding:20px 18px 8px;}
+  .tenancy-doc__body{padding:8px 18px 24px;}
+  .tenancy-doc__letterhead h1{font-size:21px;}
+}

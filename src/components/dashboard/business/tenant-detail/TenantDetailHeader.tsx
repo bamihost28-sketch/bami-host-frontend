@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { useUpdateTenantMutation, useUpdateEstateUnitMutation, useResendTenantCredentialsMutation } from '@/services/estatesApi';
+import { useGetTenantAgreementQuery } from '@/services/agreementApi';
 import { formatDate, formatDateToDDMMYYYY, toDateInput } from '@/utils/propertyUtils';
 
 interface TenantDetailHeaderProps {
@@ -23,6 +24,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
   const [updateTenant, { isLoading: updatingTenant }] = useUpdateTenantMutation();
   const [updateUnit, { isLoading: updatingUnit }] = useUpdateEstateUnitMutation();
   const [resendCredentials, { isLoading: resendingCredentials }] = useResendTenantCredentialsMutation();
+  const { data: agreementData } = useGetTenantAgreementQuery(tenantId as string, { skip: !tenantId });
 
   // Resend login credentials state
   const [resendOpen, setResendOpen] = useState(false);
@@ -119,6 +121,17 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
       <div>
         <h1 className="text-xl sm:text-3xl font-bold">Tenant Overview</h1>
         <p className="text-muted-foreground text-sm">Profile, history, and transactions</p>
+        {agreementData && (
+          <span className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${
+            agreementData.signed
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+          }`}>
+            {agreementData.signed
+              ? `Tenancy agreement signed${agreementData.data?.signedAt ? ' on ' + new Date(agreementData.data.signedAt).toLocaleDateString() : ''}`
+              : 'Tenancy agreement not yet signed'}
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {onStartTour && !tourSeen && (
