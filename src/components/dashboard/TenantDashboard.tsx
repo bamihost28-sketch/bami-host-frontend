@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, CreditCard, Building2, Copy, CheckCircle2, ImageIcon, Upload, HelpCircle } from "lucide-react";
+import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, CreditCard, Building2, Copy, CheckCircle2, ImageIcon, Upload, HelpCircle, FileText } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,7 @@ import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
 import { ReceiptsTab } from "./tenant/ReceiptsTab";
 import { TenancyAgreementTab } from "./tenant/TenancyAgreementTab";
+import { TenancyRegistrationForm } from "./tenant/TenancyRegistrationForm";
 import { formatCurrency, formatDate } from "./tenant/utils";
 import { GuidedTour, hasSeenTour, type TourStep } from "@/components/ui/guided-tour";
 
@@ -96,6 +97,7 @@ export const TenantDashboard: React.FC = () => {
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [tourSignal, setTourSignal] = useState(0);
   const [tourSeen, setTourSeen] = useState(() => hasSeenTour('tour:tenant-dashboard:v1'));
+  const [registrationFormOpen, setRegistrationFormOpen] = useState(false);
 
   // Fetch dashboard overview from API
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
@@ -1282,6 +1284,20 @@ export const TenantDashboard: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="agreement" className="space-y-6">
+          <Card>
+            <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-6">
+              <div>
+                <p className="font-medium">Printable registration form</p>
+                <p className="text-sm text-muted-foreground">
+                  Prefer a paper-style form with signature blocks for you, your witness, and the landlord? Open it here.
+                </p>
+              </div>
+              <Button variant="outline" onClick={() => setRegistrationFormOpen(true)}>
+                <FileText className="h-4 w-4 mr-1.5" />
+                Open Registration Form
+              </Button>
+            </CardContent>
+          </Card>
           <TenancyAgreementTab />
         </TabsContent>
 
@@ -1450,6 +1466,21 @@ export const TenantDashboard: React.FC = () => {
         open={maintenanceDialogOpen}
         onClose={() => setMaintenanceDialogOpen(false)}
       />
+
+      {/* Printable Tenancy Registration Form */}
+      <Dialog open={registrationFormOpen} onOpenChange={setRegistrationFormOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle>Tenancy Registration Form</DialogTitle>
+            <DialogDescription>
+              A printable copy of the tenancy agreement. Fill it in, sign, and download your PDF copy.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto">
+            <TenancyRegistrationForm />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Deposit Dialog */}
       <Dialog open={depositDialogOpen} onOpenChange={(o) => { setDepositDialogOpen(o); if (!o) { setDepositForm({ amount: "" }); setDepositProofFile(null); setDepositProofPreview(null); setDepositSubmitted(false); } }}>
