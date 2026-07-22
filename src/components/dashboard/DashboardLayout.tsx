@@ -1,7 +1,6 @@
 import { ReactNode, useState } from "react";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { AIChatWidget } from "@/components/skills/AIChatWidget";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
@@ -58,7 +57,6 @@ export const DashboardLayout = ({ children, currentView, onViewChange }: Dashboa
           </div>
         </main>
       </div>
-      <AIChatWidget floating />
     </div>
   );
 };
