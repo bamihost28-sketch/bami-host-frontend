@@ -10,6 +10,7 @@ import React, {
 import { jsPDF } from "jspdf";
 import { FileSignature, Loader, Printer } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
+import { useAuth } from "@/contexts/AuthContext";
 import { BASE_API_URL } from "@/services/api";
 import { NBA_SEAL_DATA } from "./nbaSealData";
 import "./tenancy-registration-form.css";
@@ -28,6 +29,9 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 const LANDLORD_NAME = "MR. ALFRED EBAMI";
+// Only staff who manage the property should be able to add extra terms to a
+// legal tenancy agreement — never the tenant signing it.
+const TERM_EDITOR_ROLES = ["super_admin", "admin", "business_owner", "super_manager", "manager"];
 const SOLICITOR_NAME = "G. Anukun Esq., LL.M, AICMC.";
 const SOLICITOR_ADDRESS_LINES = [
   "No. 12 Deco Road, by Efejuku Street Junction",
@@ -664,6 +668,8 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
 export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}) {
   const viewOnly = !!tenantId;
   const { toast } = useToast();
+  const { user } = useAuth();
+  const canAddTerms = !!user?.role && TERM_EDITOR_ROLES.includes(user.role);
   const formRef = useRef<HTMLFormElement>(null);
   const idFileRef = useRef<HTMLInputElement>(null);
   const clauseListRef = useRef<HTMLOListElement>(null);
@@ -723,7 +729,6 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
   const [landlordSigned, setLandlordSigned] = useState(false);
   const [landlordWitnessSigned, setLandlordWitnessSigned] = useState(false);
   const [tenantWitnessSigned, setTenantWitnessSigned] = useState(false);
-  const [solicitorSigned, setSolicitorSigned] = useState(false);
   const [solicitorSigned2, setSolicitorSigned2] = useState(false);
 
   const tenantSigRef = useRef<SignaturePadHandle>(null);
@@ -1057,7 +1062,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
     setTenantWitnessName(""); setTenantWitnessAddress(""); setTenantWitnessOccupation("");
     setTenantWitnessPhone(""); setTenantWitnessRelationship("");
     setTenantSigned(false); setLandlordSigned(false); setLandlordWitnessSigned(false);
-    setTenantWitnessSigned(false); setSolicitorSigned(false); setSolicitorSigned2(false);
+    setTenantWitnessSigned(false); setSolicitorSigned2(false);
     if (idFileRef.current) idFileRef.current.value = "";
     setFormKey((k) => k + 1);
   };
@@ -1171,15 +1176,6 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
               <p className="tenancy-reg-form__cover-prepared-label">PREPARED BY:</p>
               <img src={NBA_SEAL_DATA} className="tenancy-reg-form__cover-seal" alt="Nigerian Bar Association verification seal" />
             </div>
-            {!viewOnly && (
-              <div className="tenancy-reg-form__cover-solicitor-sig">
-                <SignaturePad key={`solicitor-cover-${formKey}`} ref={solicitorSigRef} onSignedChange={setSolicitorSigned} />
-                <div className="tenancy-reg-form__sig-tools">
-                  <button type="button" onClick={() => solicitorSigRef.current?.clear()}>Clear Signature</button>
-                  <span className="tenancy-reg-form__note">{solicitorSigned ? "Signed" : "Not yet signed"}</span>
-                </div>
-              </div>
-            )}
             <div className="tenancy-reg-form__cover-solicitor">
               <strong>{SOLICITOR_NAME}</strong><br />
               {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
@@ -1193,7 +1189,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
               <Blank value={sigDateParts.month} placeholder="______" />, 20<Blank value={sigDateParts.year2} placeholder="__" />.
             </p>
             <p className="tenancy-reg-form__recitals-label">BETWEEN</p>
-            <LandlordParagraph paragraphRef={landlordParagraphRef} editable={!viewOnly} />
+            <LandlordParagraph paragraphRef={landlordParagraphRef} editable={!viewOnly && canAddTerms} />
             <p className="tenancy-reg-form__recitals-label">AND</p>
             <p>
               <Blank value={tenantTitle.toUpperCase()} placeholder="MR./MRS/MISS" />{" "}
@@ -1504,7 +1500,9 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                     <span className="tenancy-reg-form__section-num">06</span>
                     <h2>Terms of Tenancy</h2>
                   </div>
-                  <p className="tenancy-reg-form__clauses-hint">Click directly into any term below to edit its wording, or add new terms underneath.</p>
+                  {!viewOnly && canAddTerms && (
+                    <p className="tenancy-reg-form__clauses-hint">Click directly into any term below to edit its wording, or add new terms underneath.</p>
+                  )}
                   <div className="tenancy-reg-form__clauses">
                     <ol ref={clauseListRef}>
                       {terms.map((t) => {
@@ -1517,14 +1515,14 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                             initialText={t.text}
                             removable={t.removable}
                             onRemove={() => handleRemoveClause(t.id)}
-                            editable={!viewOnly}
+                            editable={!viewOnly && canAddTerms}
                           />
                         );
                       })}
                     </ol>
                   </div>
 
-                  {!viewOnly && (
+                  {!viewOnly && canAddTerms && (
                     <div className="tenancy-reg-form__add-clause-row">
                       <input
                         type="text"
@@ -1683,9 +1681,9 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                     <div className="tenancy-reg-form__row">
                       <SignatureField
                         padRef={solicitorSig2Ref}
-                        label="Solicitor to sign below with mouse or finger"
+                        label="Solicitor's signature (appended separately by the solicitor, not signed here)"
                         signed={solicitorSigned2}
-                        viewOnly={viewOnly}
+                        viewOnly
                       />
                     </div>
                     <p className="tenancy-reg-form__witness-name" style={{ marginTop: 14 }}>{SOLICITOR_NAME}</p>
