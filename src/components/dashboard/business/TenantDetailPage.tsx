@@ -3,6 +3,10 @@ import { useParams } from 'react-router-dom';
 import { useGetTenantQuery, useGetTenantBillingQuery } from '@/services/estatesApi';
 import { TenantDetailSkeleton } from '@/components/ui/skeletons';
 import { GuidedTour, hasSeenTour, type TourStep } from '@/components/ui/guided-tour';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileText } from 'lucide-react';
 import { TenantDetailHeader } from './tenant-detail/TenantDetailHeader';
 import { TenantOverviewCard } from './tenant-detail/TenantOverviewCard';
 import { FinancialSummaryCards } from './tenant-detail/FinancialSummaryCards';
@@ -45,6 +49,7 @@ export const TenantDetailPage = () => {
   const { tenantId } = useParams();
   const [tourSignal, setTourSignal] = useState(0);
   const [tourSeen, setTourSeen] = useState(() => hasSeenTour('tour:tenant-detail:v1'));
+  const [registrationFormOpen, setRegistrationFormOpen] = useState(false);
   const { data: detail, isLoading } = useGetTenantQuery(
     tenantId ? { id: tenantId as string, expand: 'history,transactions' } : ('' as unknown as { id: string }),
     { skip: !tenantId }
@@ -111,9 +116,22 @@ export const TenantDetailPage = () => {
       </div>
 
       {/* Tenancy Agreement — the same printable registration form the tenant
-          fills and signs from their own dashboard, shown here read-only with
+          fills and signs from their own dashboard, opened here read-only with
           whatever they've actually submitted so far. */}
-      <TenancyRegistrationForm tenantId={tenantId} />
+      <Card>
+        <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-6">
+          <div>
+            <p className="font-medium">Printable registration form</p>
+            <p className="text-sm text-muted-foreground">
+              What the tenant has filled and signed, in the same paper-style layout they see.
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => setRegistrationFormOpen(true)}>
+            <FileText className="h-4 w-4 mr-1.5" />
+            Open Registration Form
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Transactions Card */}
       <TransactionsCard
@@ -125,6 +143,20 @@ export const TenantDetailPage = () => {
 
       {/* Guided tour — auto-runs once, replayable via "Take a tour" */}
       <GuidedTour steps={TENANT_DETAIL_TOUR_STEPS} storageKey="tour:tenant-detail:v1" startSignal={tourSignal} onSeenChange={() => setTourSeen(true)} />
+
+      <Dialog open={registrationFormOpen} onOpenChange={setRegistrationFormOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[90vh] p-0 flex flex-col">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle>Tenancy Registration Form</DialogTitle>
+            <DialogDescription>
+              What the tenant has filled and signed, in the same paper-style layout they see.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto">
+            <TenancyRegistrationForm tenantId={tenantId} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
