@@ -808,8 +808,8 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
 
         if (p.rentAmount) handleRentYearChange(String(Math.round(p.rentAmount * 12)));
         if (p.startDate) setStartDate(String(p.startDate).slice(0, 10));
-        if (p.cautionFee) setCaution(String(p.cautionFee));
-        if (p.legalFee) setLegalFee(String(p.legalFee));
+        if (p.cautionFee != null) setCaution(String(p.cautionFee));
+        if (p.legalFee != null) setLegalFee(String(p.legalFee));
 
         // Admin view: also pull in what only exists once the tenant has
         // actually signed — the registration particulars, ID, witness and
@@ -1676,21 +1676,23 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                     </div>
                   </div>
 
-                  <div className="tenancy-reg-form__witness-block">
-                    <p className="tenancy-reg-form__witness-heading">Prepared By</p>
-                    <div className="tenancy-reg-form__row">
-                      <SignatureField
-                        padRef={solicitorSig2Ref}
-                        label="Solicitor's signature (appended separately by the solicitor, not signed here)"
-                        signed={solicitorSigned2}
-                        viewOnly
-                      />
+                  {viewOnly && (
+                    <div className="tenancy-reg-form__witness-block">
+                      <p className="tenancy-reg-form__witness-heading">Prepared By</p>
+                      <div className="tenancy-reg-form__row">
+                        <SignatureField
+                          padRef={solicitorSig2Ref}
+                          label="Solicitor's signature (appended separately by the solicitor, not signed here)"
+                          signed={solicitorSigned2}
+                          viewOnly
+                        />
+                      </div>
+                      <p className="tenancy-reg-form__witness-name" style={{ marginTop: 14 }}>{SOLICITOR_NAME}</p>
+                      <p className="tenancy-reg-form__witness-note" style={{ fontStyle: "normal" }}>
+                        {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
+                      </p>
                     </div>
-                    <p className="tenancy-reg-form__witness-name" style={{ marginTop: 14 }}>{SOLICITOR_NAME}</p>
-                    <p className="tenancy-reg-form__witness-note" style={{ fontStyle: "normal" }}>
-                      {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
-                    </p>
-                  </div>
+                  )}
                 </div>
               </fieldset>
 
