@@ -12,7 +12,7 @@ import { PropertyMediaCard } from './tenant-detail/PropertyMediaCard';
 import { ConditionReportsCard } from './tenant-detail/ConditionReportsCard';
 import { TenancyHistoryCard } from './tenant-detail/TenancyHistoryCard';
 import { TransactionsCard } from './tenant-detail/TransactionsCard';
-import { TenancyAgreementCard } from './tenant-detail/TenancyAgreementCard';
+import { TenancyRegistrationForm } from '../tenant/TenancyRegistrationForm';
 
 const TENANT_DETAIL_TOUR_STEPS: TourStep[] = [
   {
@@ -110,8 +110,10 @@ export const TenantDetailPage = () => {
         <TenancyHistoryCard history={history} isLoading={historyLoading} />
       </div>
 
-      {/* Tenancy Agreement — what the tenant submitted when they signed */}
-      <TenancyAgreementCard tenantId={tenantId} />
+      {/* Tenancy Agreement — the same printable registration form the tenant
+          fills and signs from their own dashboard, shown here read-only with
+          whatever they've actually submitted so far. */}
+      <TenancyRegistrationForm tenantId={tenantId} />
 
       {/* Transactions Card */}
       <TransactionsCard

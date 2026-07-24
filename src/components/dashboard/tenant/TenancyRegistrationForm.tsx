@@ -247,13 +247,31 @@ function SignatureField({
   required,
   signed,
   optionalHint,
+  viewOnly,
+  imageSrc,
 }: {
   padRef: React.RefObject<SignaturePadHandle>;
   label: string;
   required?: boolean;
   signed: boolean;
   optionalHint?: string;
+  viewOnly?: boolean;
+  imageSrc?: string | null;
 }) {
+  if (viewOnly) {
+    return (
+      <div className="tenancy-reg-form__field tenancy-reg-form__field--full">
+        <label className="tenancy-reg-form__label">{label}</label>
+        <div className="tenancy-reg-form__sigwrap">
+          {imageSrc ? (
+            <img src={imageSrc} alt="Signature" style={{ maxHeight: "100%", maxWidth: "100%" }} />
+          ) : (
+            <span className="tenancy-reg-form__note">No signature on file</span>
+          )}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="tenancy-reg-form__field tenancy-reg-form__field--full">
       <label className="tenancy-reg-form__label">
@@ -274,23 +292,25 @@ const EditableTermLI = React.memo(function EditableTermLI({
   initialText,
   removable,
   onRemove,
+  editable = true,
 }: {
   id: string;
   initialText: string;
   removable: boolean;
   onRemove: () => void;
+  editable?: boolean;
 }) {
   return (
     <li className={removable ? "tenancy-reg-form__clause-added" : undefined}>
       <span
         className="tenancy-reg-form__term-text"
-        contentEditable
+        contentEditable={editable}
         suppressContentEditableWarning
         spellCheck={false}
       >
         {initialText}
       </span>
-      {removable && (
+      {removable && editable && (
         <span className="tenancy-reg-form__remove-clause" onClick={onRemove}>
           Remove
         </span>
@@ -301,11 +321,13 @@ const EditableTermLI = React.memo(function EditableTermLI({
 
 const LandlordParagraph = React.memo(function LandlordParagraph({
   paragraphRef,
+  editable = true,
 }: {
   paragraphRef: React.RefObject<HTMLParagraphElement>;
+  editable?: boolean;
 }) {
   return (
-    <p ref={paragraphRef} contentEditable suppressContentEditableWarning spellCheck={false}>
+    <p ref={paragraphRef} contentEditable={editable} suppressContentEditableWarning spellCheck={false}>
       {DEFAULT_LANDLORD_PARAGRAPH}
     </p>
   );
@@ -639,7 +661,8 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
   doc.save("Tenancy-" + d.ref + "-" + copyLabel.replace(/[^A-Za-z]/g, "") + ".pdf");
 }
 
-export function TenancyRegistrationForm() {
+export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}) {
+  const viewOnly = !!tenantId;
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const idFileRef = useRef<HTMLInputElement>(null);
@@ -717,6 +740,9 @@ export function TenancyRegistrationForm() {
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [alreadySubmittedAt, setAlreadySubmittedAt] = useState<string | null>(null);
   const [downloadingSigned, setDownloadingSigned] = useState(false);
+  const [agreementLoading, setAgreementLoading] = useState(viewOnly);
+  const [tenantSigImageUrl, setTenantSigImageUrl] = useState<string | null>(null);
+  const [tenantWitnessSigImageUrl, setTenantWitnessSigImageUrl] = useState<string | null>(null);
 
   const sigDateParts = useMemo(() => dateParts(sigDate), [sigDate]);
   const startDateParts = useMemo(() => dateParts(startDate), [startDate]);
@@ -741,7 +767,10 @@ export function TenancyRegistrationForm() {
     (async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`${BASE_API_URL}/api/tenants/me/agreement`, {
+        const url = tenantId
+          ? `${BASE_API_URL}/api/tenants/${tenantId}/agreement`
+          : `${BASE_API_URL}/api/tenants/me/agreement`;
+        const res = await fetch(url, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!res.ok) return;
@@ -776,12 +805,41 @@ export function TenancyRegistrationForm() {
         if (p.startDate) setStartDate(String(p.startDate).slice(0, 10));
         if (p.cautionFee) setCaution(String(p.cautionFee));
         if (p.legalFee) setLegalFee(String(p.legalFee));
+
+        // Admin view: also pull in what only exists once the tenant has
+        // actually signed — the registration particulars, ID, witness and
+        // signature images — so the read-only form looks exactly like what
+        // the tenant submitted, not just the personalized blank template.
+        if (tenantId && json?.data) {
+          const reg = json.data.registration || {};
+          if (reg.address) setTenantAddress(reg.address);
+          if (reg.occupation) setTenantOccupation(reg.occupation);
+          if (reg.employer) setTenantEmployer(reg.employer);
+          if (reg.idType) setIdType(reg.idType);
+          if (reg.idNumber) setIdNumber(reg.idNumber);
+          if (reg.idDocumentUrl) setIdPreviewUrl(reg.idDocumentUrl);
+          if (reg.kinName) setKinName(reg.kinName);
+          if (reg.kinRelationship) setKinRelation(reg.kinRelationship);
+          if (reg.kinPhone) setKinPhone(reg.kinPhone);
+          if (reg.witnessName) setTenantWitnessName(reg.witnessName);
+          if (reg.witnessAddress) setTenantWitnessAddress(reg.witnessAddress);
+          if (reg.witnessOccupation) setTenantWitnessOccupation(reg.witnessOccupation);
+          if (reg.witnessPhone) setTenantWitnessPhone(reg.witnessPhone);
+          if (reg.witnessRelationship) setTenantWitnessRelationship(reg.witnessRelationship);
+          if (reg.witnessSignatureImage) setTenantWitnessSigImageUrl(reg.witnessSignatureImage);
+          if (json.data.typedName) setTypedSig(json.data.typedName);
+          if (json.data.signatureImage) setTenantSigImageUrl(json.data.signatureImage);
+          if (json.data.signedAt) setSigDate(String(json.data.signedAt).slice(0, 10));
+          setAgreedTerms(true);
+        }
       } catch {
         // No backend data available — form stays blank, exactly as before.
+      } finally {
+        if (tenantId) setAgreementLoading(false);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tenantId]);
 
   const handleIdFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -955,7 +1013,10 @@ export function TenancyRegistrationForm() {
     setDownloadingSigned(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${BASE_API_URL}/api/tenants/me/agreement/pdf`, {
+      const endpoint = tenantId
+        ? `${BASE_API_URL}/api/tenants/${tenantId}/agreement/pdf`
+        : `${BASE_API_URL}/api/tenants/me/agreement/pdf`;
+      const res = await fetch(endpoint, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error("download failed");
@@ -1003,11 +1064,45 @@ export function TenancyRegistrationForm() {
 
   const refDisplay = submission ? `Reference No: ${submission.ref}` : "Reference will be issued on submission";
 
+  // Admin/view-only mode: skip the tenant's own submit flow entirely and
+  // either show a loading state, a short "not yet signed" notice, or (below)
+  // fall through into the same form, rendered read-only with the tenant's
+  // real data instead of the blank template.
+  if (viewOnly && agreementLoading) {
+    return (
+      <div className="tenancy-reg-form">
+        <div className="tenancy-reg-form__desk">
+          <div className="tenancy-reg-form__paper" style={{ padding: 48, textAlign: "center" }}>
+            <Loader className="h-5 w-5 inline animate-spin" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (viewOnly && !alreadySubmitted) {
+    return (
+      <div className="tenancy-reg-form">
+        <div className="tenancy-reg-form__desk">
+          <div className="tenancy-reg-form__desk-header">
+            Delta State &middot; Warri South Local Government Area &mdash; Digital Tenancy Registry
+          </div>
+          <div className="tenancy-reg-form__paper">
+            <div className="tenancy-reg-form__letterhead">
+              <h1>Tenancy Registration Form</h1>
+              <p className="tenancy-reg-form__sub">Not yet signed by the tenant.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Already signed in an earlier session — lock the form out entirely so the
   // tenant can't submit a second registration. `submission` being set means
   // they just signed THIS session, which still uses the normal confirmation
-  // view below, not this locked one.
-  if (alreadySubmitted && !submission) {
+  // view below, not this locked one. Doesn't apply in admin/view-only mode —
+  // there we fall through and show the full read-only form instead.
+  if (!viewOnly && alreadySubmitted && !submission) {
     return (
       <div className="tenancy-reg-form">
         <div className="tenancy-reg-form__desk">
@@ -1076,13 +1171,15 @@ export function TenancyRegistrationForm() {
               <p className="tenancy-reg-form__cover-prepared-label">PREPARED BY:</p>
               <img src={NBA_SEAL_DATA} className="tenancy-reg-form__cover-seal" alt="Nigerian Bar Association verification seal" />
             </div>
-            <div className="tenancy-reg-form__cover-solicitor-sig">
-              <SignaturePad key={`solicitor-cover-${formKey}`} ref={solicitorSigRef} onSignedChange={setSolicitorSigned} />
-              <div className="tenancy-reg-form__sig-tools">
-                <button type="button" onClick={() => solicitorSigRef.current?.clear()}>Clear Signature</button>
-                <span className="tenancy-reg-form__note">{solicitorSigned ? "Signed" : "Not yet signed"}</span>
+            {!viewOnly && (
+              <div className="tenancy-reg-form__cover-solicitor-sig">
+                <SignaturePad key={`solicitor-cover-${formKey}`} ref={solicitorSigRef} onSignedChange={setSolicitorSigned} />
+                <div className="tenancy-reg-form__sig-tools">
+                  <button type="button" onClick={() => solicitorSigRef.current?.clear()}>Clear Signature</button>
+                  <span className="tenancy-reg-form__note">{solicitorSigned ? "Signed" : "Not yet signed"}</span>
+                </div>
               </div>
-            </div>
+            )}
             <div className="tenancy-reg-form__cover-solicitor">
               <strong>{SOLICITOR_NAME}</strong><br />
               {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
@@ -1096,7 +1193,7 @@ export function TenancyRegistrationForm() {
               <Blank value={sigDateParts.month} placeholder="______" />, 20<Blank value={sigDateParts.year2} placeholder="__" />.
             </p>
             <p className="tenancy-reg-form__recitals-label">BETWEEN</p>
-            <LandlordParagraph paragraphRef={landlordParagraphRef} />
+            <LandlordParagraph paragraphRef={landlordParagraphRef} editable={!viewOnly} />
             <p className="tenancy-reg-form__recitals-label">AND</p>
             <p>
               <Blank value={tenantTitle.toUpperCase()} placeholder="MR./MRS/MISS" />{" "}
@@ -1189,6 +1286,7 @@ export function TenancyRegistrationForm() {
               </div>
             ) : (
               <form ref={formRef} onSubmit={handleSubmit} noValidate={false}>
+              <fieldset disabled={viewOnly} style={viewOnly ? { border: 0, margin: 0, padding: 0 } : undefined}>
                 {/* SECTION 1 */}
                 <div className="tenancy-reg-form__section" style={{ marginTop: 0 }}>
                   <div className="tenancy-reg-form__section-head">
@@ -1331,38 +1429,49 @@ export function TenancyRegistrationForm() {
                       </div>
                     </div>
                     <div className="tenancy-reg-form__field tenancy-reg-form__field--full" style={{ marginBottom: 6 }}>
-                      <label className="tenancy-reg-form__label">Upload Clear Photo / Scan of ID<span className="tenancy-reg-form__req">*</span></label>
-                      <div className="tenancy-reg-form__upload-area">
-                        <div className="tenancy-reg-form__upload-icon">
-                          <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 3v12m0-12l-4 4m4-4l4 4" />
-                            <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-                          </svg>
-                        </div>
-                        <div className="tenancy-reg-form__upload-text">
-                          <strong>Attach a photo or scan</strong>
-                          <span>JPG or PNG &middot; used only to verify the details you&apos;ve entered above</span>
-                        </div>
-                        <label className="tenancy-reg-form__btn-choose" htmlFor="tenancyRegIdUpload">Choose File</label>
-                        <input
-                          ref={idFileRef}
-                          id="tenancyRegIdUpload"
-                          type="file"
-                          accept="image/*"
-                          required
-                          className="hidden"
-                          onChange={handleIdFileSelect}
-                        />
-                      </div>
-                      {idPreviewUrl && (
-                        <div className="tenancy-reg-form__preview-thumb">
-                          <img src={idPreviewUrl} alt="ID preview" />
-                          <span className="tenancy-reg-form__preview-fname">{idFileName}</span>
+                      <label className="tenancy-reg-form__label">
+                        {viewOnly ? "ID Document" : "Upload Clear Photo / Scan of ID"}
+                        {!viewOnly && <span className="tenancy-reg-form__req">*</span>}
+                      </label>
+                      {!viewOnly && (
+                        <div className="tenancy-reg-form__upload-area">
+                          <div className="tenancy-reg-form__upload-icon">
+                            <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 3v12m0-12l-4 4m4-4l4 4" />
+                              <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+                            </svg>
+                          </div>
+                          <div className="tenancy-reg-form__upload-text">
+                            <strong>Attach a photo or scan</strong>
+                            <span>JPG or PNG &middot; used only to verify the details you&apos;ve entered above</span>
+                          </div>
+                          <label className="tenancy-reg-form__btn-choose" htmlFor="tenancyRegIdUpload">Choose File</label>
+                          <input
+                            ref={idFileRef}
+                            id="tenancyRegIdUpload"
+                            type="file"
+                            accept="image/*"
+                            required
+                            className="hidden"
+                            onChange={handleIdFileSelect}
+                          />
                         </div>
                       )}
-                      <p className="tenancy-reg-form__note">
-                        The name and ID number entered above must match this document exactly, or your registration may be rejected during review.
-                      </p>
+                      {idPreviewUrl ? (
+                        <div className="tenancy-reg-form__preview-thumb">
+                          <a href={idPreviewUrl} target="_blank" rel="noreferrer">
+                            <img src={idPreviewUrl} alt="ID preview" />
+                          </a>
+                          {idFileName && <span className="tenancy-reg-form__preview-fname">{idFileName}</span>}
+                        </div>
+                      ) : (
+                        viewOnly && <p className="tenancy-reg-form__note">No ID document on file.</p>
+                      )}
+                      {!viewOnly && (
+                        <p className="tenancy-reg-form__note">
+                          The name and ID number entered above must match this document exactly, or your registration may be rejected during review.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1408,22 +1517,25 @@ export function TenancyRegistrationForm() {
                             initialText={t.text}
                             removable={t.removable}
                             onRemove={() => handleRemoveClause(t.id)}
+                            editable={!viewOnly}
                           />
                         );
                       })}
                     </ol>
                   </div>
 
-                  <div className="tenancy-reg-form__add-clause-row">
-                    <input
-                      type="text"
-                      placeholder="Type an additional term to add to this agreement..."
-                      value={newClauseText}
-                      onChange={(e) => setNewClauseText(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddClause(); } }}
-                    />
-                    <button type="button" onClick={handleAddClause}>+ Add Term</button>
-                  </div>
+                  {!viewOnly && (
+                    <div className="tenancy-reg-form__add-clause-row">
+                      <input
+                        type="text"
+                        placeholder="Type an additional term to add to this agreement..."
+                        value={newClauseText}
+                        onChange={(e) => setNewClauseText(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddClause(); } }}
+                      />
+                      <button type="button" onClick={handleAddClause}>+ Add Term</button>
+                    </div>
+                  )}
 
                   <div className="tenancy-reg-form__agree-row">
                     <input
@@ -1460,6 +1572,7 @@ export function TenancyRegistrationForm() {
                         padRef={landlordSigRef}
                         label="Landlord to sign below with mouse or finger"
                         signed={landlordSigned}
+                        viewOnly={viewOnly}
                       />
                     </div>
                     <div className="tenancy-reg-form__row">
@@ -1499,6 +1612,7 @@ export function TenancyRegistrationForm() {
                         padRef={landlordWitnessSigRef}
                         label="Witness to sign below with mouse or finger"
                         signed={landlordWitnessSigned}
+                        viewOnly={viewOnly}
                       />
                     </div>
                   </div>
@@ -1511,6 +1625,8 @@ export function TenancyRegistrationForm() {
                         label="Sign below with your mouse or finger"
                         required
                         signed={tenantSigned}
+                        viewOnly={viewOnly}
+                        imageSrc={tenantSigImageUrl}
                       />
                     </div>
                     <div className="tenancy-reg-form__row">
@@ -1556,6 +1672,8 @@ export function TenancyRegistrationForm() {
                         label="Witness to sign below with mouse or finger"
                         required
                         signed={tenantWitnessSigned}
+                        viewOnly={viewOnly}
+                        imageSrc={tenantWitnessSigImageUrl}
                       />
                     </div>
                   </div>
@@ -1567,6 +1685,7 @@ export function TenancyRegistrationForm() {
                         padRef={solicitorSig2Ref}
                         label="Solicitor to sign below with mouse or finger"
                         signed={solicitorSigned2}
+                        viewOnly={viewOnly}
                       />
                     </div>
                     <p className="tenancy-reg-form__witness-name" style={{ marginTop: 14 }}>{SOLICITOR_NAME}</p>
@@ -1575,25 +1694,40 @@ export function TenancyRegistrationForm() {
                     </p>
                   </div>
                 </div>
+              </fieldset>
 
-                <div className="tenancy-reg-form__submit-area">
-                  <p className="tenancy-reg-form__disclaim">
-                    By submitting, you certify that all information and the attached ID document are true, accurate,
-                    and belong to you. False declarations may lead to rejection of this application and forfeiture
-                    of any caution fee already paid.
-                  </p>
-                  <div>
-                    <button type="submit" className="tenancy-reg-form__btn-submit" disabled={submitting}>
-                      {submitting ? <Loader className="h-4 w-4 mr-1.5 inline animate-spin" /> : <FileSignature className="h-4 w-4 mr-1.5 inline" />}
-                      {submitting ? "Submitting…" : "Submit Registration"}
+                {viewOnly ? (
+                  <div className="tenancy-reg-form__submit-area">
+                    <button
+                      type="button"
+                      className="tenancy-reg-form__btn-submit"
+                      onClick={handleDownloadSigned}
+                      disabled={downloadingSigned}
+                    >
+                      {downloadingSigned ? <Loader className="h-4 w-4 mr-1.5 inline animate-spin" /> : <FileSignature className="h-4 w-4 mr-1.5 inline" />}
+                      Download Signed PDF
                     </button>
-                    {formErrorVisible && (
-                      <div className="tenancy-reg-form__err-msg">
-                        Please complete all required fields, attach your ID, and get both your signature and your witness&apos;s signature before submitting.
-                      </div>
-                    )}
                   </div>
-                </div>
+                ) : (
+                  <div className="tenancy-reg-form__submit-area">
+                    <p className="tenancy-reg-form__disclaim">
+                      By submitting, you certify that all information and the attached ID document are true, accurate,
+                      and belong to you. False declarations may lead to rejection of this application and forfeiture
+                      of any caution fee already paid.
+                    </p>
+                    <div>
+                      <button type="submit" className="tenancy-reg-form__btn-submit" disabled={submitting}>
+                        {submitting ? <Loader className="h-4 w-4 mr-1.5 inline animate-spin" /> : <FileSignature className="h-4 w-4 mr-1.5 inline" />}
+                        {submitting ? "Submitting…" : "Submit Registration"}
+                      </button>
+                      {formErrorVisible && (
+                        <div className="tenancy-reg-form__err-msg">
+                          Please complete all required fields, attach your ID, and get both your signature and your witness&apos;s signature before submitting.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </form>
             )}
           </div>
