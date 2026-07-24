@@ -40,7 +40,6 @@ import { ReportIssueDialog } from "./tenant/ReportIssueDialog";
 import { BillingItemList } from "./tenant/BillingItemList";
 import { PaymentSummary } from "./tenant/PaymentSummary";
 import { ReceiptsTab } from "./tenant/ReceiptsTab";
-import { TenancyAgreementTab } from "./tenant/TenancyAgreementTab";
 import { TenancyRegistrationForm } from "./tenant/TenancyRegistrationForm";
 import { formatCurrency, formatDate } from "./tenant/utils";
 import { GuidedTour, hasSeenTour, type TourStep } from "@/components/ui/guided-tour";
@@ -1298,7 +1297,6 @@ export const TenantDashboard: React.FC = () => {
               </Button>
             </CardContent>
           </Card>
-          <TenancyAgreementTab />
         </TabsContent>
 
         <TabsContent value="maintenance" className="space-y-6">
