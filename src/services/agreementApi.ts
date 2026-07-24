@@ -130,6 +130,22 @@ export const agreementApi = createApi({
         cache: 'no-cache',
       }),
     }),
+    downloadTenantAgreement: builder.query<{ blob: Blob; filename: string }, string>({
+      query: (tenantId) => ({
+        url: `/api/tenants/${tenantId}/agreement/pdf`,
+        responseHandler: async (response) => {
+          const blob = await response.blob();
+          const contentDisposition = response.headers.get('Content-Disposition');
+          let filename = 'tenancy-agreement.pdf';
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+            if (filenameMatch && filenameMatch[1]) filename = filenameMatch[1];
+          }
+          return { blob, filename };
+        },
+        cache: 'no-cache',
+      }),
+    }),
   }),
 });
 
@@ -139,4 +155,5 @@ export const {
   useUploadAgreementIdMutation,
   useGetTenantAgreementQuery,
   useLazyDownloadMyAgreementQuery,
+  useLazyDownloadTenantAgreementQuery,
 } = agreementApi;

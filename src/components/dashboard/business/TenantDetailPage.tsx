@@ -12,6 +12,7 @@ import { PropertyMediaCard } from './tenant-detail/PropertyMediaCard';
 import { ConditionReportsCard } from './tenant-detail/ConditionReportsCard';
 import { TenancyHistoryCard } from './tenant-detail/TenancyHistoryCard';
 import { TransactionsCard } from './tenant-detail/TransactionsCard';
+import { TenancyAgreementCard } from './tenant-detail/TenancyAgreementCard';
 
 const TENANT_DETAIL_TOUR_STEPS: TourStep[] = [
   {
@@ -108,6 +109,9 @@ export const TenantDetailPage = () => {
       <div data-tour="tenant-history">
         <TenancyHistoryCard history={history} isLoading={historyLoading} />
       </div>
+
+      {/* Tenancy Agreement — what the tenant submitted when they signed */}
+      <TenancyAgreementCard tenantId={tenantId} />
 
       {/* Transactions Card */}
       <TransactionsCard
