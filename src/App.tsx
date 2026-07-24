@@ -1,10 +1,9 @@
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { PageLoaderProvider, usePageLoader } from "@/contexts/PageLoaderContext";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/providers/ToastProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -31,36 +30,6 @@ const EquipmentDetails = lazy(() => import("./pages/EquipmentDetails"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 
-// Loading skeleton component
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-pulse space-y-4 w-full max-w-md px-4">
-      <div className="h-12 bg-muted rounded" />
-      <div className="space-y-2">
-        <div className="h-4 bg-muted rounded" />
-        <div className="h-4 bg-muted rounded w-5/6" />
-      </div>
-    </div>
-  </div>
-);
-
-// Route change detector component
-const RouteChangeDetector: React.FC = () => {
-  const location = useLocation();
-  const { showLoader, hideLoader } = usePageLoader();
-
-  useEffect(() => {
-    showLoader();
-    const timer = setTimeout(() => {
-      hideLoader();
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname, showLoader, hideLoader]);
-
-  return null;
-};
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -70,13 +39,9 @@ const queryClient = new QueryClient({
   },
 });
 
-// Inner app component with page loader context access
 const AppContent: React.FC = () => {
-  const { isLoading } = usePageLoader();
-
   return (
     <>
-      <PageLoader isLoading={isLoading} />
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="dark" storageKey="bami-host-theme">
@@ -86,8 +51,7 @@ const AppContent: React.FC = () => {
                   <Toaster />
                   <CookieConsent />
                   <BrowserRouter>
-                    <RouteChangeDetector />
-                    <Suspense fallback={<LoadingFallback />}>
+                    <Suspense fallback={<PageLoader isLoading />}>
                       <Routes>
                         {/* Public routes - critical pages loaded immediately */}
                         <Route path="/" element={<Landing />} />
@@ -130,10 +94,6 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App = () => (
-  <PageLoaderProvider>
-    <AppContent />
-  </PageLoaderProvider>
-);
+const App = () => <AppContent />;
 
 export default App;
