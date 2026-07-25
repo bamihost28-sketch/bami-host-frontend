@@ -338,8 +338,8 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
             <div className="flex items-start justify-between">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-xs font-medium text-teal-100 uppercase tracking-wider">{year1.label ?? 'Year 1'}</p>
-                  <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">Year 1</span>
+                  <p className="text-xs font-medium text-teal-100 uppercase tracking-wider">{year1.label ?? 'Current Year'}</p>
+                  <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">Year {year1.yearNumber ?? 1}</span>
                 </div>
                 <p className="text-2xl font-black text-white">₦{(year1.total ?? 0).toLocaleString()}</p>
                 <p className="text-[9px] text-teal-100 mt-1">
@@ -366,8 +366,8 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
             <div className="flex items-start justify-between">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-xs font-medium text-slate-300 uppercase tracking-wider">{year2.label ?? 'Year 2'}</p>
-                  <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">Year 2</span>
+                  <p className="text-xs font-medium text-slate-300 uppercase tracking-wider">{year2.label ?? 'Renewal Year'}</p>
+                  <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">Year {year2.yearNumber ?? 2}</span>
                   {year2.rentIncreased && (
                     <span className="text-[9px] bg-rose-500/70 text-white px-1.5 py-0.5 rounded-full">Rent ↑</span>
                   )}
