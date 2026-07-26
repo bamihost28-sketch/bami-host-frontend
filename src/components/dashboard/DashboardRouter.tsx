@@ -15,6 +15,7 @@ import { EstateManagement } from '@/components/dashboard/business/EstateManageme
 import { EstateDetailPage } from '@/components/dashboard/business/EstateDetailPage';
 import HeadOfficePage from '@/components/dashboard/HeadOfficePage';
 import GoogleWorkspacePage from '@/components/dashboard/GoogleWorkspacePage';
+import AgreementsListPage from '@/components/dashboard/AgreementsListPage';
 import { AddPropertyPage } from '@/components/dashboard/business/AddPropertyPage';
 import { TenantDetailPage } from '@/components/dashboard/business/TenantDetailPage';
 import { FillingStationManagement } from '@/components/dashboard/business/FillingStationManagement';
@@ -86,6 +87,7 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('wallet')) return 'wallet';
     if (pathname.includes('portfolio')) return 'portfolio';
     if (pathname.includes('split-tracker')) return 'split-tracker';
+    if (pathname.includes('agreements')) return 'agreements';
     if (pathname.includes('tenant')) return 'estate';
     if (pathname.includes('estate')) return 'estate';
     if (pathname.includes('filling-station')) return 'filling-station';
@@ -262,6 +264,19 @@ const DashboardRouter: React.FC = () => {
               requiredPermissions={['view_estate']}
               feature="Google Workspace"
               viewName="estate"
+            />
+          }
+        />
+
+        {/* Tenancy Agreements — every tenant's signed agreement, admin-only */}
+        <Route
+          path="/agreements"
+          element={
+            <ProtectedRoute
+              element={<AgreementsListPage />}
+              requiredPermissions={['view_estate']}
+              feature="Tenancy Agreements"
+              viewName="agreements"
             />
           }
         />

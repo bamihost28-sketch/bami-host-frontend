@@ -31,6 +31,35 @@ export interface PaginatedResponse<T> {
   total?: number;
 }
 
+export type AgreementStatus = 'pending' | 'approved' | 'rejected';
+
+export interface AgreementListItem {
+  id: string;
+  tenant_id: string;
+  estate_id: string;
+  tenant_name?: string;
+  tenant_email?: string;
+  tenant_phone?: string;
+  estate_name?: string;
+  unit_label?: string;
+  typed_name?: string;
+  signed_at?: string;
+  status?: AgreementStatus;
+  rejection_reason?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+}
+
+export interface AgreementsListResponse {
+  success: boolean;
+  data: AgreementListItem[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+  };
+}
+
 export interface UnitMediaItem {
   url: string;
   publicId: string;
@@ -858,6 +887,29 @@ export const estatesApi = createApi({
           ]
           : [{ type: 'TenantList' as const, id: 'LIST' }],
     }),
+    // Admin: every tenant's signed tenancy agreement, newest first
+    getAgreements: builder.query<AgreementsListResponse, { page?: number; limit?: number; search?: string; estateId?: string; status?: AgreementStatus } | void>({
+      query: (params = {}) => ({
+        url: '/api/tenancy-agreements',
+        params: params || {},
+      }),
+      providesTags: (result) =>
+        result && Array.isArray(result.data)
+          ? [
+            ...result.data.map((a) => ({ type: 'Tenant' as const, id: a.tenant_id })),
+            { type: 'TenantList' as const, id: 'AGREEMENTS_LIST' },
+          ]
+          : [{ type: 'TenantList' as const, id: 'AGREEMENTS_LIST' }],
+    }),
+    // Admin: approve or reject a submitted agreement
+    reviewAgreement: builder.mutation<{ success: boolean; data: AgreementListItem }, { agreementId: string; status: 'approved' | 'rejected'; reason?: string }>({
+      query: ({ agreementId, status, reason }) => ({
+        url: `/api/tenancy-agreements/${agreementId}/status`,
+        method: 'PATCH',
+        body: { status, reason },
+      }),
+      invalidatesTags: [{ type: 'TenantList' as const, id: 'AGREEMENTS_LIST' }],
+    }),
     getTenant: builder.query<TenantDetailResponse | { success: boolean; data: { tenant: Tenant; overview: TenantOverview } }, string | { id: string; expand?: string; page?: number; limit?: number }>({
       query: (arg) => {
         const isString = typeof arg === 'string';
@@ -1447,6 +1499,8 @@ export const {
   useUpdateEstateUnitMutation,
   useDeleteEstateUnitMutation,
   useGetTenantsQuery,
+  useGetAgreementsQuery,
+  useReviewAgreementMutation,
   useGetTenantQuery,
   useUpdateTenantMutation,
   useDeleteTenantMutation,

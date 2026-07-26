@@ -744,6 +744,8 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
   const [submitting, setSubmitting] = useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [alreadySubmittedAt, setAlreadySubmittedAt] = useState<string | null>(null);
+  const [agreementStatus, setAgreementStatus] = useState<"pending" | "approved" | "rejected" | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const [downloadingSigned, setDownloadingSigned] = useState(false);
   const [agreementLoading, setAgreementLoading] = useState(viewOnly);
   const [tenantSigImageUrl, setTenantSigImageUrl] = useState<string | null>(null);
@@ -780,10 +782,16 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
         });
         if (!res.ok) return;
         const json = await res.json();
+        // Admin view always shows the submitted record read-only, whatever its
+        // review status. The tenant's own view re-opens as an editable form
+        // when rejected (json.signed is false in that case) so they can fix
+        // and resubmit — see get_my_agreement's comment on the backend.
         if (json?.signed) {
           setAlreadySubmitted(true);
           setAlreadySubmittedAt(json?.data?.signedAt || null);
         }
+        setAgreementStatus(json?.status ?? null);
+        setRejectionReason(json?.data?.rejectionReason || null);
         const p = json?.data?.parties;
         if (!p) return;
 
@@ -815,7 +823,9 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
         // actually signed — the registration particulars, ID, witness and
         // signature images — so the read-only form looks exactly like what
         // the tenant submitted, not just the personalized blank template.
-        if (tenantId && json?.data) {
+        // Same for a tenant resubmitting after rejection, so they're only
+        // fixing what was flagged rather than retyping everything.
+        if ((tenantId || json?.status === "rejected") && json?.data) {
           const reg = json.data.registration || {};
           if (reg.address) setTenantAddress(reg.address);
           if (reg.occupation) setTenantOccupation(reg.occupation);
@@ -1116,11 +1126,15 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
           </div>
           <div className="tenancy-reg-form__paper">
             <div className="tenancy-reg-form__letterhead">
-              <span className="tenancy-reg-form__ribbon">Signed &amp; On File</span>
+              <span className="tenancy-reg-form__ribbon">
+                {agreementStatus === "approved" ? "Approved" : "Signed & On File"}
+              </span>
               <h1>Tenancy Registration Form</h1>
               <p className="tenancy-reg-form__sub">
                 You've already submitted and signed this tenancy registration
                 {alreadySubmittedAt ? ` on ${new Date(alreadySubmittedAt).toLocaleDateString()}` : ""}.
+                {agreementStatus === "pending" && " It's awaiting review by the estate office."}
+                {agreementStatus === "approved" && " It has been reviewed and approved."}
               </p>
             </div>
             <div style={{ padding: "8px 48px 48px", textAlign: "center" }}>
@@ -1148,6 +1162,22 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
         </div>
 
         <div className="tenancy-reg-form__paper">
+          {!viewOnly && agreementStatus === "rejected" && (
+            <div
+              style={{
+                margin: "16px 48px 0", padding: "12px 16px", borderRadius: 8,
+                background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.3)",
+              }}
+            >
+              <p style={{ fontWeight: 600, color: "#dc2626", margin: 0 }}>
+                Your last submission was rejected
+              </p>
+              <p style={{ color: "#7f1d1d", margin: "4px 0 0", fontSize: 13 }}>
+                {rejectionReason || "The estate office asked you to review and resubmit this agreement."}
+                {" "}Your previous details are prefilled below — fix what's needed and sign again.
+              </p>
+            </div>
+          )}
           <div className="tenancy-reg-form__letterhead">
             <span className="tenancy-reg-form__ribbon">Prepared under instruction of the Landlord</span>
             <h1>Tenancy Registration Form</h1>

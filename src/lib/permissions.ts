@@ -747,5 +747,6 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   // Owner tools (hidden from tenants & residents)
   'head-office':       ['view_estate'],
   'google-workspace':  ['view_estate'],
+  'agreements':        ['view_estate'],
   'meters':            ['view_all_data']
 };
