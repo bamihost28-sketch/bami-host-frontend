@@ -110,7 +110,7 @@ export default function AgreementsListPage() {
   const downloadPdf = async (a: AgreementListItem) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${BASE_API_URL}/api/tenants/${a.tenant_id}/agreement/pdf`, {
+      const res = await fetch(`${BASE_API_URL}/api/tenants/${a.tenantId}/agreement/pdf`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error("download failed");
@@ -118,7 +118,7 @@ export default function AgreementsListPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `tenancy-agreement-${(a.tenant_name || a.tenant_id).replace(/\s+/g, "-")}.pdf`;
+      link.download = `tenancy-agreement-${(a.tenantName || a.tenantId).replace(/\s+/g, "-")}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -238,24 +238,24 @@ export default function AgreementsListPage() {
                   return (
                     <tr key={a.id} className="border-b border-border/30 hover:bg-muted/25 transition-colors">
                       <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">
-                        {fmtDate(a.signed_at)}
+                        {fmtDate(a.signedAt)}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-medium text-foreground">{a.tenant_name || a.typed_name || "—"}</span>
+                        <span className="font-medium text-foreground">{a.tenantName || a.typedName || "—"}</span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">{a.estate_name || "—"}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{a.unit_label || "—"}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{a.estateName || "—"}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{a.unitLabel || "—"}</td>
                       <td className="px-4 py-3 text-muted-foreground">
                         <div className="flex flex-col">
-                          <span className="text-xs">{a.tenant_email || "—"}</span>
-                          <span className="text-xs">{a.tenant_phone || ""}</span>
+                          <span className="text-xs">{a.tenantEmail || "—"}</span>
+                          <span className="text-xs">{a.tenantPhone || ""}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <AgreementStatusBadge status={a.status} />
-                        {a.status === "rejected" && a.rejection_reason && (
-                          <p className="text-[11px] text-muted-foreground mt-1 max-w-[160px] truncate" title={a.rejection_reason}>
-                            {a.rejection_reason}
+                        {a.status === "rejected" && a.rejectionReason && (
+                          <p className="text-[11px] text-muted-foreground mt-1 max-w-[160px] truncate" title={a.rejectionReason}>
+                            {a.rejectionReason}
                           </p>
                         )}
                       </td>
@@ -350,13 +350,13 @@ export default function AgreementsListPage() {
       <Dialog open={!!activeTenant} onOpenChange={(open) => !open && setActiveTenant(null)}>
         <DialogContent className="max-w-4xl w-[95vw] h-[90vh] p-0 flex flex-col">
           <DialogHeader className="px-4 pt-4">
-            <DialogTitle>Tenancy Agreement — {activeTenant?.tenant_name || "Tenant"}</DialogTitle>
+            <DialogTitle>Tenancy Agreement — {activeTenant?.tenantName || "Tenant"}</DialogTitle>
             <DialogDescription>
-              Signed {fmtDate(activeTenant?.signed_at)} · {activeTenant?.estate_name} {activeTenant?.unit_label ? `· ${activeTenant.unit_label}` : ""}
+              Signed {fmtDate(activeTenant?.signedAt)} · {activeTenant?.estateName} {activeTenant?.unitLabel ? `· ${activeTenant.unitLabel}` : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto">
-            {activeTenant && <TenancyRegistrationForm tenantId={activeTenant.tenant_id} />}
+            {activeTenant && <TenancyRegistrationForm tenantId={activeTenant.tenantId} />}
           </div>
         </DialogContent>
       </Dialog>
@@ -367,9 +367,9 @@ export default function AgreementsListPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Approve this agreement?</AlertDialogTitle>
             <AlertDialogDescription>
-              {approveTarget?.tenant_name || "This tenant"}'s signed tenancy agreement
-              {approveTarget?.estate_name ? ` for ${approveTarget.estate_name}` : ""}
-              {approveTarget?.unit_label ? ` (${approveTarget.unit_label})` : ""} will be marked approved.
+              {approveTarget?.tenantName || "This tenant"}'s signed tenancy agreement
+              {approveTarget?.estateName ? ` for ${approveTarget.estateName}` : ""}
+              {approveTarget?.unitLabel ? ` (${approveTarget.unitLabel})` : ""} will be marked approved.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -388,7 +388,7 @@ export default function AgreementsListPage() {
           <DialogHeader>
             <DialogTitle>Reject this agreement</DialogTitle>
             <DialogDescription>
-              Tell {rejectTarget?.tenant_name || "the tenant"} what needs to be fixed — they'll see this reason
+              Tell {rejectTarget?.tenantName || "the tenant"} what needs to be fixed — they'll see this reason
               and can correct and resubmit from their dashboard.
             </DialogDescription>
           </DialogHeader>

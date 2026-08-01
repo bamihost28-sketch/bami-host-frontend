@@ -33,21 +33,25 @@ export interface PaginatedResponse<T> {
 
 export type AgreementStatus = 'pending' | 'approved' | 'rejected';
 
+// Backend builds this dict snake_case, but camelize_response_middleware
+// (fastapi_app/middleware/camelize.py) auto-converts every JSON response's
+// keys to camelCase for this route — /api/tenancy-agreements isn't on the
+// middleware's snake_case opt-out list. Confirmed against the live response.
 export interface AgreementListItem {
   id: string;
-  tenant_id: string;
-  estate_id: string;
-  tenant_name?: string;
-  tenant_email?: string;
-  tenant_phone?: string;
-  estate_name?: string;
-  unit_label?: string;
-  typed_name?: string;
-  signed_at?: string;
+  tenantId: string;
+  estateId: string;
+  tenantName?: string;
+  tenantEmail?: string;
+  tenantPhone?: string;
+  estateName?: string;
+  unitLabel?: string;
+  typedName?: string;
+  signedAt?: string;
   status?: AgreementStatus;
-  rejection_reason?: string | null;
-  reviewed_by?: string | null;
-  reviewed_at?: string | null;
+  rejectionReason?: string | null;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
 }
 
 export interface AgreementsListResponse {
@@ -896,13 +900,16 @@ export const estatesApi = createApi({
       providesTags: (result) =>
         result && Array.isArray(result.data)
           ? [
-            ...result.data.map((a) => ({ type: 'Tenant' as const, id: a.tenant_id })),
+            ...result.data.map((a) => ({ type: 'Tenant' as const, id: a.tenantId })),
             { type: 'TenantList' as const, id: 'AGREEMENTS_LIST' },
           ]
           : [{ type: 'TenantList' as const, id: 'AGREEMENTS_LIST' }],
     }),
     // Admin: approve or reject a submitted agreement
-    reviewAgreement: builder.mutation<{ success: boolean; data: AgreementListItem }, { agreementId: string; status: 'approved' | 'rejected'; reason?: string }>({
+    // Response `data` is the agreement's full _serialize() shape (parties/terms/
+    // registration/...), not an AgreementListItem — unused by callers, who only
+    // check success via .unwrap(), so left untyped rather than claimed wrongly.
+    reviewAgreement: builder.mutation<{ success: boolean; data: unknown }, { agreementId: string; status: 'approved' | 'rejected'; reason?: string }>({
       query: ({ agreementId, status, reason }) => ({
         url: `/api/tenancy-agreements/${agreementId}/status`,
         method: 'PATCH',
