@@ -795,29 +795,33 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
         const p = json?.data?.parties;
         if (!p) return;
 
-        if (p.landlordName) {
-          setLandlordName(p.landlordName);
-          setLandlordTypedSig(p.landlordName);
+        // `parties` comes straight off the backend's build_parties() snapshot,
+        // which is snake_case (confirmed against utils/tenancy_terms.py) —
+        // not the camelCase used for `registration` below. Reading the wrong
+        // casing here silently no-ops every field instead of erroring.
+        if (p.landlord_name) {
+          setLandlordName(p.landlord_name);
+          setLandlordTypedSig(p.landlord_name);
         }
-        if (p.tenantName) setTenantName(p.tenantName);
-        if (p.tenantPhone) setTenantPhone(p.tenantPhone);
-        if (p.tenantEmail) setTenantEmail(p.tenantEmail);
+        if (p.tenant_name) setTenantName(p.tenant_name);
+        if (p.tenant_phone) setTenantPhone(p.tenant_phone);
+        if (p.tenant_email) setTenantEmail(p.tenant_email);
 
-        const apartment = [p.unitLabel, p.estateName, p.estateAddress].filter(Boolean).join(", ");
+        const apartment = [p.unit_label, p.estate_name, p.estate_address].filter(Boolean).join(", ");
         if (apartment) setApartmentAddress(apartment);
 
-        if (p.bedroomCount) {
-          const n = parseInt(String(p.bedroomCount), 10);
+        if (p.bedroom_count) {
+          const n = parseInt(String(p.bedroom_count), 10);
           const match = Number.isFinite(n)
             ? BEDROOM_OPTIONS.find((o) => o.startsWith(String(n)))
             : BEDROOM_OPTIONS.find((o) => o === "Self-Contain");
           setBedrooms(match || "");
         }
 
-        if (p.rentAmount) handleRentYearChange(String(Math.round(p.rentAmount * 12)));
-        if (p.startDate) setStartDate(String(p.startDate).slice(0, 10));
-        if (p.cautionFee != null) setCaution(String(p.cautionFee));
-        if (p.legalFee != null) setLegalFee(String(p.legalFee));
+        if (p.rent_amount) handleRentYearChange(String(Math.round(p.rent_amount * 12)));
+        if (p.start_date) setStartDate(String(p.start_date).slice(0, 10));
+        if (p.caution_fee != null) setCaution(String(p.caution_fee));
+        if (p.legal_fee != null) setLegalFee(String(p.legal_fee));
 
         // Admin view: also pull in what only exists once the tenant has
         // actually signed — the registration particulars, ID, witness and
