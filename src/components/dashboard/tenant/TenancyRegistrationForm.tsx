@@ -1144,15 +1144,21 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
               </p>
             </div>
             <div style={{ padding: "8px 48px 48px", textAlign: "center" }}>
-              <button
-                type="button"
-                className="tenancy-reg-form__btn-submit"
-                onClick={handleDownloadSigned}
-                disabled={downloadingSigned}
-              >
-                {downloadingSigned ? <Loader className="h-4 w-4 mr-1.5 inline animate-spin" /> : <FileSignature className="h-4 w-4 mr-1.5 inline" />}
-                Download Your Signed Copy
-              </button>
+              {agreementStatus === "approved" ? (
+                <button
+                  type="button"
+                  className="tenancy-reg-form__btn-submit"
+                  onClick={handleDownloadSigned}
+                  disabled={downloadingSigned}
+                >
+                  {downloadingSigned ? <Loader className="h-4 w-4 mr-1.5 inline animate-spin" /> : <FileSignature className="h-4 w-4 mr-1.5 inline" />}
+                  Download Your Signed Copy
+                </button>
+              ) : (
+                <p className="tenancy-reg-form__note" style={{ fontSize: 13 }}>
+                  Your copy will be available to download once the estate office approves your registration.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -1289,28 +1295,27 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                   </dl>
                 </div>
                 <div className="tenancy-reg-form__confirm-actions">
-                  <button
-                    type="button"
-                    className="tenancy-reg-form__btn-tenant-copy"
-                    disabled={generating !== null}
-                    onClick={() => handleDownload("tenant")}
-                  >
-                    {generating === "tenant" ? <Loader className="h-3.5 w-3.5 mr-1.5 inline animate-spin" /> : null}
-                    Download Tenant&apos;s Copy
-                  </button>
-                  <button
-                    type="button"
-                    className="tenancy-reg-form__btn-landlord-copy"
-                    disabled={generating !== null}
-                    onClick={() => handleDownload("landlord")}
-                  >
-                    {generating === "landlord" ? <Loader className="h-3.5 w-3.5 mr-1.5 inline animate-spin" /> : null}
-                    Download Landlord&apos;s Copy
-                  </button>
-                  <button type="button" className="tenancy-reg-form__btn-print" onClick={() => window.print()}>
-                    <Printer className="h-3.5 w-3.5 mr-1.5 inline" />
-                    Print
-                  </button>
+                  {agreementStatus === "approved" ? (
+                    <>
+                      <button
+                        type="button"
+                        className="tenancy-reg-form__btn-tenant-copy"
+                        disabled={generating !== null}
+                        onClick={() => handleDownload("tenant")}
+                      >
+                        {generating === "tenant" ? <Loader className="h-3.5 w-3.5 mr-1.5 inline animate-spin" /> : null}
+                        Download Your Copy
+                      </button>
+                      <button type="button" className="tenancy-reg-form__btn-print" onClick={() => window.print()}>
+                        <Printer className="h-3.5 w-3.5 mr-1.5 inline" />
+                        Print
+                      </button>
+                    </>
+                  ) : (
+                    <p className="tenancy-reg-form__note" style={{ fontSize: 13 }}>
+                      Your copy will be available to download once the estate office approves your registration.
+                    </p>
+                  )}
                   <button type="button" className="tenancy-reg-form__btn-new" onClick={handleReset}>
                     Start New Registration
                   </button>
@@ -1337,24 +1342,25 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                   </div>
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Full Legal Name of Tenant<span className="tenancy-reg-form__req">*</span></label>
+                      <label className="tenancy-reg-form__label">Full Legal Name of Tenant</label>
                       <div className="tenancy-reg-form__name-group">
                         <select className="tenancy-reg-form__select" required value={tenantTitle} onChange={(e) => setTenantTitle(e.target.value)}>
                           <option value="">Title</option>
                           {TITLE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
-                        <input className="tenancy-reg-form__control" type="text" required placeholder="Full name" value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
+                        <input className="tenancy-reg-form__control" type="text" placeholder="Full name" value={tenantName} readOnly />
                       </div>
+                      <p className="tenancy-reg-form__note">On file with your estate office. Contact them if this needs correcting.</p>
                     </div>
                   </div>
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Phone Number<span className="tenancy-reg-form__req">*</span></label>
-                      <input className="tenancy-reg-form__control" type="tel" required placeholder="080..." value={tenantPhone} onChange={(e) => setTenantPhone(e.target.value)} />
+                      <label className="tenancy-reg-form__label">Phone Number</label>
+                      <input className="tenancy-reg-form__control" type="tel" value={tenantPhone} readOnly />
                     </div>
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Email Address<span className="tenancy-reg-form__req">*</span></label>
-                      <input className="tenancy-reg-form__control" type="email" required placeholder="name@example.com" value={tenantEmail} onChange={(e) => setTenantEmail(e.target.value)} />
+                      <label className="tenancy-reg-form__label">Email Address</label>
+                      <input className="tenancy-reg-form__control" type="email" value={tenantEmail} readOnly />
                     </div>
                   </div>
                   <div className="tenancy-reg-form__row">
@@ -1383,17 +1389,14 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                   </div>
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field tenancy-reg-form__field--full">
-                      <label className="tenancy-reg-form__label">Apartment Address<span className="tenancy-reg-form__req">*</span></label>
-                      <input className="tenancy-reg-form__control" type="text" required placeholder="No. ___ Street, Egbokodo Itsekiri" value={apartmentAddress} onChange={(e) => setApartmentAddress(e.target.value)} />
+                      <label className="tenancy-reg-form__label">Apartment Address</label>
+                      <input className="tenancy-reg-form__control" type="text" value={apartmentAddress} readOnly />
                     </div>
                   </div>
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Number of Bedrooms<span className="tenancy-reg-form__req">*</span></label>
-                      <select className="tenancy-reg-form__select" required value={bedrooms} onChange={(e) => setBedrooms(e.target.value)}>
-                        <option value="">Select</option>
-                        {BEDROOM_OPTIONS.map((b) => <option key={b} value={b}>{b}</option>)}
-                      </select>
+                      <label className="tenancy-reg-form__label">Number of Bedrooms</label>
+                      <input className="tenancy-reg-form__control" type="text" value={bedrooms} readOnly />
                     </div>
                     <div className="tenancy-reg-form__field">
                       <label className="tenancy-reg-form__label">Local Government Area</label>
@@ -1411,30 +1414,30 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field">
                       <label className="tenancy-reg-form__label">Rent per Day (&#8358;)</label>
-                      <input className="tenancy-reg-form__control" type="number" min={0} value={rentDay} onChange={(e) => setRentDay(e.target.value)} />
+                      <input className="tenancy-reg-form__control" type="number" value={rentDay} readOnly />
                     </div>
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Rent per Month (&#8358;)<span className="tenancy-reg-form__req">*</span></label>
-                      <input className="tenancy-reg-form__control" type="number" required min={0} value={rentMonth} onChange={(e) => setRentMonth(e.target.value)} />
+                      <label className="tenancy-reg-form__label">Rent per Month (&#8358;)</label>
+                      <input className="tenancy-reg-form__control" type="number" value={rentMonth} readOnly />
                     </div>
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Rent per Year (&#8358;)<span className="tenancy-reg-form__req">*</span></label>
-                      <input className="tenancy-reg-form__control" type="number" required min={0} value={rentYear} onChange={(e) => handleRentYearChange(e.target.value)} />
-                      <p className="tenancy-reg-form__note">Enter this first &mdash; the day and month amounts fill in automatically. You can still adjust either one after.</p>
+                      <label className="tenancy-reg-form__label">Rent per Year (&#8358;)</label>
+                      <input className="tenancy-reg-form__control" type="number" value={rentYear} readOnly />
+                      <p className="tenancy-reg-form__note">Set by your estate office. Contact them if this needs correcting.</p>
                     </div>
                   </div>
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Proposed Tenancy Start Date<span className="tenancy-reg-form__req">*</span></label>
-                      <input className="tenancy-reg-form__control" type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                      <label className="tenancy-reg-form__label">Proposed Tenancy Start Date</label>
+                      <input className="tenancy-reg-form__control" type="date" value={startDate} readOnly />
                     </div>
                     <div className="tenancy-reg-form__field">
                       <label className="tenancy-reg-form__label">One Time Caution Fee (&#8358;)</label>
-                      <input className="tenancy-reg-form__control" type="number" min={0} value={caution} onChange={(e) => setCaution(e.target.value)} />
+                      <input className="tenancy-reg-form__control" type="number" value={caution} readOnly />
                     </div>
                     <div className="tenancy-reg-form__field">
                       <label className="tenancy-reg-form__label">One Time Legal Fee (&#8358;)</label>
-                      <input className="tenancy-reg-form__control" type="number" min={0} value={legalFee} onChange={(e) => setLegalFee(e.target.value)} />
+                      <input className="tenancy-reg-form__control" type="number" value={legalFee} readOnly />
                     </div>
                   </div>
                 </div>
@@ -1598,58 +1601,60 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                     IN WITNESS WHEREOF, the parties hereto have hereunto set their respective hands, the day, month and year first above written.
                   </p>
 
-                  <div className="tenancy-reg-form__witness-block">
-                    <p className="tenancy-reg-form__witness-heading">Signed and Delivered by the within named &ldquo;LANDLORD&rdquo;</p>
-                    <p className="tenancy-reg-form__witness-name">{landlordName}</p>
-                    <div className="tenancy-reg-form__row">
-                      <SignatureField
-                        padRef={landlordSigRef}
-                        label="Landlord to sign below with mouse or finger"
-                        signed={landlordSigned}
-                        viewOnly={viewOnly}
-                      />
+                  {viewOnly && (
+                    <div className="tenancy-reg-form__witness-block">
+                      <p className="tenancy-reg-form__witness-heading">Signed and Delivered by the within named &ldquo;LANDLORD&rdquo;</p>
+                      <p className="tenancy-reg-form__witness-name">{landlordName}</p>
+                      <div className="tenancy-reg-form__row">
+                        <SignatureField
+                          padRef={landlordSigRef}
+                          label="Landlord to sign below with mouse or finger"
+                          signed={landlordSigned}
+                          viewOnly={viewOnly}
+                        />
+                      </div>
+                      <div className="tenancy-reg-form__row">
+                        <div className="tenancy-reg-form__field">
+                          <label className="tenancy-reg-form__label">Landlord&apos;s Typed Name as Signature</label>
+                          <input className="tenancy-reg-form__control tenancy-reg-form__typed-sig" type="text" value={landlordTypedSig} onChange={(e) => setLandlordTypedSig(e.target.value)} />
+                        </div>
+                        <div className="tenancy-reg-form__field">
+                          <label className="tenancy-reg-form__label">Date</label>
+                          <input className="tenancy-reg-form__control" type="date" value={landlordSigDate} onChange={(e) => setLandlordSigDate(e.target.value)} />
+                        </div>
+                      </div>
+                      <p className="tenancy-reg-form__witness-note">If the Landlord is not present to sign now, leave this blank &mdash; it can be appended upon approval of this registration.</p>
+                      <p className="tenancy-reg-form__witness-subheading">In the Presence of:</p>
+                      <div className="tenancy-reg-form__row">
+                        <div className="tenancy-reg-form__field">
+                          <label className="tenancy-reg-form__label">Witness Name</label>
+                          <input className="tenancy-reg-form__control" type="text" value={landlordWitnessName} onChange={(e) => setLandlordWitnessName(e.target.value)} />
+                        </div>
+                        <div className="tenancy-reg-form__field">
+                          <label className="tenancy-reg-form__label">Witness Address</label>
+                          <input className="tenancy-reg-form__control" type="text" value={landlordWitnessAddress} onChange={(e) => setLandlordWitnessAddress(e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="tenancy-reg-form__row">
+                        <div className="tenancy-reg-form__field">
+                          <label className="tenancy-reg-form__label">Witness Occupation</label>
+                          <input className="tenancy-reg-form__control" type="text" value={landlordWitnessOccupation} onChange={(e) => setLandlordWitnessOccupation(e.target.value)} />
+                        </div>
+                        <div className="tenancy-reg-form__field">
+                          <label className="tenancy-reg-form__label">Relationship to Landlord</label>
+                          <input className="tenancy-reg-form__control" type="text" placeholder="e.g. Family member, Friend, Agent" value={landlordWitnessRelationship} onChange={(e) => setLandlordWitnessRelationship(e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="tenancy-reg-form__row">
+                        <SignatureField
+                          padRef={landlordWitnessSigRef}
+                          label="Witness to sign below with mouse or finger"
+                          signed={landlordWitnessSigned}
+                          viewOnly={viewOnly}
+                        />
+                      </div>
                     </div>
-                    <div className="tenancy-reg-form__row">
-                      <div className="tenancy-reg-form__field">
-                        <label className="tenancy-reg-form__label">Landlord&apos;s Typed Name as Signature</label>
-                        <input className="tenancy-reg-form__control tenancy-reg-form__typed-sig" type="text" value={landlordTypedSig} onChange={(e) => setLandlordTypedSig(e.target.value)} />
-                      </div>
-                      <div className="tenancy-reg-form__field">
-                        <label className="tenancy-reg-form__label">Date</label>
-                        <input className="tenancy-reg-form__control" type="date" value={landlordSigDate} onChange={(e) => setLandlordSigDate(e.target.value)} />
-                      </div>
-                    </div>
-                    <p className="tenancy-reg-form__witness-note">If the Landlord is not present to sign now, leave this blank &mdash; it can be appended upon approval of this registration.</p>
-                    <p className="tenancy-reg-form__witness-subheading">In the Presence of:</p>
-                    <div className="tenancy-reg-form__row">
-                      <div className="tenancy-reg-form__field">
-                        <label className="tenancy-reg-form__label">Witness Name</label>
-                        <input className="tenancy-reg-form__control" type="text" value={landlordWitnessName} onChange={(e) => setLandlordWitnessName(e.target.value)} />
-                      </div>
-                      <div className="tenancy-reg-form__field">
-                        <label className="tenancy-reg-form__label">Witness Address</label>
-                        <input className="tenancy-reg-form__control" type="text" value={landlordWitnessAddress} onChange={(e) => setLandlordWitnessAddress(e.target.value)} />
-                      </div>
-                    </div>
-                    <div className="tenancy-reg-form__row">
-                      <div className="tenancy-reg-form__field">
-                        <label className="tenancy-reg-form__label">Witness Occupation</label>
-                        <input className="tenancy-reg-form__control" type="text" value={landlordWitnessOccupation} onChange={(e) => setLandlordWitnessOccupation(e.target.value)} />
-                      </div>
-                      <div className="tenancy-reg-form__field">
-                        <label className="tenancy-reg-form__label">Relationship to Landlord</label>
-                        <input className="tenancy-reg-form__control" type="text" placeholder="e.g. Family member, Friend, Agent" value={landlordWitnessRelationship} onChange={(e) => setLandlordWitnessRelationship(e.target.value)} />
-                      </div>
-                    </div>
-                    <div className="tenancy-reg-form__row">
-                      <SignatureField
-                        padRef={landlordWitnessSigRef}
-                        label="Witness to sign below with mouse or finger"
-                        signed={landlordWitnessSigned}
-                        viewOnly={viewOnly}
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   <div className="tenancy-reg-form__witness-block">
                     <p className="tenancy-reg-form__witness-heading">Signed and Delivered by the within named &ldquo;TENANT&rdquo;</p>
