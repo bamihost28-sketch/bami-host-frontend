@@ -16,11 +16,11 @@ import { EstateDetailPage } from '@/components/dashboard/business/EstateDetailPa
 import HeadOfficePage from '@/components/dashboard/HeadOfficePage';
 import GoogleWorkspacePage from '@/components/dashboard/GoogleWorkspacePage';
 import AgreementsListPage from '@/components/dashboard/AgreementsListPage';
+import { SignAgreementGate } from '@/components/dashboard/SignAgreementGate';
 import { AddPropertyPage } from '@/components/dashboard/business/AddPropertyPage';
 import { TenantDetailPage } from '@/components/dashboard/business/TenantDetailPage';
 import { FillingStationManagement } from '@/components/dashboard/business/FillingStationManagement';
 import { EquipmentManagement } from '@/components/dashboard/business/EquipmentManagement';
-import { VendorOnboarding } from '@/components/dashboard/business/VendorOnboarding';
 import { AccountingManagement } from '@/components/dashboard/business/AccountingManagement';
 import { CRMDashboard } from '@/components/dashboard/CRMDashboard';
 import { LibraryDashboard } from '@/components/dashboard/LibraryDashboardStub';
@@ -46,10 +46,16 @@ import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
 import { AIOpsCenter } from '@/components/skills/AIOpsCenter';
 import { ScaleDashboard } from '@/components/skills/ScaleDashboard';
 
+const SIGN_REQUIRED_ROLES = new Set(['business_owner', 'manager', 'super_manager', 'vendor', 'super_vendor']);
+
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
   const { canAccessNavigation } = usePermissions();
   const location = useLocation();
+
+  if (user && SIGN_REQUIRED_ROLES.has(user.role) && !user.agreementSignedAt) {
+    return <SignAgreementGate />;
+  }
 
   const renderDashboard = () => {
     console.log('Rendering dashboard for user:', user);
@@ -92,7 +98,6 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('estate')) return 'estate';
     if (pathname.includes('filling-station')) return 'filling-station';
     if (pathname.includes('equipment')) return 'equipment';
-    if (pathname.includes('vendor-onboarding')) return 'vendor-onboarding';
     if (pathname.includes('personal-portfolios')) return 'personal-portfolios';
     if (pathname.includes('goals')) return 'goals';
     if (pathname.includes('strategic-hiring-planner')) return 'strategic-hiring-planner';
@@ -347,18 +352,6 @@ const DashboardRouter: React.FC = () => {
           }
         />
 
-        <Route
-          path="/vendor-onboarding"
-          element={
-            <ProtectedRoute
-              element={<VendorOnboarding />}
-              requiredPermissions={['view_estate']}
-              feature="Vendor Management"
-              showUpgradePrompt={true}
-              viewName="vendor-onboarding"
-            />
-          }
-        />
 
         {/* Personal Portfolios */}
         <Route

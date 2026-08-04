@@ -1,25 +1,24 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Search, RefreshCw, FileSignature, ChevronLeft, ChevronRight, Eye, Download, Check, X, Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   useGetAgreementsQuery, useGetEstatesQuery, useReviewAgreementMutation,
   type AgreementListItem, type AgreementStatus,
 } from "@/services/estatesApi";
 import { BASE_API_URL } from "@/services/api";
 import { TenancyRegistrationForm } from "./tenant/TenancyRegistrationForm";
+import { SignatureField, type SignaturePadHandle } from "./shared/SignaturePad";
 import { useToast } from "@/components/providers/ToastProvider";
+import { useAuth } from "@/contexts/AuthContext";
 
 const fmtDate = (d?: string) =>
   d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -53,6 +52,7 @@ const AgreementStatusBadge = ({ status }: { status?: AgreementStatus }) => {
 
 export default function AgreementsListPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [estateId, setEstateId] = useState("all");
@@ -61,6 +61,8 @@ export default function AgreementsListPage() {
   const [rejectTarget, setRejectTarget] = useState<AgreementListItem | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [approveTarget, setApproveTarget] = useState<AgreementListItem | null>(null);
+  const [lawyerTypedName, setLawyerTypedName] = useState("");
+  const lawyerSigRef = useRef<SignaturePadHandle>(null);
 
   const { data: estatesData } = useGetEstatesQuery({ page: 1, limit: 200 });
   const estates = estatesData?.data ?? [];
@@ -86,10 +88,17 @@ export default function AgreementsListPage() {
 
   const handleApprove = async () => {
     if (!approveTarget) return;
+    if (!lawyerTypedName.trim() || !lawyerSigRef.current?.hasSignature()) return;
     try {
-      await reviewAgreement({ agreementId: approveTarget.id, status: "approved" }).unwrap();
+      await reviewAgreement({
+        agreementId: approveTarget.id,
+        status: "approved",
+        lawyerTypedName: lawyerTypedName.trim(),
+        lawyerSignatureImage: lawyerSigRef.current.dataUrl(),
+      }).unwrap();
       toast({ title: "Agreement approved" });
       setApproveTarget(null);
+      setLawyerTypedName("");
     } catch {
       toast({ title: "Couldn't approve", description: "Try again in a moment.", variant: "destructive" });
     }
@@ -271,7 +280,7 @@ export default function AgreementsListPage() {
                             <Button
                               variant="outline" size="sm"
                               className="h-8 px-2 text-xs text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-500"
-                              onClick={() => setApproveTarget(a)}
+                              onClick={() => { setApproveTarget(a); setLawyerTypedName(user?.name || ""); }}
                             >
                               <Check className="h-3.5 w-3.5" />
                             </Button>
@@ -361,26 +370,41 @@ export default function AgreementsListPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── approve confirmation ── */}
-      <AlertDialog open={!!approveTarget} onOpenChange={(open) => !open && setApproveTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Approve this agreement?</AlertDialogTitle>
-            <AlertDialogDescription>
+      {/* ── approve + sign ── */}
+      <Dialog open={!!approveTarget} onOpenChange={(open) => { if (!open) { setApproveTarget(null); setLawyerTypedName(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Approve this agreement</DialogTitle>
+            <DialogDescription>
               {approveTarget?.tenantName || "This tenant"}'s signed tenancy agreement
               {approveTarget?.estateName ? ` for ${approveTarget.estateName}` : ""}
               {approveTarget?.unitLabel ? ` (${approveTarget.unitLabel})` : ""} will be marked approved.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isReviewing}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleApprove} disabled={isReviewing}>
+              Sign below to confirm your review.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="lawyerTypedName">Type your full name to sign</Label>
+              <Input
+                id="lawyerTypedName"
+                value={lawyerTypedName}
+                onChange={(e) => setLawyerTypedName(e.target.value)}
+                placeholder="Full name"
+              />
+            </div>
+            <SignatureField padRef={lawyerSigRef} label="Draw your signature" required signed={false} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setApproveTarget(null); setLawyerTypedName(""); }} disabled={isReviewing}>
+              Cancel
+            </Button>
+            <Button onClick={handleApprove} disabled={isReviewing || !lawyerTypedName.trim()}>
               {isReviewing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
-              Approve
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Sign and Approve
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── reject reason ── */}
       <Dialog open={!!rejectTarget} onOpenChange={(open) => !open && setRejectTarget(null)}>

@@ -12,6 +12,7 @@ export interface User {
   emailVerified: boolean;
   lastLogin: string;
   createdAt: string;
+  agreementSignedAt?: string | null;
   // Role-specific fields
   assignedEstates?: string[]; // For business_owner role
   permissions?: string[];     // For super_admin role (e.g., ["all"])
@@ -219,4 +220,14 @@ export interface UpdateManagerResponse {
 export interface DeleteManagerResponse {
   success: boolean;
   message: string;
+}
+
+export interface SignAgreementRequest {
+  typedName: string;
+  signatureImage?: string | null;
+}
+
+export interface SignAgreementResponse {
+  success: boolean;
+  user: User;
 }

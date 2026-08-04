@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { LoginRequest, LoginResponse, UpdateEmailRequest, UpdateEmailResponse, UpdatePasswordRequest, UpdatePasswordResponse, OnboardBusinessOwnerRequest, OnboardBusinessOwnerResponse, GetBusinessOwnersResponse, UpdateBusinessOwnerRequest, UpdateBusinessOwnerStatusRequest, UpdateBusinessOwnerResponse, DeleteBusinessOwnerResponse, OnboardManagerRequest, OnboardManagerResponse, GetManagersResponse, UpdateManagerRequest, UpdateManagerResponse, DeleteManagerResponse, RequestOtpRequest, VerifyOtpRequest, ResetPasswordOtpRequest, AuthResponse } from '../types/auth';
+import type { LoginRequest, LoginResponse, UpdateEmailRequest, UpdateEmailResponse, UpdatePasswordRequest, UpdatePasswordResponse, OnboardBusinessOwnerRequest, OnboardBusinessOwnerResponse, GetBusinessOwnersResponse, UpdateBusinessOwnerRequest, UpdateBusinessOwnerStatusRequest, UpdateBusinessOwnerResponse, DeleteBusinessOwnerResponse, OnboardManagerRequest, OnboardManagerResponse, GetManagersResponse, UpdateManagerRequest, UpdateManagerResponse, DeleteManagerResponse, RequestOtpRequest, VerifyOtpRequest, ResetPasswordOtpRequest, AuthResponse, SignAgreementRequest, SignAgreementResponse } from '../types/auth';
 import { BASE_API_URL } from './api';
 
 // Define a service using a base URL and expected endpoints
@@ -181,6 +181,14 @@ export const authApi = createApi({
       }),
       invalidatesTags: ['Auth'],
     }),
+    signAgreement: builder.mutation<SignAgreementResponse, SignAgreementRequest>({
+      query: (data) => ({
+        url: '/api/auth/me/sign-agreement',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Auth'],
+    }),
   }),
 });
 
@@ -205,5 +213,6 @@ export const {
   useResendVendorCredentialsMutation,
   useRequestOtpMutation,
   useVerifyOtpMutation,
-  useResetPasswordWithOtpMutation
+  useResetPasswordWithOtpMutation,
+  useSignAgreementMutation
 } = authApi;

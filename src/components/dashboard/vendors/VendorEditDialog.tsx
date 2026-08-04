@@ -5,8 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Plus, X, MapPin, Clock, Award, FileText, Building2 } from 'lucide-react';
-import type { Vendor, VendorServiceItem, VendorOperationalHours } from '@/services/vendorsApi';
+import { Loader2, Plus, X, MapPin, Award, FileText, Building2 } from 'lucide-react';
+import type { Vendor } from '@/services/vendorsApi';
 
 interface VendorEditDialogProps {
   open: boolean;
@@ -30,10 +30,7 @@ export interface VendorEditData {
   certification?: string;
   isVerifiedPro?: boolean;
   businessAddress?: string;
-  location?: string;
-  operationalHours?: VendorOperationalHours;
   portfolio?: string[];
-  services?: VendorServiceItem[];
 }
 
 export const VendorEditDialog: React.FC<VendorEditDialogProps> = ({
@@ -57,40 +54,13 @@ export const VendorEditDialog: React.FC<VendorEditDialogProps> = ({
     certification: '',
     isVerifiedPro: false,
     businessAddress: '',
-    location: '',
-    operationalHours: {},
     portfolio: [],
-    services: [],
   });
 
-  const [serviceName, setServiceName] = useState('');
-  const [servicePrice, setServicePrice] = useState('');
   const [portfolioUrl, setPortfolioUrl] = useState('');
 
   useEffect(() => {
     if (vendor) {
-      let vendorServices: VendorServiceItem[] = [];
-      if (Array.isArray(vendor.services)) {
-        vendorServices = vendor.services as VendorServiceItem[];
-      } else if (typeof vendor.services === 'string' && vendor.services) {
-        try {
-          vendorServices = JSON.parse(vendor.services);
-        } catch {
-          vendorServices = [];
-        }
-      }
-
-      let vendorOperationalHours: VendorOperationalHours = {};
-      if (typeof vendor.operationalHours === 'object' && vendor.operationalHours !== null) {
-        vendorOperationalHours = vendor.operationalHours as VendorOperationalHours;
-      } else if (typeof vendor.operationalHours === 'string' && vendor.operationalHours) {
-        try {
-          vendorOperationalHours = JSON.parse(vendor.operationalHours);
-        } catch {
-          vendorOperationalHours = {};
-        }
-      }
-
       setFormData({
         name: vendor.name || '',
         email: vendor.email || '',
@@ -104,31 +74,10 @@ export const VendorEditDialog: React.FC<VendorEditDialogProps> = ({
         certification: vendor.certification || '',
         isVerifiedPro: vendor.isVerifiedPro || false,
         businessAddress: vendor.businessAddress || '',
-        location: typeof vendor.location === 'object' ? (vendor.location as any)?.address || '' : (vendor.location as string) || '',
-        operationalHours: vendorOperationalHours,
         portfolio: Array.isArray(vendor.portfolio) ? vendor.portfolio : [],
-        services: vendorServices,
       });
     }
   }, [vendor, open]);
-
-  const addService = () => {
-    if (serviceName.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        services: [...(prev.services || []), { name: serviceName.trim(), price: servicePrice ? Number(servicePrice) : undefined }],
-      }));
-      setServiceName('');
-      setServicePrice('');
-    }
-  };
-
-  const removeService = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      services: (prev.services || []).filter((_, i) => i !== index),
-    }));
-  };
 
   const addPortfolioUrl = () => {
     if (portfolioUrl.trim()) {
@@ -156,8 +105,6 @@ export const VendorEditDialog: React.FC<VendorEditDialogProps> = ({
       // Error is handled by parent component
     }
   };
-
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -325,41 +272,6 @@ export const VendorEditDialog: React.FC<VendorEditDialogProps> = ({
                 placeholder="Full business address"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="location">Location (address/coordinates)</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Location details"
-              />
-            </div>
-          </div>
-
-          {/* Operational Hours */}
-          <div className="grid gap-4">
-            <h4 className="text-sm font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Operational Hours
-            </h4>
-            <div className="grid grid-cols-2 gap-3">
-              {days.map((day) => (
-                <div key={day} className="grid gap-1">
-                  <Label className="capitalize text-xs">{day}</Label>
-                  <Input
-                    value={formData.operationalHours?.[day] || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      operationalHours: {
-                        ...formData.operationalHours,
-                        [day]: e.target.value,
-                      },
-                    })}
-                    placeholder="e.g. 9 AM - 5 PM"
-                  />
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Portfolio */}
@@ -385,40 +297,6 @@ export const VendorEditDialog: React.FC<VendorEditDialogProps> = ({
                   <span className="truncate max-w-[150px]">{url}</span>
                   <button type="button" onClick={() => removePortfolioUrl(index)} className="text-destructive hover:text-destructive/80">
                     <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Services Menu */}
-          <div className="grid gap-4">
-            <h4 className="text-sm font-medium">Services Menu</h4>
-            <div className="flex gap-2">
-              <Input
-                value={serviceName}
-                onChange={(e) => setServiceName(e.target.value)}
-                placeholder="Service name"
-                className="flex-1"
-              />
-              <Input
-                value={servicePrice}
-                onChange={(e) => setServicePrice(e.target.value)}
-                placeholder="Price (optional)"
-                type="number"
-                className="w-32"
-              />
-              <Button type="button" variant="outline" onClick={addService}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {(formData.services || []).map((service, index) => (
-                <div key={index} className="flex items-center justify-between bg-muted px-3 py-2 rounded">
-                  <span>{service.name}</span>
-                  {service.price !== undefined && <span className="text-muted-foreground">₦{service.price.toLocaleString()}</span>}
-                  <button type="button" onClick={() => removeService(index)} className="text-destructive hover:text-destructive/80">
-                    <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}

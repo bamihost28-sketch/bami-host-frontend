@@ -1,8 +1,6 @@
 import React, {
-  forwardRef,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -13,6 +11,7 @@ import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { BASE_API_URL } from "@/services/api";
 import { NBA_SEAL_DATA } from "./nbaSealData";
+import { SignatureField, type SignaturePadHandle } from "../shared/SignaturePad";
 import "./tenancy-registration-form.css";
 
 const TITLE_OPTIONS = ["Mr.", "Mrs.", "Miss", "Ms.", "Dr."];
@@ -150,145 +149,6 @@ function Blank({ value, placeholder }: { value: string; placeholder: string }) {
     <span className={`tenancy-reg-form__blank${filled ? " tenancy-reg-form__blank--filled" : ""}`}>
       {filled ? value : placeholder}
     </span>
-  );
-}
-
-export interface SignaturePadHandle {
-  clear: () => void;
-  hasSignature: () => boolean;
-  dataUrl: () => string;
-}
-
-const SignaturePad = forwardRef<
-  SignaturePadHandle,
-  { onSignedChange?: (signed: boolean) => void }
->(({ onSignedChange }, ref) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawing = useRef(false);
-  const hasDrawn = useRef(false);
-  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
-
-  const resize = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ratio = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.scale(ratio, ratio);
-      ctx.lineWidth = 2;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = "#16241C";
-      ctxRef.current = ctx;
-    }
-  }, []);
-
-  React.useEffect(() => {
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
-  }, [resize]);
-
-  const pos = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    const rect = canvasRef.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  };
-
-  const start = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    drawing.current = true;
-    hasDrawn.current = true;
-    onSignedChange?.(true);
-    const { x, y } = pos(e);
-    ctxRef.current?.beginPath();
-    ctxRef.current?.moveTo(x, y);
-  };
-
-  const move = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!drawing.current) return;
-    const { x, y } = pos(e);
-    ctxRef.current?.lineTo(x, y);
-    ctxRef.current?.stroke();
-  };
-
-  const end = () => {
-    drawing.current = false;
-  };
-
-  const clear = () => {
-    const canvas = canvasRef.current;
-    if (canvas && ctxRef.current) {
-      ctxRef.current.clearRect(0, 0, canvas.width, canvas.height);
-    }
-    hasDrawn.current = false;
-    onSignedChange?.(false);
-  };
-
-  useImperativeHandle(ref, () => ({
-    clear,
-    hasSignature: () => hasDrawn.current,
-    dataUrl: () => canvasRef.current?.toDataURL("image/png") ?? "",
-  }));
-
-  return (
-    <div className="tenancy-reg-form__sigwrap">
-      <canvas
-        ref={canvasRef}
-        onPointerDown={start}
-        onPointerMove={move}
-        onPointerUp={end}
-        onPointerLeave={end}
-      />
-    </div>
-  );
-});
-SignaturePad.displayName = "SignaturePad";
-
-function SignatureField({
-  padRef,
-  label,
-  required,
-  signed,
-  optionalHint,
-  viewOnly,
-  imageSrc,
-}: {
-  padRef: React.RefObject<SignaturePadHandle>;
-  label: string;
-  required?: boolean;
-  signed: boolean;
-  optionalHint?: string;
-  viewOnly?: boolean;
-  imageSrc?: string | null;
-}) {
-  if (viewOnly) {
-    return (
-      <div className="tenancy-reg-form__field tenancy-reg-form__field--full">
-        <label className="tenancy-reg-form__label">{label}</label>
-        <div className="tenancy-reg-form__sigwrap">
-          {imageSrc ? (
-            <img src={imageSrc} alt="Signature" style={{ maxHeight: "100%", maxWidth: "100%" }} />
-          ) : (
-            <span className="tenancy-reg-form__note">No signature on file</span>
-          )}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="tenancy-reg-form__field tenancy-reg-form__field--full">
-      <label className="tenancy-reg-form__label">
-        {label}
-        {required && <span className="tenancy-reg-form__req">*</span>}
-      </label>
-      <SignaturePad ref={padRef} onSignedChange={() => { /* status re-render handled by parent state */ }} />
-      <div className="tenancy-reg-form__sig-tools">
-        <button type="button" onClick={() => padRef.current?.clear()}>Clear Signature</button>
-        <span className="tenancy-reg-form__note">{signed ? "Signed" : "Not yet signed"}</span>
-      </div>
-      {optionalHint && <p className="tenancy-reg-form__note">{optionalHint}</p>}
-    </div>
   );
 }
 

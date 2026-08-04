@@ -909,11 +909,11 @@ export const estatesApi = createApi({
     // Response `data` is the agreement's full _serialize() shape (parties/terms/
     // registration/...), not an AgreementListItem — unused by callers, who only
     // check success via .unwrap(), so left untyped rather than claimed wrongly.
-    reviewAgreement: builder.mutation<{ success: boolean; data: unknown }, { agreementId: string; status: 'approved' | 'rejected'; reason?: string }>({
-      query: ({ agreementId, status, reason }) => ({
+    reviewAgreement: builder.mutation<{ success: boolean; data: unknown }, { agreementId: string; status: 'approved' | 'rejected'; reason?: string; lawyerTypedName?: string; lawyerSignatureImage?: string | null }>({
+      query: ({ agreementId, status, reason, lawyerTypedName, lawyerSignatureImage }) => ({
         url: `/api/tenancy-agreements/${agreementId}/status`,
         method: 'PATCH',
-        body: { status, reason },
+        body: { status, reason, lawyerTypedName, lawyerSignatureImage },
       }),
       invalidatesTags: [{ type: 'TenantList' as const, id: 'AGREEMENTS_LIST' }],
     }),

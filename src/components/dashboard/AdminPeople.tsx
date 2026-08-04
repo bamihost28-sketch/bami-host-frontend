@@ -116,16 +116,6 @@ export const AdminPeople = () => {
   // Vendor Edit State
   const [editVendorOpen, setEditVendorOpen] = useState(false);
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
-  const [editVendorName, setEditVendorName] = useState('');
-  const [editVendorEmail, setEditVendorEmail] = useState('');
-  const [editVendorPhone, setEditVendorPhone] = useState('');
-  const [editVendorBusinessTypeId, setEditVendorBusinessTypeId] = useState('');
-  const [editVendorBusinessName, setEditVendorBusinessName] = useState('');
-  const [editVendorSpecialization, setEditVendorSpecialization] = useState('');
-  const [editVendorCacNumber, setEditVendorCacNumber] = useState('');
-  const [editVendorBusinessAddress, setEditVendorBusinessAddress] = useState('');
-  const [editVendorServices, setEditVendorServices] = useState('');
-  const [editVendorOperationalHours, setEditVendorOperationalHours] = useState('');
 
   // Manager Edit State
   const [editManagerOpen, setEditManagerOpen] = useState(false);
@@ -263,48 +253,9 @@ export const AdminPeople = () => {
     }
   };
 
-  const openVendorEdit = (vendor: any) => {
+  const openVendorEdit = (vendor: Vendor) => {
     setEditingVendor(vendor);
-    setEditVendorName(vendor.name);
-    setEditVendorEmail(vendor.email);
-    setEditVendorPhone(vendor.phone || '');
-    setEditVendorBusinessTypeId(vendor.businessTypeId || '');
-    setEditVendorBusinessName(vendor.businessName || '');
-    setEditVendorSpecialization(vendor.specialization || '');
-    setEditVendorCacNumber(vendor.cacNumber || '');
-    setEditVendorBusinessAddress(vendor.businessAddress || '');
-    setEditVendorServices(vendor.services || '');
-    setEditVendorOperationalHours(vendor.operationalHours || '');
     setEditVendorOpen(true);
-  };
-
-  const handleVendorEdit = async () => {
-    if (!editingVendor) return;
-    try {
-      await updateVendor({
-        id: editingVendor.id || editingVendor._id || '',
-        data: {
-          name: editVendorName.trim(),
-          email: editVendorEmail.trim(),
-          phone: editVendorPhone.trim(),
-          businessTypeId: editVendorBusinessTypeId || undefined,
-          businessName: editVendorBusinessName.trim(),
-          specialization: editVendorSpecialization.trim(),
-          cacNumber: editVendorCacNumber.trim(),
-          businessAddress: editVendorBusinessAddress.trim(),
-          services: editVendorServices.trim(),
-          operationalHours: editVendorOperationalHours.trim(),
-        },
-      }).unwrap();
-      toast({ title: 'Vendor updated successfully' });
-      setEditVendorOpen(false);
-    } catch (error: any) {
-      toast({
-        title: 'Failed to update vendor',
-        description: error?.data?.message || 'An error occurred',
-        variant: 'destructive',
-      });
-    }
   };
 
   const handleVendorDelete = async (vendorId: string) => {
@@ -956,10 +907,7 @@ export const AdminPeople = () => {
               certification: data.certification,
               isVerifiedPro: data.isVerifiedPro,
               businessAddress: data.businessAddress,
-              location: data.location,
-              operationalHours: data.operationalHours,
               portfolio: data.portfolio,
-              services: data.services,
             },
           }).unwrap();
           toast({ title: "Vendor updated successfully" });

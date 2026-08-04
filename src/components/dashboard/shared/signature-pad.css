@@ -1,0 +1,41 @@
+.sig-pad{
+  --sig-ink:#16241C;
+  --sig-muted:#5B5747;
+  --sig-border:#9c927a;
+}
+
+.sig-pad__field{flex:1 1 220px; display:flex; flex-direction:column; width:100%;}
+.sig-pad__field--full{flex-basis:100%;}
+
+.sig-pad__label{
+  font-size:12px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--sig-muted);
+  margin-bottom:6px;
+  display:block;
+}
+
+.sig-pad__req{color:#b3261e; margin-left:2px;}
+
+.sig-pad__wrap{
+  border:1.5px solid var(--sig-border);
+  border-radius:6px;
+  background:#fff;
+  padding:8px;
+}
+.sig-pad__wrap canvas{
+  width:100%; height:130px; display:block; touch-action:none; cursor:crosshair;
+  background:#fff;
+}
+
+.sig-pad__tools{display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:8px;}
+.sig-pad__tools button{
+  font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+  background:none; border:1px solid var(--sig-muted); color:var(--sig-muted);
+  padding:6px 10px; border-radius:4px; cursor:pointer;
+}
+.sig-pad__tools button:hover{border-color:var(--sig-ink); color:var(--sig-ink);}
+
+.sig-pad__note{font-size:12px; color:var(--sig-muted); margin-top:5px; font-style:italic;}

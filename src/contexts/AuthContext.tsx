@@ -13,6 +13,7 @@ export interface User {
   emailVerified: boolean;
   lastLogin: string;
   createdAt: string;
+  agreementSignedAt?: string | null;
   // Role-specific fields
   assignedEstates?: string[];
   permissions?: string[];

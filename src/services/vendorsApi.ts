@@ -25,25 +25,7 @@ export interface Vendor {
     certification?: string;
     isVerifiedPro?: boolean;
     businessAddress?: string;
-    location?: {
-        type?: string;
-        coordinates?: number[];
-        address?: string;
-    };
-    operationalHours?: {
-        monday?: string;
-        tuesday?: string;
-        wednesday?: string;
-        thursday?: string;
-        friday?: string;
-        saturday?: string;
-        sunday?: string;
-    };
     portfolio?: string[];
-    services?: Array<{
-        name: string;
-        price?: number;
-    }>;
     assignedBusinesses: any[];
     createdAt: string;
     updatedAt: string;
@@ -61,21 +43,6 @@ export interface OnboardVendorPayload {
     sendCredentials?: boolean;
 }
 
-export interface VendorServiceItem {
-    name: string;
-    price?: number;
-}
-
-export interface VendorOperationalHours {
-    monday?: string;
-    tuesday?: string;
-    wednesday?: string;
-    thursday?: string;
-    friday?: string;
-    saturday?: string;
-    sunday?: string;
-}
-
 export interface UpdateVendorPayload {
     name?: string;
     email?: string;
@@ -89,14 +56,7 @@ export interface UpdateVendorPayload {
     certification?: string;
     isVerifiedPro?: boolean;
     businessAddress?: string;
-    location?: {
-        type?: string;
-        coordinates?: number[];
-        address?: string;
-    };
-    operationalHours?: VendorOperationalHours;
     portfolio?: string[];
-    services?: VendorServiceItem[];
 }
 
 export interface VendorResponse {

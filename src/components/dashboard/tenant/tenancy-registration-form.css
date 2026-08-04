@@ -463,6 +463,39 @@
 }
 .tenancy-reg-form__sig-tools button:hover{border-color:var(--ink); color:var(--ink);}
 
+/* Shared SignaturePad/SignatureField (src/components/dashboard/shared) reproduced
+   with this form's parchment look — see signature-pad.css for its own defaults. */
+.tenancy-reg-form .sig-pad__field{flex:1 1 220px; display:flex; flex-direction:column;}
+.tenancy-reg-form .sig-pad__field--full{flex-basis:100%;}
+.tenancy-reg-form .sig-pad__label{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--muted);
+  margin-bottom:6px;
+  display:block;
+}
+.tenancy-reg-form .sig-pad__req{color:var(--seal); margin-left:2px;}
+.tenancy-reg-form .sig-pad__wrap{
+  border:1.5px solid #9c927a;
+  border-radius:2px;
+  background:#fff;
+  padding:8px;
+}
+.tenancy-reg-form .sig-pad__wrap canvas{
+  width:100%; height:130px; display:block; touch-action:none; cursor:crosshair;
+  background:repeating-linear-gradient(#fff, #fff 27px, #d8cdae 28px);
+}
+.tenancy-reg-form .sig-pad__tools{display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:8px;}
+.tenancy-reg-form .sig-pad__tools button{
+  font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
+  background:none; border:1px solid var(--muted); color:var(--muted);
+  padding:6px 10px; border-radius:2px; cursor:pointer;
+}
+.tenancy-reg-form .sig-pad__tools button:hover{border-color:var(--ink); color:var(--ink);}
+.tenancy-reg-form .sig-pad__note{font-size:12px; color:var(--muted); margin-top:5px; font-style:italic;}
+
 .tenancy-reg-form__typed-sig{font-family:'Zilla Slab',serif; font-style:italic;}
 
 .tenancy-reg-form__witness-intro{
