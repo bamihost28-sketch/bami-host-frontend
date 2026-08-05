@@ -20,6 +20,7 @@ import { SignAgreementGate } from '@/components/dashboard/SignAgreementGate';
 import { AddPropertyPage } from '@/components/dashboard/business/AddPropertyPage';
 import { TenantDetailPage } from '@/components/dashboard/business/TenantDetailPage';
 import { FillingStationManagement } from '@/components/dashboard/business/FillingStationManagement';
+import { CarWashManagement } from '@/components/dashboard/business/CarWashManagement';
 import { EquipmentManagement } from '@/components/dashboard/business/EquipmentManagement';
 import { AccountingManagement } from '@/components/dashboard/business/AccountingManagement';
 import { CRMDashboard } from '@/components/dashboard/CRMDashboard';
@@ -97,6 +98,7 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('tenant')) return 'estate';
     if (pathname.includes('estate')) return 'estate';
     if (pathname.includes('filling-station')) return 'filling-station';
+    if (pathname.includes('car-wash')) return 'car-wash';
     if (pathname.includes('equipment')) return 'equipment';
     if (pathname.includes('personal-portfolios')) return 'personal-portfolios';
     if (pathname.includes('goals')) return 'goals';
@@ -334,6 +336,20 @@ const DashboardRouter: React.FC = () => {
               feature="Filling Station Management"
               showUpgradePrompt={true}
               viewName="filling-station"
+            />
+          }
+        />
+
+        {/* Car Wash */}
+        <Route
+          path="/car-wash"
+          element={
+            <ProtectedRoute
+              element={<CarWashManagement />}
+              requiredPermissions={['view_car_wash']}
+              feature="Car Wash Management"
+              showUpgradePrompt={true}
+              viewName="car-wash"
             />
           }
         />

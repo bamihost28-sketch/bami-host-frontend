@@ -120,6 +120,18 @@ export const PERMISSIONS: Record<string, Permission> = {
     description: 'Full equipment rental management and scheduling',
     category: 'business'
   },
+  'view_car_wash': {
+    id: 'view_car_wash',
+    name: 'View Car Wash',
+    description: 'Access to Bami-Wash operations and data',
+    category: 'business'
+  },
+  'manage_car_wash': {
+    id: 'manage_car_wash',
+    name: 'Manage Car Wash',
+    description: 'Full Bami-Wash management and operations',
+    category: 'business'
+  },
 
   // Personal Life Portfolios
   'view_personal_portfolios': {
@@ -443,6 +455,7 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'view_estate',
       'view_filling_station',
       'view_equipment',
+      'view_car_wash',
       'view_payment_history',
       'manage_reports',
       'view_all_data',
@@ -480,6 +493,7 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'view_estate',
       'view_filling_station',
       'view_equipment',
+      'view_car_wash',
       'view_payment_history',
       'manage_reports',
       'view_all_data',
@@ -528,6 +542,8 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'manage_filling_station',
       'view_equipment',
       'manage_equipment',
+      'view_car_wash',
+      'manage_car_wash',
       'manage_commissions',
       'view_payment_history',
       // Strategic Hiring (limited)
@@ -572,6 +588,8 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'manage_filling_station',
       'view_equipment',
       'manage_equipment',
+      'view_car_wash',
+      'manage_car_wash',
       'manage_commissions',
       'view_payment_history',
       'view_all_data',
@@ -715,6 +733,7 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'settings': ['view_settings'],
   'estate': ['view_estate'],
   'filling-station': ['view_filling_station'],
+  'car-wash': ['view_car_wash'],
   'equipment': ['view_equipment'],
   'personal-portfolios': ['view_personal_portfolios'],
   // Strategic Hiring Navigation

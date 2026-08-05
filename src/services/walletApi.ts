@@ -41,7 +41,7 @@ export interface GlobalWalletResponse {
 }
 
 // Transaction list types
-export type WalletTxType = 'rent' | 'deposit' | 'service_charge' | 'caution_fee' | 'legal_fee' | 'withdrawal' | 'other';
+export type WalletTxType = 'rent' | 'deposit' | 'service_charge' | 'caution_fee' | 'legal_fee' | 'withdrawal' | 'car_wash_payment' | 'car_wash_refund' | 'other';
 export type WalletTxStatus = 'paid' | 'completed' | 'pending' | 'failed';
 
 export interface WalletTransactionListItem {

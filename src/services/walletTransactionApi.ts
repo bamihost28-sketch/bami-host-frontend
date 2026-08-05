@@ -34,7 +34,7 @@ export interface WalletResponse {
 // TRANSACTION TYPES
 // ============================================
 
-export type TransactionType = 'deposit' | 'withdraw' | 'transfer' | 'rent' | 'other';
+export type TransactionType = 'deposit' | 'withdraw' | 'transfer' | 'rent' | 'car_wash_payment' | 'car_wash_refund' | 'other';
 export type TransactionMethod = 'card' | 'bank_transfer' | 'ussd' | 'other';
 export type TransactionStatus = 'completed' | 'pending' | 'failed' | 'paid';
 export type RecipientType = 'user' | 'estate';

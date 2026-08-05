@@ -23,6 +23,7 @@ import { personalFinanceApi } from '../services/personalFinanceApi';
 import { feedbackApi } from '../services/feedbackApi';
 import { googleWorkspaceApi } from '../services/googleWorkspaceApi';
 import { agreementApi } from '../services/agreementApi';
+import { carWashApi } from '../services/carWashApi';
 import authReducer from './authSlice';
 
 export const store = configureStore({
@@ -58,6 +59,7 @@ export const store = configureStore({
     [feedbackApi.reducerPath]: feedbackApi.reducer,
     [googleWorkspaceApi.reducerPath]: googleWorkspaceApi.reducer,
     [agreementApi.reducerPath]: agreementApi.reducer,
+    [carWashApi.reducerPath]: carWashApi.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
@@ -92,6 +94,7 @@ export const store = configureStore({
       feedbackApi.middleware,
       googleWorkspaceApi.middleware,
       agreementApi.middleware,
+      carWashApi.middleware,
     ),
 });
 
