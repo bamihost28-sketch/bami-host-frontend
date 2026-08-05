@@ -46,7 +46,7 @@ import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
 import { AIOpsCenter } from '@/components/skills/AIOpsCenter';
 import { ScaleDashboard } from '@/components/skills/ScaleDashboard';
 
-const SIGN_REQUIRED_ROLES = new Set(['business_owner', 'manager', 'super_manager', 'vendor', 'super_vendor']);
+const SIGN_REQUIRED_ROLES = new Set(['business_owner', 'manager', 'super_manager', 'vendor', 'super_vendor', 'super_admin', 'admin']);
 
 const DashboardRouter: React.FC = () => {
   const { user } = useAuth();
