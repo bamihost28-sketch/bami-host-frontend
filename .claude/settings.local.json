@@ -41,5 +41,20 @@
       "/Users/temple/Documents/Bami/BamiHustle-backend/routes",
       "/Users/temple/Documents/Bami/BamiHustle-backend/models"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/temple/Documents/Bami/BamiHustle-frontend/.claude/hooks/notify-push.py",
+            "if": "Bash(git push*)",
+            "timeout": 25
+          }
+        ]
+      }
+    ]
   }
 }
