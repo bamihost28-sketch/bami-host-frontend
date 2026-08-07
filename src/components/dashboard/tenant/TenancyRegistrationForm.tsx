@@ -966,14 +966,18 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
               lying at <Blank value={apartmentAddress.trim()} placeholder="apartment address" /> in Warri South
               Local Government Area of Delta State, Nigeria).
             </div>
-            <div className="tenancy-reg-form__cover-prepared-row">
-              <p className="tenancy-reg-form__cover-prepared-label">PREPARED BY:</p>
-              <img src={NBA_SEAL_DATA} className="tenancy-reg-form__cover-seal" alt="Nigerian Bar Association verification seal" />
-            </div>
-            <div className="tenancy-reg-form__cover-solicitor">
-              <strong>{SOLICITOR_NAME}</strong><br />
-              {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
-            </div>
+            {(viewOnly || agreementStatus === "approved") && (
+              <>
+                <div className="tenancy-reg-form__cover-prepared-row">
+                  <p className="tenancy-reg-form__cover-prepared-label">PREPARED BY:</p>
+                  <img src={NBA_SEAL_DATA} className="tenancy-reg-form__cover-seal" alt="Nigerian Bar Association verification seal" />
+                </div>
+                <div className="tenancy-reg-form__cover-solicitor">
+                  <strong>{SOLICITOR_NAME}</strong><br />
+                  {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="tenancy-reg-form__recitals">
@@ -1496,17 +1500,19 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
           </div>
         </div>
 
-        <div className="tenancy-reg-form__prepared-by">
-          <div className="tenancy-reg-form__prepared-by-text">
-            <div className="tenancy-reg-form__prepared-by-line" />
-            <p className="tenancy-reg-form__prepared-by-label">Prepared By:</p>
-            <p>
-              <strong>{SOLICITOR_NAME}</strong><br />
-              {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
-            </p>
+        {(viewOnly || agreementStatus === "approved") && (
+          <div className="tenancy-reg-form__prepared-by">
+            <div className="tenancy-reg-form__prepared-by-text">
+              <div className="tenancy-reg-form__prepared-by-line" />
+              <p className="tenancy-reg-form__prepared-by-label">Prepared By:</p>
+              <p>
+                <strong>{SOLICITOR_NAME}</strong><br />
+                {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
+              </p>
+            </div>
+            <img src={NBA_SEAL_DATA} className="tenancy-reg-form__prepared-by-seal" alt="Nigerian Bar Association verification seal" />
           </div>
-          <img src={NBA_SEAL_DATA} className="tenancy-reg-form__prepared-by-seal" alt="Nigerian Bar Association verification seal" />
-        </div>
+        )}
 
         <div className="tenancy-reg-form__footer-note">
           This form does not itself constitute the final signed Tenancy Agreement &mdash; it registers the Tenant&apos;s particulars and consent for the Landlord&apos;s review.
