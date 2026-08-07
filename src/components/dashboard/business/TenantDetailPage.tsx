@@ -121,14 +121,14 @@ export const TenantDetailPage = () => {
       <Card>
         <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-6">
           <div>
-            <p className="font-medium">Printable registration form</p>
+            <p className="font-medium">Printable Tenancy Agreement form</p>
             <p className="text-sm text-muted-foreground">
               What the tenant has filled and signed, in the same paper-style layout they see.
             </p>
           </div>
           <Button variant="outline" onClick={() => setRegistrationFormOpen(true)}>
             <FileText className="h-4 w-4 mr-1.5" />
-            Open Registration Form
+            Open Tenancy Agreement Form
           </Button>
         </CardContent>
       </Card>
@@ -147,7 +147,7 @@ export const TenantDetailPage = () => {
       <Dialog open={registrationFormOpen} onOpenChange={setRegistrationFormOpen}>
         <DialogContent className="max-w-4xl w-[95vw] h-[90vh] p-0 flex flex-col">
           <DialogHeader className="px-4 pt-4">
-            <DialogTitle>Tenancy Registration Form</DialogTitle>
+            <DialogTitle>Tenancy Agreement Form</DialogTitle>
             <DialogDescription>
               What the tenant has filled and signed, in the same paper-style layout they see.
             </DialogDescription>

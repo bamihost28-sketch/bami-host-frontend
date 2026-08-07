@@ -121,7 +121,7 @@ export const LoginPage = () => {
           <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center mb-4">
             <Building className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold">Eyituoyo Portfolio System</h1>
+          <h1 className="text-3xl font-bold">Bamihost Portfolio System</h1>
 
         </div>
 

@@ -229,7 +229,7 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
   doc.setTextColor(20, 20, 20);
-  doc.text("TENANCY REGISTRATION FORM", pageW / 2, y, { align: "center" });
+  doc.text("TENANCY AGREEMENT FORM", pageW / 2, y, { align: "center" });
   y += 18;
   doc.setFont("helvetica", "italic");
   doc.setFontSize(10);
@@ -861,7 +861,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
           </div>
           <div className="tenancy-reg-form__paper">
             <div className="tenancy-reg-form__letterhead">
-              <h1>Tenancy Registration Form</h1>
+              <h1>Tenancy Agreement Form</h1>
               <p className="tenancy-reg-form__sub">Not yet signed by the tenant.</p>
             </div>
           </div>
@@ -887,7 +887,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
               <span className="tenancy-reg-form__ribbon">
                 {agreementStatus === "approved" ? "Approved" : "Signed & On File"}
               </span>
-              <h1>Tenancy Registration Form</h1>
+              <h1>Tenancy Agreement Form</h1>
               <p className="tenancy-reg-form__sub">
                 You've already submitted and signed this tenancy registration
                 {alreadySubmittedAt ? ` on ${new Date(alreadySubmittedAt).toLocaleDateString()}` : ""}.
@@ -944,7 +944,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
           )}
           <div className="tenancy-reg-form__letterhead">
             <span className="tenancy-reg-form__ribbon">Prepared under instruction of the Landlord</span>
-            <h1>Tenancy Registration Form</h1>
+            <h1>Tenancy Agreement Form</h1>
             <p className="tenancy-reg-form__sub">To be completed, digitally signed, and submitted by the incoming Tenant</p>
             <div className="tenancy-reg-form__refnum">{refDisplay}</div>
           </div>
