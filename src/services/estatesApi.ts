@@ -821,6 +821,16 @@ export const estatesApi = createApi({
         { type: 'EstateList', id: 'LIST' },
       ],
     }),
+    getEstateTenancyTerms: builder.query<{ terms: string[]; isCustom: boolean }, string>({
+      query: (estateId) => `/api/estates/${estateId}/tenancy-terms`,
+      transformResponse: (raw: { success: boolean; data: { terms: string[]; isCustom: boolean } }) => raw.data,
+      providesTags: (result, error, estateId) => [{ type: 'Estate', id: estateId }],
+    }),
+    updateEstateTenancyTerms: builder.mutation<{ terms: string[]; isCustom: boolean }, { estateId: string; terms: string[] }>({
+      query: ({ estateId, terms }) => ({ url: `/api/estates/${estateId}/tenancy-terms`, method: 'PUT', body: { terms } }),
+      transformResponse: (raw: { success: boolean; data: { terms: string[]; isCustom: boolean } }) => raw.data,
+      invalidatesTags: (result, error, { estateId }) => [{ type: 'Estate', id: estateId }],
+    }),
     getEstateOverview: builder.query<EstateOverviewResponse, string>({
       query: (id) => `/api/estates/${id}/overview`,
       providesTags: (result, error, id) => [{ type: 'Estate', id }],
@@ -1485,6 +1495,8 @@ export const {
   useCreateEstateMutation,
   useUpdateEstateMutation,
   useDeleteEstateMutation,
+  useLazyGetEstateTenancyTermsQuery,
+  useUpdateEstateTenancyTermsMutation,
   useGetEstateOverviewQuery,
   useGetAllEstatesOverviewQuery,
   useGetDashboardOverviewQuery,

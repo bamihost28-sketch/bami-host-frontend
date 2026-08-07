@@ -1,5 +1,4 @@
 import React, {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -8,7 +7,6 @@ import React, {
 import { jsPDF } from "jspdf";
 import { FileSignature, Loader, Printer } from "lucide-react";
 import { useToast } from "@/components/providers/ToastProvider";
-import { useAuth } from "@/contexts/AuthContext";
 import { BASE_API_URL } from "@/services/api";
 import { NBA_SEAL_DATA } from "./nbaSealData";
 import { SignatureField, type SignaturePadHandle } from "../shared/SignaturePad";
@@ -19,18 +17,14 @@ const BEDROOM_OPTIONS = ["Self-Contain", "1 Bedroom", "2 Bedroom", "3 Bedroom", 
 const ID_TYPES = [
   "Permanent Voter's Card (PVC)",
   "Driver's License",
-  "National ID Card (NIN Slip)",
+  "National Identification Number (NIN)",
   "International Passport",
-  "National ID Number (NIN) only",
 ];
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
 const LANDLORD_NAME = "MR. ALFRED EBAMI";
-// Only staff who manage the property should be able to add extra terms to a
-// legal tenancy agreement — never the tenant signing it.
-const TERM_EDITOR_ROLES = ["super_admin", "admin", "business_owner", "super_manager", "manager"];
 const SOLICITOR_NAME = "G. Anukun Esq., LL.M, AICMC.";
 const SOLICITOR_ADDRESS_LINES = [
   "No. 12 Deco Road, by Efejuku Street Junction",
@@ -41,48 +35,7 @@ const SOLICITOR_ADDRESS_LINES = [
 const DEFAULT_LANDLORD_PARAGRAPH =
   'MR. ALFRED EBAMI of No. 5, Oke Street, Egbokodo Itsekiri in Warri South Local Government Area of Delta State, Nigeria, (hereinafter referred to as “THE LANDLORD”, which expression shall where the context so admits include his Heirs, Assigns, Agents, Successors-in-title and Legal Representatives, of the ONE PART.';
 
-type TermItem = {
-  id: string;
-  kind: "rent" | "start" | "text";
-  text: string;
-  removable: boolean;
-};
-
-const DEFAULT_TERMS: TermItem[] = [
-  { id: "term-0", kind: "rent", text: "", removable: false },
-  { id: "term-1", kind: "text", removable: false, text: "That the Tenant shall one day before the expiration of the above sum in the Recitals paid renewable and/or upon any term agreeable by the Parties, pay his rent either reviewable or renewable." },
-  { id: "term-2", kind: "start", text: "", removable: false },
-  { id: "term-3", kind: "text", removable: false, text: "The Tenant agrees that he has examined the Apartment and its appurtenances and that it was, at the time of the execution of these present, in good order and in tenantable condition." },
-  { id: "term-4", kind: "text", removable: false, text: 'The Tenant shall not assign, underlet, sublet, transfer or part with possession of the "Apartment" and its appurtenances or any part thereof without the prior written consent of the Landlord, first had and obtained. Upon the tenant committing the act thereof, the tenancy shall automatically determine.' },
-  { id: "term-5", kind: "text", removable: false, text: "The Tenant shall apply the Apartment in the Demised Premises in a fair and tenantable manner and shall not do or permit or suffer to be done on the Demised Premises/Apartment anything, which may be a nuisance to the Landlord or the other Residents and/or neighbours and shall apply the Apartment/Demised Premises strictly for residential purposes, devoid of any taint of commercial purposes." },
-  { id: "term-6", kind: "text", removable: false, text: "The Tenant hereby causes to admit that the Landlord shall not provide insurance coverage for Tenant's property, nor shall the Landlord be responsible for any loss of Tenant's property, whether by theft, fire, acts of God, force, third party intervention or otherwise." },
-  { id: "term-7", kind: "text", removable: false, text: "The Tenant shall comply with all the health and sanitary laws, ordinances, rules and orders of appropriate governmental authorities and homes associations, if any, with respect to the Apartment and the Demised Premises." },
-  { id: "term-8", kind: "text", removable: false, text: "The Tenant before giving up possession shall cause to invite the Landlord in writing for the purpose of carrying out a joint inspection of the Apartment and the tenant shall repair or replace anything that is damaged in the apartment during the tenancy and shall put the Apartment in a tenantable condition." },
-  { id: "term-9", kind: "text", removable: false, text: "The Tenant shall drive no nails or other objects whatsoever into the wall of the Apartment/Demised Premises without the express written consent of the Landlord, first had and obtained." },
-  { id: "term-10", kind: "text", removable: false, text: "The Tenant shall make no alterations to the Apartment or construct any building or make other improvements without the prior written consent of the Landlord. Upon the said breach, the Tenancy shall determined and/or the Tenant shall forfeit such fixtures to the Landlord, without any lien." },
-  { id: "term-11", kind: "text", removable: false, text: "The Tenant shall not be involved in fighting, stealing, trafficking of drugs and any criminal or illegal activities whatsoever. If the tenant is involved in any or all of the above vices, the consequences shall be immediate determination of the tenancy without refund of rent and forfeiture of caution fee." },
-  { id: "term-12", kind: "text", removable: false, text: "The Tenant must ensure that all electrical appliances, sockets are switched off and water taps turned off before leaving the Apartment/Demised Premises at all times." },
-  { id: "term-13", kind: "text", removable: false, text: "The Tenant shall not be involved in indiscriminate use of candle light, storage of fuel (petrol) in the Apartment/Demised Premises." },
-  { id: "term-14", kind: "text", removable: false, text: "During the Tenancy, the Tenant shall keep the Apartment in tenantable condition and repair all the fixtures and fittings and shall also ensure that outside security lights are always lighted in the evening/night, either with generating set or BEDC." },
-  { id: "term-15", kind: "text", removable: false, text: "The Tenant hereby confirm that all fittings in the accommodation are in good and perfect order and upon any demarcation and/or alteration on the Apartment, the Tenant shall restore the Apartment to its original and tenantable state upon determination of the tenancy." },
-  { id: "term-16", kind: "text", removable: false, text: "The Tenant shall not cause or constitute nuisance in the Apartment/Demised Premises, neither shall he/she disturb the neighbours of the quiet enjoyment of their Apartment/Residence and upon such act, the Landlord is at liberty to determine the tenancy sooner or later and the balance rent returned thereto to the tenant." },
-  { id: "term-17", kind: "text", removable: false, text: "That the Tenant not willing to continue with his tenancy shall vacate the Apartment at the end of the month in which the tenancy expires and shall submit the keys to the Landlord." },
-  { id: "term-18", kind: "text", removable: false, text: "The Tenant shall participate in the monthly environmental sanitation on the Apartment/Demised Premises every last Saturday of the month to be held by the tenants and the tenant must possess his private/personal refuse bin." },
-  { id: "term-19", kind: "text", removable: false, text: "The Tenant shall not under any circumstances use fire or any combustile equipment, gadget or apparatus in the Apartment/Demised Premises hereby let to him. Such an act shall automatically lead to the determination of the tenancy." },
-  { id: "term-20", kind: "text", removable: false, text: "The tenant who causes any fire incident occasioning damage to the Apartment/Demised Premises shall undertake the repair or cost of same." },
-  { id: "term-21", kind: "text", removable: false, text: "The Tenant who is at liberty to make use of generating set shall put off same at 12:00am (midnight) in accordance with the local security procedures put in place therein." },
-  { id: "term-22", kind: "text", removable: false, text: "The Tenant shall not gain entrance into the Apartment/Demised Premises as from 12:00am (midnight)." },
-  { id: "term-23", kind: "text", removable: false, text: "The Tenant shall pay security, cleaning of the Demised Premises and other levies that shall be approved from time to time in the area where the Apartment/Demised Premises is situate. The Tenants shall also make provision for waste disposal bin and also make arrangement for its evacuation." },
-  { id: "term-24", kind: "text", removable: false, text: "The Tenant shall be responsible for the security of his Apartment/Demised Premises and/or properties. The Owner/Landlord admits no liability for theft, burglary and incidental matters thereto." },
-  { id: "term-25", kind: "text", removable: false, text: "The Tenant hereby agrees further with the Landlord that any criminality (including fighting) shall automatically lead to the determination of the tenancy hereby created. The Tenant shall also maintain orderliness in parking and removal of his cars and vehicles and also ensure peaceful co-existence with his neighbours thereof." },
-  { id: "term-26", kind: "text", removable: false, text: "The Tenant shall pay his electricity bills monthly and hand over photocopies of the receipt of payment to the Landlord, whilst keeping the original copy with him for the records and for the purpose of verification of payment by BEDC officials. The Tenant shall also ensure that a minimum of 30kw/h is always maintained in its prepaid meter and for no reason whatsoever make any by-pass thereof." },
-  { id: "term-27", kind: "text", removable: false, text: "The Landlord and Landlord's agents shall have the right at all reasonable times during the pendency of the terms herein created and any renewal thereto to enter the Apartment/Demised Premises for the purpose of inspecting the Apartment and/or examine the state and condition thereof." },
-  { id: "term-28", kind: "text", removable: false, text: "The Tenant undertake to promptly drain the soak-away pit/septic tank which is the responsibility of the tenant whenever same is filled to capacity." },
-  { id: "term-29", kind: "text", removable: false, text: "The Tenant before giving up possession, shall paint the interior of the Apartment and replace all Damaged fixtures and fittings after a joint inspection by the parties herein to ascertain the state of things as it is." },
-  { id: "term-30", kind: "text", removable: false, text: "For security reasons and for the avoidance of any embarassment, the Tenant shall promptly disclose the identity/introduce to the Landlord any person coming to spend a reasonable length of time with him in the Apartment/Demised premises." },
-  { id: "term-31", kind: "text", removable: false, text: "The Tenant paying the rent and observing and performing all these obligations under this agreement, shall quietly enjoy his tenancy without any interruption by the Landlord, or any person claiming through, under or in trust for the Landlord." },
-  { id: "term-32", kind: "text", removable: false, text: "These terms herein created regulate the parties to the tilt, and any previous understanding and/or representation is hereby extinguished upon the execution of these Present." },
-];
+type TermItem = { id: string; text: string };
 
 interface SubmissionData {
   ref: string;
@@ -152,49 +105,12 @@ function Blank({ value, placeholder }: { value: string; placeholder: string }) {
   );
 }
 
-const EditableTermLI = React.memo(function EditableTermLI({
-  initialText,
-  removable,
-  onRemove,
-  editable = true,
-}: {
-  id: string;
-  initialText: string;
-  removable: boolean;
-  onRemove: () => void;
-  editable?: boolean;
-}) {
-  return (
-    <li className={removable ? "tenancy-reg-form__clause-added" : undefined}>
-      <span
-        className="tenancy-reg-form__term-text"
-        contentEditable={editable}
-        suppressContentEditableWarning
-        spellCheck={false}
-      >
-        {initialText}
-      </span>
-      {removable && editable && (
-        <span className="tenancy-reg-form__remove-clause" onClick={onRemove}>
-          Remove
-        </span>
-      )}
-    </li>
-  );
-});
-
 const LandlordParagraph = React.memo(function LandlordParagraph({
   paragraphRef,
-  editable = true,
 }: {
   paragraphRef: React.RefObject<HTMLParagraphElement>;
-  editable?: boolean;
 }) {
-  return (
-    <p ref={paragraphRef} contentEditable={editable} suppressContentEditableWarning spellCheck={false}>
-      {DEFAULT_LANDLORD_PARAGRAPH}
-    </p>
-  );
+  return <p ref={paragraphRef}>{DEFAULT_LANDLORD_PARAGRAPH}</p>;
 });
 
 function buildPdf(d: SubmissionData, copyLabel: string) {
@@ -528,11 +444,8 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
 export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}) {
   const viewOnly = !!tenantId;
   const { toast } = useToast();
-  const { user } = useAuth();
-  const canAddTerms = !!user?.role && TERM_EDITOR_ROLES.includes(user.role);
   const formRef = useRef<HTMLFormElement>(null);
   const idFileRef = useRef<HTMLInputElement>(null);
-  const clauseListRef = useRef<HTMLOListElement>(null);
   const landlordParagraphRef = useRef<HTMLParagraphElement>(null);
 
   const [formKey, setFormKey] = useState(0);
@@ -566,8 +479,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
   const [kinRelation, setKinRelation] = useState("");
   const [kinPhone, setKinPhone] = useState("");
 
-  const [terms, setTerms] = useState<TermItem[]>(DEFAULT_TERMS);
-  const [newClauseText, setNewClauseText] = useState("");
+  const [terms, setTerms] = useState<TermItem[]>([]);
   const [agreedTerms, setAgreedTerms] = useState(false);
 
   const [landlordTypedSig, setLandlordTypedSig] = useState(LANDLORD_NAME);
@@ -612,10 +524,6 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
   const [tenantWitnessSigImageUrl, setTenantWitnessSigImageUrl] = useState<string | null>(null);
 
   const sigDateParts = useMemo(() => dateParts(sigDate), [sigDate]);
-  const startDateParts = useMemo(() => dateParts(startDate), [startDate]);
-
-  const rentTermText = `The Landlord lets and the tenant takes on a daily Tenancy the Apartment in the Demised Premises at the daily rent of approximately ₦${rentDay || "amount"} per day translating to ₦${rentMonth || "amount"} monthly, and ₦${rentYear || "amount"} yearly for the apartment as aforesaid.`;
-  const startTermText = `This Tenancy agreement, which commences on the ${startDateParts.day || "___"} day of ${startDateParts.month || "______"}, 20${startDateParts.year2 || "__"} is a continuous one except otherwise determined by a written NOTICE TO QUIT and/or failure to religiously abide by the terms created herein regulating the tenancy, which shall automatically determine the tenancy, upon a seven days notice.`;
 
   const handleRentYearChange = (value: string) => {
     setRentYear(value);
@@ -652,6 +560,15 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
         }
         setAgreementStatus(json?.status ?? null);
         setRejectionReason(json?.data?.rejectionReason || null);
+
+        // The estate's own terms (utils/tenancy_terms.py, customizable per
+        // estate by the property admin) — the single source of truth for
+        // what's shown here and what's actually persisted at signing time.
+        const fetchedTerms = json?.data?.terms;
+        if (Array.isArray(fetchedTerms) && fetchedTerms.length) {
+          setTerms(fetchedTerms.map((text: string, i: number) => ({ id: `term-${i}`, text })));
+        }
+
         const p = json?.data?.parties;
         if (!p) return;
 
@@ -730,29 +647,6 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
     const reader = new FileReader();
     reader.onload = (ev) => setIdPreviewUrl(ev.target?.result as string);
     reader.readAsDataURL(file);
-  };
-
-  const handleAddClause = () => {
-    const text = newClauseText.trim();
-    if (!text) return;
-    setTerms((prev) => [...prev, { id: `custom-${Date.now()}`, kind: "text", text, removable: true }]);
-    setNewClauseText("");
-  };
-
-  const handleRemoveClause = useCallback((id: string) => {
-    setTerms((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
-  const getAllTermTexts = (): string[] => {
-    const ol = clauseListRef.current;
-    if (!ol) return [];
-    return Array.from(ol.children)
-      .map((li) => {
-        const span = li.querySelector(".tenancy-reg-form__term-text");
-        const text = (span ? span.textContent : li.textContent) || "";
-        return text.trim();
-      })
-      .filter(Boolean);
   };
 
   const persistSignedAgreement = async (data: SubmissionData): Promise<boolean> => {
@@ -858,7 +752,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
       tenantWitnessSigImage: tenantWitnessSigRef.current?.dataUrl() || "",
       solicitorSigImage: solicitorSigRef.current?.hasSignature() ? solicitorSigRef.current.dataUrl() : null,
       solicitorSigImage2: solicitorSig2Ref.current?.hasSignature() ? solicitorSig2Ref.current.dataUrl() : null,
-      terms: getAllTermTexts(),
+      terms: terms.map((t) => t.text),
       landlordParagraph: landlordParagraphRef.current?.textContent?.trim() || DEFAULT_LANDLORD_PARAGRAPH,
       submittedAt: new Date().toLocaleString(),
     };
@@ -927,8 +821,6 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
     setStartDate(""); setCaution(""); setLegalFee("");
     setIdType(""); setIdNumber(""); setIdFileName(null); setIdPreviewUrl(null);
     setKinName(""); setKinRelation(""); setKinPhone("");
-    setTerms(DEFAULT_TERMS);
-    setNewClauseText("");
     setAgreedTerms(false);
     setLandlordTypedSig(landlordName);
     setLandlordSigDate("");
@@ -1091,7 +983,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
               <Blank value={sigDateParts.month} placeholder="______" />, 20<Blank value={sigDateParts.year2} placeholder="__" />.
             </p>
             <p className="tenancy-reg-form__recitals-label">BETWEEN</p>
-            <LandlordParagraph paragraphRef={landlordParagraphRef} editable={!viewOnly && canAddTerms} />
+            <LandlordParagraph paragraphRef={landlordParagraphRef} />
             <p className="tenancy-reg-form__recitals-label">AND</p>
             <p>
               <Blank value={tenantTitle.toUpperCase()} placeholder="MR./MRS/MISS" />{" "}
@@ -1399,40 +1291,11 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                     <span className="tenancy-reg-form__section-num">06</span>
                     <h2>Terms of Tenancy</h2>
                   </div>
-                  {!viewOnly && canAddTerms && (
-                    <p className="tenancy-reg-form__clauses-hint">Click directly into any term below to edit its wording, or add new terms underneath.</p>
-                  )}
                   <div className="tenancy-reg-form__clauses">
-                    <ol ref={clauseListRef}>
-                      {terms.map((t) => {
-                        if (t.kind === "rent") return <li key={t.id}>{rentTermText}</li>;
-                        if (t.kind === "start") return <li key={t.id}>{startTermText}</li>;
-                        return (
-                          <EditableTermLI
-                            key={t.id}
-                            id={t.id}
-                            initialText={t.text}
-                            removable={t.removable}
-                            onRemove={() => handleRemoveClause(t.id)}
-                            editable={!viewOnly && canAddTerms}
-                          />
-                        );
-                      })}
+                    <ol>
+                      {terms.map((t) => <li key={t.id}>{t.text}</li>)}
                     </ol>
                   </div>
-
-                  {!viewOnly && canAddTerms && (
-                    <div className="tenancy-reg-form__add-clause-row">
-                      <input
-                        type="text"
-                        placeholder="Type an additional term to add to this agreement..."
-                        value={newClauseText}
-                        onChange={(e) => setNewClauseText(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddClause(); } }}
-                      />
-                      <button type="button" onClick={handleAddClause}>+ Add Term</button>
-                    </div>
-                  )}
 
                   <div className="tenancy-reg-form__agree-row">
                     <input
@@ -1443,9 +1306,8 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                       onChange={(e) => setAgreedTerms(e.target.checked)}
                     />
                     <label htmlFor="tenancyRegAgreeTerms">
-                      I confirm I have read, understood, and agree to be bound by all 33 terms of this Tenancy
-                      Agreement listed above, together with any additional terms added, and the full agreement to
-                      be issued upon approval.
+                      I confirm I have read, understood, and agree to be bound by all {terms.length} terms of this
+                      Tenancy Agreement listed above, and the full agreement to be issued upon approval.
                     </label>
                   </div>
                 </div>

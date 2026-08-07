@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useCreateEstateMutation, useGetEstatesQuery, useDeleteEstateMutation, useUpdateEstateMutation } from "@/services/estatesApi";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreateEstateMutation, useGetEstatesQuery, useDeleteEstateMutation, useUpdateEstateMutation, useLazyGetEstateTenancyTermsQuery, useUpdateEstateTenancyTermsMutation } from "@/services/estatesApi";
 import { toast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Wand2, HelpCircle } from "lucide-react";
+import { MoreVertical, Wand2, HelpCircle, Plus, X, ArrowUp, ArrowDown, FileText } from "lucide-react";
 import { EstateManagementSkeleton } from "@/components/ui/skeletons";
 import { EstateOverviewCards } from "./EstateOverviewCards";
 import { EstateSetupWizard } from "./EstateSetupWizard";
@@ -87,6 +88,15 @@ export const EstateManagement = () => {
   const [editStart, setEditStart] = useState("");          // YYYY-MM-DD; blank = per-tenant entry date
   const [updateEstate, { isLoading: updating }] = useUpdateEstateMutation();
 
+  // Tenancy terms editor
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [termsEstateId, setTermsEstateId] = useState<string | null>(null);
+  const [termsEstateName, setTermsEstateName] = useState("");
+  const [termsList, setTermsList] = useState<string[]>([]);
+  const [termsIsCustom, setTermsIsCustom] = useState(false);
+  const [fetchTenancyTerms, { isFetching: termsLoading }] = useLazyGetEstateTenancyTermsQuery();
+  const [saveTenancyTerms, { isLoading: termsSaving }] = useUpdateEstateTenancyTermsMutation();
+
   // Guided tour ("Take a tour" bumps this to (re)start it)
   const [tourSignal, setTourSignal] = useState(0);
   const [tourSeen, setTourSeen] = useState(() => hasSeenTour('tour:estate-management:v1'));
@@ -136,6 +146,65 @@ export const EstateManagement = () => {
       toast({ title: 'Failed to delete estate', variant: 'destructive' });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const openTermsEditor = async (estateId: string, estateName: string) => {
+    setTermsEstateId(estateId);
+    setTermsEstateName(estateName);
+    setTermsList([]);
+    setTermsOpen(true);
+    try {
+      const res = await fetchTenancyTerms(estateId).unwrap();
+      setTermsList(res.terms);
+      setTermsIsCustom(res.isCustom);
+    } catch (e) {
+      toast({ title: 'Failed to load tenancy terms', variant: 'destructive' });
+      setTermsOpen(false);
+    }
+  };
+
+  const handleAddTermClause = () => setTermsList((prev) => [...prev, ""]);
+  const handleRemoveTermClause = (idx: number) => setTermsList((prev) => prev.filter((_, i) => i !== idx));
+  const handleTermClauseChange = (idx: number, value: string) =>
+    setTermsList((prev) => prev.map((t, i) => (i === idx ? value : t)));
+  const handleMoveTermClause = (idx: number, dir: -1 | 1) => {
+    setTermsList((prev) => {
+      const next = [...prev];
+      const swapWith = idx + dir;
+      if (swapWith < 0 || swapWith >= next.length) return prev;
+      [next[idx], next[swapWith]] = [next[swapWith], next[idx]];
+      return next;
+    });
+  };
+
+  const handleSaveTerms = async () => {
+    if (!termsEstateId) return;
+    const cleaned = termsList.map((t) => t.trim()).filter(Boolean);
+    if (cleaned.length === 0) {
+      toast({ title: 'Add at least one clause', variant: 'destructive' });
+      return;
+    }
+    try {
+      const res = await saveTenancyTerms({ estateId: termsEstateId, terms: cleaned }).unwrap();
+      setTermsList(res.terms);
+      setTermsIsCustom(res.isCustom);
+      toast({ title: 'Tenancy terms updated', description: 'Applies to every tenant who signs from now on.' });
+      setTermsOpen(false);
+    } catch (e) {
+      toast({ title: 'Failed to save tenancy terms', variant: 'destructive' });
+    }
+  };
+
+  const handleResetTerms = async () => {
+    if (!termsEstateId) return;
+    try {
+      const res = await saveTenancyTerms({ estateId: termsEstateId, terms: [] }).unwrap();
+      setTermsList(res.terms);
+      setTermsIsCustom(res.isCustom);
+      toast({ title: 'Reset to the standard template' });
+    } catch (e) {
+      toast({ title: 'Failed to reset tenancy terms', variant: 'destructive' });
     }
   };
 
@@ -265,6 +334,66 @@ export const EstateManagement = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Tenancy Terms Dialog */}
+      <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Tenancy Terms — {termsEstateName}</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground -mt-2">
+            These are the clauses every new tenant of this estate reads and signs on their tenancy agreement.
+            Changes apply going forward only — agreements already signed don't change.
+          </p>
+          {termsLoading ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">Loading…</div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <Badge variant={termsIsCustom ? "default" : "secondary"}>
+                  {termsIsCustom ? "Custom for this estate" : "Standard template"}
+                </Badge>
+                {termsIsCustom && (
+                  <Button variant="ghost" size="sm" onClick={handleResetTerms} disabled={termsSaving}>
+                    Reset to standard template
+                  </Button>
+                )}
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                {termsList.map((clause, idx) => (
+                  <div key={idx} className="flex gap-2 items-start rounded-md border p-2">
+                    <span className="text-xs text-muted-foreground mt-2 w-5 shrink-0">{idx + 1}.</span>
+                    <Textarea
+                      value={clause}
+                      onChange={(e) => handleTermClauseChange(idx, e.target.value)}
+                      className="min-h-[52px] text-sm"
+                    />
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" disabled={idx === 0} onClick={() => handleMoveTermClause(idx, -1)}>
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" disabled={idx === termsList.length - 1} onClick={() => handleMoveTermClause(idx, 1)}>
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => handleRemoveTermClause(idx)}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={handleAddTermClause}>
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Add clause
+                </Button>
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t">
+                <Button variant="ghost" onClick={() => setTermsOpen(false)}>Cancel</Button>
+                <Button onClick={handleSaveTerms} disabled={termsSaving}>{termsSaving ? 'Saving...' : 'Save'}</Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Estates (from API) */}
       <Card data-tour="estate-table">
         <CardHeader>
@@ -339,6 +468,12 @@ export const EstateManagement = () => {
                               }}
                             >
                               Edit
+                            </DropdownMenuItem>
+                            )}
+                            {(est as any).myRole === 'admin' && (
+                            <DropdownMenuItem onClick={() => openTermsEditor(est.id, est.name)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Tenancy Terms
                             </DropdownMenuItem>
                             )}
                             {(est as any).myRole === 'admin' && (<>
