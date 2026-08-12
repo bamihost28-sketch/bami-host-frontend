@@ -1064,10 +1064,6 @@ export const estatesApi = createApi({
       query: ({ amount }) => ({ url: '/api/payments/initial', method: 'POST', body: { amount } }),
       invalidatesTags: (result, error) => [{ type: 'Tenant', id: 'ME' }],
     }),
-    verifyPayment: builder.query<{ success: boolean; message?: string; data: { status?: string; amount?: number; reference?: string } }, string>({
-      query: (reference) => `/api/payments/verify/${reference}`,
-      providesTags: (result, error, reference) => [{ type: 'Payment', id: reference }],
-    }),
     payBilling: builder.mutation<
       { success: boolean; data: { authorization_url?: string; reference?: string; amount?: number } },
       { itemIds: string[]; paymentMethod?: "wallet"; durationMonths?: 6 | 12 }
@@ -1519,8 +1515,6 @@ export const {
   useInitiateCautionFeePaymentMutation,
   useInitiateLegalFeePaymentMutation,
   useInitiateInitialPaymentMutation,
-  useVerifyPaymentQuery,
-  useLazyVerifyPaymentQuery,
   usePayBillingMutation,
   useToggleAutoPayMutation,
   useCreateEstateTenantMutation,

@@ -25,7 +25,6 @@ import {
   useDepositMutation,
   useWithdrawMutation,
   useTransferToUserMutation,
-  useAddFundsMutation,
 } from "@/services";
 import { useGetBankInfoQuery, useSubmitDepositMutation } from "@/services/bankDepositsApi";
 
@@ -91,7 +90,6 @@ export const TenantDashboard: React.FC = () => {
   const [transferForm, setTransferForm] = useState({ amount: "", recipient: "", recipientAccount: "", bank: "", description: "" });
   const [selectedBillingItems, setSelectedBillingItems] = useState<string[]>([]);
   const [billingDialogOpen, setBillingDialogOpen] = useState(false);
-  const [topUpAmount, setTopUpAmount] = useState("");
   const [rentPaymentMonths, setRentPaymentMonths] = useState<6 | 12>(12);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [tourSignal, setTourSignal] = useState(0);
@@ -113,7 +111,6 @@ export const TenantDashboard: React.FC = () => {
   const [deposit, { isLoading: isDepositing }] = useDepositMutation();
   const [withdraw, { isLoading: isWithdrawing }] = useWithdrawMutation();
   const [transferToUser, { isLoading: isTransferringUser }] = useTransferToUserMutation();
-  const [addFunds, { isLoading: isAddingFunds }] = useAddFundsMutation();
   
   // Bank deposit hooks
   const { data: bankInfoData } = useGetBankInfoQuery();
@@ -286,22 +283,6 @@ export const TenantDashboard: React.FC = () => {
       toast(error?.data?.message || "Error: Payment failed. Please try again");
     } finally {
       setIsProcessingPayment(false);
-    }
-  };
-
-  const handleTopUpWallet = async () => {
-    const amount = parseFloat(topUpAmount);
-    if (!amount || amount <= 0) {
-      toast("Error: Please enter a valid amount");
-      return;
-    }
-    try {
-      await addFunds({ amount }).unwrap();
-      toast(`Success: ₦${amount.toLocaleString()} added to your wallet`);
-      setTopUpAmount("");
-      refetchWallet();
-    } catch (error: any) {
-      toast(`Error: ${error?.data?.message || "Failed to add funds"}`);
     }
   };
 
@@ -1195,28 +1176,15 @@ export const TenantDashboard: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          type="number"
-                          placeholder={`Min: ₦${Math.ceil(calculateSelectedTotal() - walletBalance).toLocaleString()}`}
-                          value={topUpAmount}
-                          onChange={(e) => setTopUpAmount(e.target.value)}
-                          className="h-9 text-sm"
-                          min={0}
-                        />
-                        <Button
-                          size="sm"
-                          onClick={handleTopUpWallet}
-                          disabled={isAddingFunds || !topUpAmount}
-                          className="bg-green-600 hover:bg-green-700 shrink-0"
-                        >
-                          {isAddingFunds ? (
-                            <><Loader className="h-3 w-3 mr-1.5 animate-spin" />Adding...</>
-                          ) : (
-                            <><Plus className="h-3 w-3 mr-1.5" />Top Up</>
-                          )}
-                        </Button>
-                      </div>
+                      {/* Topping up means transferring to the company account and
+                          submitting the proof — there is no card gateway. */}
+                      <Button
+                        size="sm"
+                        onClick={handleOpenDeposit}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Plus className="h-3 w-3 mr-1.5" />Fund wallet by bank transfer
+                      </Button>
                     </div>
                   )}
 

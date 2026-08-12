@@ -199,7 +199,6 @@ export const TransactionsCard = ({ tenantId, overview, tenant, billingData }: Tr
                 <SelectTrigger><SelectValue placeholder="All methods" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All methods</SelectItem>
-                  <SelectItem value="paystack">Paystack</SelectItem>
                   <SelectItem value="bank_transfer">Bank transfer</SelectItem>
                   <SelectItem value="cash">Cash</SelectItem>
                 </SelectContent>

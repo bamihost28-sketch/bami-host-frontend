@@ -29,7 +29,6 @@ import { AssistantDashboard } from '@/components/dashboard/AssistantDashboard';
 import { ReportsDashboard } from '@/components/dashboard/ReportsDashboard';
 import { GreenThemeShowcase } from '@/components/GreenThemeShowcase';
 import { ProtectedComponent } from '@/components/auth/ProtectedComponent';
-import { PaymentSuccessPage } from '@/components/dashboard/PaymentSuccessPage';
 import { SettingsPage } from '@/components/auth/SettingsPage';
 import { PortfolioDashboard, PersonalLifePortfolios } from '@/components/portfolio';
 import { SplitTracker } from '@/components/budget/SplitTracker';
@@ -207,7 +206,6 @@ const DashboardRouter: React.FC = () => {
           }
         />
 
-        {/* Wallet - Paystack Verification */}
         <Route
           path="/wallet/verify"
           element={
@@ -614,7 +612,6 @@ const DashboardRouter: React.FC = () => {
         />
 
         {/* Payment success (callback) */}
-        <Route path="/payment/success" element={<PaymentSuccessPage />} />
 
         {/* Settings */}
         <Route
