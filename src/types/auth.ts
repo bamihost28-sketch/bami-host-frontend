@@ -45,6 +45,15 @@ export interface UpdatePasswordRequest {
   newPassword: string;
 }
 
+export interface DeleteAccountRequest {
+  password: string;
+}
+
+export interface DeleteAccountResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface UpdatePasswordResponse {
   success: boolean;
   token: string;

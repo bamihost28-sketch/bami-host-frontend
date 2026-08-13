@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { LoginRequest, LoginResponse, UpdateEmailRequest, UpdateEmailResponse, UpdatePasswordRequest, UpdatePasswordResponse, OnboardBusinessOwnerRequest, OnboardBusinessOwnerResponse, GetBusinessOwnersResponse, UpdateBusinessOwnerRequest, UpdateBusinessOwnerStatusRequest, UpdateBusinessOwnerResponse, DeleteBusinessOwnerResponse, OnboardManagerRequest, OnboardManagerResponse, GetManagersResponse, UpdateManagerRequest, UpdateManagerResponse, DeleteManagerResponse, RequestOtpRequest, VerifyOtpRequest, ResetPasswordOtpRequest, AuthResponse, SignAgreementRequest, SignAgreementResponse } from '../types/auth';
+import type { LoginRequest, LoginResponse, UpdateEmailRequest, UpdateEmailResponse, UpdatePasswordRequest, UpdatePasswordResponse, OnboardBusinessOwnerRequest, OnboardBusinessOwnerResponse, GetBusinessOwnersResponse, UpdateBusinessOwnerRequest, UpdateBusinessOwnerStatusRequest, UpdateBusinessOwnerResponse, DeleteBusinessOwnerResponse, OnboardManagerRequest, OnboardManagerResponse, GetManagersResponse, UpdateManagerRequest, UpdateManagerResponse, DeleteManagerResponse, RequestOtpRequest, VerifyOtpRequest, ResetPasswordOtpRequest, AuthResponse, SignAgreementRequest, SignAgreementResponse, DeleteAccountRequest, DeleteAccountResponse } from '../types/auth';
 import { BASE_API_URL } from './api';
 
 // Define a service using a base URL and expected endpoints
@@ -191,6 +191,17 @@ export const authApi = createApi({
       }),
       invalidatesTags: ['Auth'],
     }),
+    // Apple/Play require self-service account deletion reachable without
+    // reinstalling the app — this is that path for the web app. Anonymizes
+    // rather than hard-deletes; see the backend endpoint for what's retained.
+    deleteAccount: builder.mutation<DeleteAccountResponse, DeleteAccountRequest>({
+      query: (data) => ({
+        url: '/api/auth/delete-account',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Auth'],
+    }),
   }),
 });
 
@@ -216,5 +227,6 @@ export const {
   useRequestOtpMutation,
   useVerifyOtpMutation,
   useResetPasswordWithOtpMutation,
-  useSignAgreementMutation
+  useSignAgreementMutation,
+  useDeleteAccountMutation
 } = authApi;

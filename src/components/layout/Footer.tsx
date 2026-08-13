@@ -68,6 +68,7 @@ export const Footer = ({ variant = "dark" }: FooterProps) => {
           <div className="flex items-center gap-6">
             <Link to="/privacy" className="hover:text-green-600 transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-green-600 transition-colors">Terms</Link>
+            <Link to="/delete-account" className="hover:text-green-600 transition-colors">Delete Account</Link>
             <a href="#" className="hover:text-green-600 transition-colors">Security</a>
           </div>
         </div>

@@ -28,6 +28,7 @@ const VendorProfile = lazy(() => import("./pages/VendorProfile"));
 const EquipmentDetails = lazy(() => import("./pages/EquipmentDetails"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,6 +70,7 @@ const AppContent: React.FC = () => {
                         <Route path="/marketplace/equipment/:id" element={<EquipmentDetails />} />
                         <Route path="/privacy" element={<Privacy />} />
                         <Route path="/terms" element={<Terms />} />
+                        <Route path="/delete-account" element={<DeleteAccount />} />
 
                         {/* Authenticated app */}
                         <Route path="/app" element={<Navigate to="/dashboard" replace />} />
