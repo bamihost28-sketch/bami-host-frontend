@@ -408,6 +408,15 @@ export const TenantDashboard: React.FC = () => {
 
   const isInitialPaymentLocked = !!billingSummary?.requiresInitialPayment;
 
+  // New tenants pay 12 months upfront — 6 is not an allowed initial term.
+  // Guards the payment total/submission even if state was ever left at 6
+  // from a prior (non-locked) selection.
+  useEffect(() => {
+    if (isInitialPaymentLocked && rentPaymentMonths !== 12) {
+      setRentPaymentMonths(12);
+    }
+  }, [isInitialPaymentLocked, rentPaymentMonths]);
+
   // Items with rent/service_charge amounts scaled by selected duration (for PaymentSummary display)
   const billingItemsForPayment = allBillingItems.map(item =>
     !isInitialPaymentLocked && (item.code === "rent" || item.code === "service_charge")
@@ -1036,8 +1045,11 @@ export const TenantDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Payment Duration Picker — rent can be paid for 6 or 12 months.
-                  For the locked initial payment the one-time fees still apply on top. */}
+              {/* Payment Duration Picker. Existing tenants can pay 6 or 12
+                  months of rent; new tenants' initial payment is 12 months
+                  only — a shorter initial term isn't offered, so there's
+                  nothing to pick between (see the backend's 12-month-minimum
+                  rule for new tenants). */}
               {selectedBillingItems.includes("rent") && (
                 <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 p-4">
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
@@ -1045,12 +1057,12 @@ export const TenantDashboard: React.FC = () => {
                     Payment Duration
                     {isInitialPaymentLocked && (
                       <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
-                        (all fees are included either way)
+                        (12 months upfront — all fees included)
                       </span>
                     )}
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {([6, 12] as const).map(months => {
+                  <div className={isInitialPaymentLocked ? "grid grid-cols-1 gap-2" : "grid grid-cols-2 gap-2"}>
+                    {(isInitialPaymentLocked ? ([12] as const) : ([6, 12] as const)).map(months => {
                       const optionTotal = isInitialPaymentLocked
                         ? (months === 6
                             ? billingSummary?.initialPayment?.total6Months
