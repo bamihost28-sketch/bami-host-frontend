@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { useUpdateTenantMutation, useUpdateEstateUnitMutation, useResendTenantCredentialsMutation } from '@/services/estatesApi';
+import { useUpdateTenantMutation, useUpdateEstateUnitMutation, useResendTenantCredentialsMutation, useRenewTenantMutation } from '@/services/estatesApi';
 import { useGetTenantAgreementQuery } from '@/services/agreementApi';
 import { formatDate, formatDateToDDMMYYYY, toDateInput } from '@/utils/propertyUtils';
 
@@ -24,6 +24,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
   const [updateTenant, { isLoading: updatingTenant }] = useUpdateTenantMutation();
   const [updateUnit, { isLoading: updatingUnit }] = useUpdateEstateUnitMutation();
   const [resendCredentials, { isLoading: resendingCredentials }] = useResendTenantCredentialsMutation();
+  const [renewTenantLease, { isLoading: renewingLease }] = useRenewTenantMutation();
   const { data: agreementData } = useGetTenantAgreementQuery(tenantId as string, { skip: !tenantId });
 
   // Resend login credentials state
@@ -53,6 +54,29 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
   const [editEntryDate, setEditEntryDate] = useState('');
   const [editNextDueDate, setEditNextDueDate] = useState('');
   const [editIncreaseStart, setEditIncreaseStart] = useState('');
+
+  // Renew Lease state
+  const [renewOpen, setRenewOpen] = useState(false);
+  const [renewDuration, setRenewDuration] = useState<'6' | '12'>('12');
+  const currentDueRaw = (tenant as any)?.nextDueDate;
+  const previewNewDue = (() => {
+    if (!currentDueRaw) return null;
+    const d = new Date(currentDueRaw);
+    if (Number.isNaN(d.getTime())) return null;
+    d.setMonth(d.getMonth() + Number(renewDuration));
+    return d.toISOString();
+  })();
+
+  const handleRenew = async () => {
+    if (!tenantId) return;
+    try {
+      await renewTenantLease({ tenantId, durationMonths: Number(renewDuration) as 6 | 12 }).unwrap();
+      toast({ title: 'Lease renewed' });
+      setRenewOpen(false);
+    } catch (e: any) {
+      toast({ title: e?.data?.detail || 'Failed to renew lease', variant: 'destructive' });
+    }
+  };
 
   // Edit Fees state
   const [editFeesOpen, setEditFeesOpen] = useState(false);
@@ -243,6 +267,49 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
                 disabled={updatingTenant}
               >
                 {updatingTenant ? 'Saving...' : 'Save changes'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={renewOpen} onOpenChange={setRenewOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">Renew Lease</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Renew lease</DialogTitle>
+            </DialogHeader>
+            <div className="py-2 text-sm space-y-4">
+              <p className="text-muted-foreground">
+                Extends this tenant's lease on their existing unit — no new tenant or unit
+                record is created, and their payment history stays intact.
+              </p>
+              <div className="grid gap-2">
+                <Label htmlFor="renew-duration">Renewal duration</Label>
+                <Select value={renewDuration} onValueChange={(v) => setRenewDuration(v as '6' | '12')}>
+                  <SelectTrigger id="renew-duration"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="12">12 months</SelectItem>
+                    <SelectItem value="6">6 months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="rounded-lg border p-3 space-y-1.5 bg-muted/30">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Current due date</span>
+                  <span className="font-medium">{formatDate(currentDueRaw)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">New due date</span>
+                  <span className="font-medium">{previewNewDue ? formatDate(previewNewDue) : '—'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-2">
+              <Button variant="ghost" onClick={() => setRenewOpen(false)}>Cancel</Button>
+              <Button onClick={handleRenew} disabled={renewingLease}>
+                {renewingLease ? 'Renewing...' : 'Renew lease'}
               </Button>
             </div>
           </DialogContent>

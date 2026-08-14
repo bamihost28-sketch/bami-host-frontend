@@ -1006,6 +1006,21 @@ export const estatesApi = createApi({
         { type: 'TenantList', id: 'LIST' },
       ],
     }),
+    renewTenant: builder.mutation<
+      { success: boolean; message?: string; data?: { id: string; nextDueDate: string; leaseEndDate: string; tenantType: string } },
+      { tenantId: string; durationMonths: 6 | 12; reason?: string }
+    >({
+      query: ({ tenantId, durationMonths, reason }) => ({
+        url: `/api/tenants/${tenantId}/renew`,
+        method: 'POST',
+        body: { duration_months: durationMonths, reason },
+      }),
+      invalidatesTags: (result, error, { tenantId }) => [
+        { type: 'Tenant', id: tenantId },
+        { type: 'EstateTenants', id: tenantId },
+        { type: 'TenantList', id: 'LIST' },
+      ],
+    }),
     getTenantHistory: builder.query<TenantHistoryEntry[], string>({
       query: (tenantId) => `/api/tenants/${tenantId}/history`,
       providesTags: (result, error, tenantId) => [{ type: 'Tenant' as const, id: tenantId }],
@@ -1533,6 +1548,7 @@ export const {
   useDeleteTenantMutation,
   useResendTenantCredentialsMutation,
   useAdjustTenantBalanceMutation,
+  useRenewTenantMutation,
   useGetTenantHistoryQuery,
   useGetTenantTransactionsQuery,
   useGetMyPaymentHistoryQuery,

@@ -32,6 +32,8 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
   const [periodEnd, setPeriodEnd] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [adjustBalance, { isLoading: adjusting }] = useAdjustTenantBalanceMutation();
+  const totalOwed = (Number(rentInput) || 0) + (Number(serviceInput) || 0);
+  const missingPeriod = totalOwed > 0 && !(periodStart && periodEnd);
 
   const openAdjust = () => {
     setRentInput(String((overview as any)?.rentOutstanding ?? 0));
@@ -292,16 +294,44 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
                 <Label htmlFor="adj-service">Service charge outstanding (₦)</Label>
                 <Input id="adj-service" type="number" min={0} value={serviceInput} onChange={(e) => setServiceInput(e.target.value)} />
               </div>
+              {(year1 || year2) && (
+                <div className="grid gap-2">
+                  <Label>Which period does this cover?</Label>
+                  <div className="flex gap-2">
+                    {year1?.billingStart && year1?.billingEnd && (
+                      <Button
+                        type="button" variant="outline" size="sm" className="flex-1"
+                        onClick={() => { setPeriodStart(toDateInput(year1.billingStart)); setPeriodEnd(toDateInput(year1.billingEnd)); }}
+                      >
+                        This Year
+                      </Button>
+                    )}
+                    {year2?.billingStart && year2?.billingEnd && (
+                      <Button
+                        type="button" variant="outline" size="sm" className="flex-1"
+                        onClick={() => { setPeriodStart(toDateInput(year2.billingStart)); setPeriodEnd(toDateInput(year2.billingEnd)); }}
+                      >
+                        Next Year · Renewal
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
-                  <Label htmlFor="adj-period-start">Covers from</Label>
+                  <Label htmlFor="adj-period-start">Covers from {totalOwed > 0 && <span className="text-red-500">*</span>}</Label>
                   <Input id="adj-period-start" type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="adj-period-end">Covers to</Label>
+                  <Label htmlFor="adj-period-end">Covers to {totalOwed > 0 && <span className="text-red-500">*</span>}</Label>
                   <Input id="adj-period-end" type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
                 </div>
               </div>
+              {missingPeriod && (
+                <p className="text-[11px] text-red-500 -mt-1">
+                  Required whenever a balance is owed — this is what tells the dashboard whether it's against this year or next year's renewal.
+                </p>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="adj-due-date">Remaining balance due by</Label>
                 <Input id="adj-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
@@ -323,7 +353,7 @@ export const FinancialSummaryCards = ({ overview, tenant, detail, tenantId }: Fi
               </Button>
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => setAdjustOpen(false)}>Cancel</Button>
-                <Button onClick={submitAdjust} disabled={adjusting}>
+                <Button onClick={submitAdjust} disabled={adjusting || missingPeriod}>
                   {adjusting ? 'Saving...' : 'Save'}
                 </Button>
               </div>
