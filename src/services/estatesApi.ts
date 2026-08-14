@@ -576,6 +576,8 @@ export interface TenantDashboardOverviewResponse {
           projectedTotal: number;
           projectedOther?: number;
           otherBreakdown?: { code: string; label: string; amount: number }[];
+          paid?: number;
+          outstanding?: number;
           rentIncreased?: boolean;
         };
       };

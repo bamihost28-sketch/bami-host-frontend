@@ -651,6 +651,7 @@ export const TenantDashboard: React.FC = () => {
             const cyTotal = cy.total ?? (cy.rent + cy.serviceCharge + (cy.other ?? 0));
             const cyPct = cyTotal > 0 ? Math.min(100, Math.round((cyPaid / cyTotal) * 100)) : 0;
             const fullyPaid = (cy.outstanding ?? 0) <= 0;
+            const nyPct = ny?.projectedTotal ? Math.min(100, Math.round(((ny.paid ?? 0) / ny.projectedTotal) * 100)) : 0;
             return (
               <Card>
                 <CardHeader className="pb-3">
@@ -757,6 +758,26 @@ export const TenantDashboard: React.FC = () => {
                           <Calendar className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
                           <span>Renewal starts <span className="font-medium text-slate-900 dark:text-white">{formatDate(ny.renewalStartDate)}</span></span>
                         </div>
+
+                        {(ny.paid ?? 0) > 0 && (
+                          <div className="mb-4">
+                            <div className="flex justify-between items-baseline mb-1.5">
+                              <span className="text-sm text-slate-600 dark:text-slate-400">Paid in advance</span>
+                              <span className="font-bold text-blue-700 dark:text-blue-400 text-lg">{formatCurrency(ny.paid ?? 0)}</span>
+                            </div>
+                            <div className="h-2 rounded-full bg-blue-100 dark:bg-blue-900/30 overflow-hidden">
+                              <div className="h-full rounded-full bg-blue-500 dark:bg-blue-500 transition-all" style={{ width: `${nyPct}%` }} />
+                            </div>
+                            <div className="flex justify-between mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              <span>{nyPct}% of {formatCurrency(ny.projectedTotal)}</span>
+                              {(ny.outstanding ?? 0) > 0 && (
+                                <span className="font-medium text-amber-700 dark:text-amber-400">
+                                  {formatCurrency(ny.outstanding ?? 0)} outstanding
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="space-y-2 text-sm mt-auto pt-3 border-t border-blue-200/70 dark:border-blue-800/50">
                           <div className="flex justify-between">
