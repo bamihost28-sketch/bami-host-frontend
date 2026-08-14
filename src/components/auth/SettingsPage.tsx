@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SecuritySettings } from "../settings/SecuritySettings";
 import { NotificationSettings } from "../settings/NotificationSettings";
 import { AppearanceSettings } from "../settings/AppearanceSettings";
+import { PlatformSettings } from "../settings/PlatformSettings";
 import { ChangeEmailModal } from "./ChangeEmailModal";
 import "./settings-responsive.css";
 import {
@@ -21,6 +22,7 @@ import {
   CreditCard,
   Database,
   Zap,
+  Landmark,
   ChevronRight,
   ArrowLeft,
   Menu,
@@ -37,7 +39,8 @@ type SettingSection =
   | 'help'
   | 'about'
   | 'integrations'
-  | 'data';
+  | 'data'
+  | 'platform';
 
 export const SettingsPage = () => {
   const { user } = useAuth();
@@ -88,6 +91,14 @@ export const SettingsPage = () => {
       available: user?.role === 'super_admin' || user?.role === 'big7'
     },
     {
+      id: 'platform' as SettingSection,
+      name: 'Platform Settings',
+      description: 'Deposit bank account and the solicitor named on tenancy agreements',
+      icon: Landmark,
+      component: PlatformSettings,
+      available: user?.role === 'super_admin'
+    },
+    {
       id: 'integrations' as SettingSection,
       name: 'Integrations & API',
       description: 'Third-party connections and API access',
@@ -134,6 +145,8 @@ export const SettingsPage = () => {
         return <NotificationSettings />;
       case 'appearance':
         return <AppearanceSettings />;
+      case 'platform':
+        return <PlatformSettings />;
       default:
         // Placeholder content for other sections
         return (

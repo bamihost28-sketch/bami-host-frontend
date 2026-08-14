@@ -56,6 +56,24 @@ export interface ApproveRejectResponse {
   };
 }
 
+export interface PreparedBy {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+}
+
+export interface PlatformSettings {
+  bankInfo: BankInfo;
+  preparedBy: PreparedBy;
+}
+
+export interface PlatformSettingsResponse {
+  success: boolean;
+  message?: string;
+  data: PlatformSettings;
+}
+
 export const bankDepositsApi = createApi({
   reducerPath: 'bankDepositsApi',
   baseQuery: fetchBaseQuery({
@@ -68,10 +86,34 @@ export const bankDepositsApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['BankDeposits', 'MyDeposits'],
+  tagTypes: ['BankDeposits', 'MyDeposits', 'PlatformSettings'],
   endpoints: (builder) => ({
     getBankInfo: builder.query<{ success: boolean; data: BankInfo }, void>({
       query: () => '/api/bank-deposits/bank-info',
+    }),
+
+    getPlatformSettings: builder.query<PlatformSettingsResponse, void>({
+      query: () => '/api/settings',
+      providesTags: ['PlatformSettings'],
+    }),
+
+    updatePlatformSettings: builder.mutation<
+      PlatformSettingsResponse,
+      { bankInfo?: Partial<BankInfo>; preparedBy?: Partial<PreparedBy> }
+    >({
+      query: (body) => ({
+        url: '/api/settings',
+        method: 'PUT',
+        body: {
+          bank_info: body.bankInfo && {
+            bank_name: body.bankInfo.bankName,
+            account_number: body.bankInfo.accountNumber,
+            account_name: body.bankInfo.accountName,
+          },
+          prepared_by: body.preparedBy,
+        },
+      }),
+      invalidatesTags: ['PlatformSettings'],
     }),
 
     submitDeposit: builder.mutation<SubmitDepositResponse, FormData>({
@@ -128,4 +170,6 @@ export const {
   useGetDepositQuery,
   useApproveDepositMutation,
   useRejectDepositMutation,
+  useGetPlatformSettingsQuery,
+  useUpdatePlatformSettingsMutation,
 } = bankDepositsApi;
