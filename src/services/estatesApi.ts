@@ -52,6 +52,10 @@ export interface AgreementListItem {
   rejectionReason?: string | null;
   reviewedBy?: string | null;
   reviewedAt?: string | null;
+  lawyerId?: string | null;
+  lawyerTypedName?: string | null;
+  lawyerSignatureImage?: string | null;
+  lawyerSignedAt?: string | null;
 }
 
 export interface AgreementsListResponse {
@@ -921,17 +925,42 @@ export const estatesApi = createApi({
           ]
           : [{ type: 'TenantList' as const, id: 'AGREEMENTS_LIST' }],
     }),
-    // Admin: approve or reject a submitted agreement
+    // Admin: approve or reject a submitted agreement — verifying the tenant's
+    // registration particulars, separate from counsel's own countersignature
+    // (see the lawyer endpoints below).
     // Response `data` is the agreement's full _serialize() shape (parties/terms/
     // registration/...), not an AgreementListItem — unused by callers, who only
     // check success via .unwrap(), so left untyped rather than claimed wrongly.
-    reviewAgreement: builder.mutation<{ success: boolean; data: unknown }, { agreementId: string; status: 'approved' | 'rejected'; reason?: string; lawyerTypedName?: string; lawyerSignatureImage?: string | null }>({
-      query: ({ agreementId, status, reason, lawyerTypedName, lawyerSignatureImage }) => ({
+    reviewAgreement: builder.mutation<{ success: boolean; data: unknown }, { agreementId: string; status: 'approved' | 'rejected'; reason?: string }>({
+      query: ({ agreementId, status, reason }) => ({
         url: `/api/tenancy-agreements/${agreementId}/status`,
         method: 'PATCH',
-        body: { status, reason, lawyerTypedName, lawyerSignatureImage },
+        body: { status, reason },
       }),
       invalidatesTags: [{ type: 'TenantList' as const, id: 'AGREEMENTS_LIST' }],
+    }),
+    // Lawyer: every tenant-signed agreement platform-wide (not estate-scoped)
+    getLawyerAgreements: builder.query<
+      AgreementsListResponse,
+      { page?: number; limit?: number; search?: string; signed?: boolean } | void
+    >({
+      query: (params = {}) => ({ url: '/api/tenancy-agreements/lawyer', params: params || {} }),
+      providesTags: (result) =>
+        result && Array.isArray(result.data)
+          ? [
+            ...result.data.map((a) => ({ type: 'Tenant' as const, id: a.tenantId })),
+            { type: 'TenantList' as const, id: 'LAWYER_AGREEMENTS_LIST' },
+          ]
+          : [{ type: 'TenantList' as const, id: 'LAWYER_AGREEMENTS_LIST' }],
+    }),
+    // Lawyer: countersign an agreement the tenant has already signed
+    signAgreementAsLawyer: builder.mutation<{ success: boolean; data: unknown }, { agreementId: string; typedName: string; signatureImage: string }>({
+      query: ({ agreementId, typedName, signatureImage }) => ({
+        url: `/api/tenancy-agreements/lawyer/${agreementId}/sign`,
+        method: 'POST',
+        body: { typedName, signatureImage },
+      }),
+      invalidatesTags: [{ type: 'TenantList' as const, id: 'LAWYER_AGREEMENTS_LIST' }],
     }),
     getTenant: builder.query<TenantDetailResponse | { success: boolean; data: { tenant: Tenant; overview: TenantOverview } }, string | { id: string; expand?: string; page?: number; limit?: number }>({
       query: (arg) => {
@@ -1543,6 +1572,8 @@ export const {
   useGetTenantsQuery,
   useGetAgreementsQuery,
   useReviewAgreementMutation,
+  useGetLawyerAgreementsQuery,
+  useSignAgreementAsLawyerMutation,
   useGetTenantQuery,
   useUpdateTenantMutation,
   useDeleteTenantMutation,
