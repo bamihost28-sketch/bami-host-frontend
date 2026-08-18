@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface Estate {
   id: string;
@@ -780,14 +780,14 @@ export interface Issue {
 
 export const estatesApi = createApi({
   reducerPath: 'estatesApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) headers.set('authorization', `Bearer ${token}`);
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Estate', 'EstateList', 'EstateTenants', 'EstateUnits', 'EstateMembers', 'Tenant', 'TenantList', 'Issue', 'Payment', 'DashboardOverview', 'RentalApplication', 'Enquiry'],
   endpoints: (builder) => ({
     getEstates: builder.query<PaginatedResponse<Estate>, EstateListParams | void>({

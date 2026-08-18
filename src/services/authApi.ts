@@ -1,11 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { LoginRequest, LoginResponse, UpdateEmailRequest, UpdateEmailResponse, UpdatePasswordRequest, UpdatePasswordResponse, OnboardBusinessOwnerRequest, OnboardBusinessOwnerResponse, GetBusinessOwnersResponse, UpdateBusinessOwnerRequest, UpdateBusinessOwnerStatusRequest, UpdateBusinessOwnerResponse, DeleteBusinessOwnerResponse, OnboardManagerRequest, OnboardManagerResponse, GetManagersResponse, UpdateManagerRequest, UpdateManagerResponse, DeleteManagerResponse, RequestOtpRequest, VerifyOtpRequest, ResetPasswordOtpRequest, AuthResponse, SignAgreementRequest, SignAgreementResponse, DeleteAccountRequest, DeleteAccountResponse } from '../types/auth';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // Define a service using a base URL and expected endpoints
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       // Get token directly from localStorage
@@ -16,7 +16,7 @@ export const authApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Auth'],
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface Notification {
   id: string;
@@ -25,7 +25,7 @@ interface NotificationCountResponse {
 
 export const notificationsApi = createApi({
   reducerPath: 'notificationsApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -33,7 +33,7 @@ export const notificationsApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Notifications'],
   endpoints: (builder) => ({
     getNotifications: builder.query<NotificationsResponse, void>({
