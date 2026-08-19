@@ -16,7 +16,6 @@ import { EstateDetailPage } from '@/components/dashboard/business/EstateDetailPa
 import HeadOfficePage from '@/components/dashboard/HeadOfficePage';
 import GoogleWorkspacePage from '@/components/dashboard/GoogleWorkspacePage';
 import AgreementsListPage from '@/components/dashboard/AgreementsListPage';
-import LawyerAgreementsPage from '@/components/dashboard/LawyerAgreementsPage';
 import { SignAgreementGate } from '@/components/dashboard/SignAgreementGate';
 import { AddPropertyPage } from '@/components/dashboard/business/AddPropertyPage';
 import { TenantDetailPage } from '@/components/dashboard/business/TenantDetailPage';
@@ -79,8 +78,6 @@ const DashboardRouter: React.FC = () => {
         return <TenantDashboard />;
       case 'user':
         return <TenantDashboard />;
-      case 'lawyer':
-        return <LawyerAgreementsPage />;
       case 'customer':
         return <CustomerDashboard />;
       default:
@@ -96,7 +93,6 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('wallet')) return 'wallet';
     if (pathname.includes('portfolio')) return 'portfolio';
     if (pathname.includes('split-tracker')) return 'split-tracker';
-    if (pathname.includes('lawyer-agreements')) return 'lawyer-agreements';
     if (pathname.includes('agreements')) return 'agreements';
     if (pathname.includes('tenant')) return 'estate';
     if (pathname.includes('estate')) return 'estate';
@@ -286,19 +282,6 @@ const DashboardRouter: React.FC = () => {
               requiredPermissions={['view_estate']}
               feature="Tenancy Agreements"
               viewName="agreements"
-            />
-          }
-        />
-
-        {/* Tenancy Agreements — counsel's own platform-wide review + sign queue */}
-        <Route
-          path="/lawyer-agreements"
-          element={
-            <ProtectedRoute
-              element={<LawyerAgreementsPage />}
-              requiredPermissions={['view_lawyer_agreements']}
-              feature="Tenancy Agreements"
-              viewName="lawyer-agreements"
             />
           }
         />

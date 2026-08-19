@@ -3,33 +3,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Landmark, Scale } from "lucide-react";
+import { Landmark } from "lucide-react";
 import { useGetPlatformSettingsQuery, useUpdatePlatformSettingsMutation } from "@/services/bankDepositsApi";
 import { toast } from "@/components/ui/use-toast";
 
 export const PlatformSettings = () => {
   const { data, isLoading } = useGetPlatformSettingsQuery();
   const [updateSettings, { isLoading: savingBank }] = useUpdatePlatformSettingsMutation();
-  const [savingLawyer, setSavingLawyer] = useState(false);
 
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
-
-  const [lawyerName, setLawyerName] = useState("");
-  const [lawyerAddress, setLawyerAddress] = useState("");
-  const [lawyerPhone, setLawyerPhone] = useState("");
-  const [lawyerEmail, setLawyerEmail] = useState("");
 
   useEffect(() => {
     if (!data?.data) return;
     setBankName(data.data.bankInfo.bankName);
     setAccountNumber(data.data.bankInfo.accountNumber);
     setAccountName(data.data.bankInfo.accountName);
-    setLawyerName(data.data.preparedBy.name);
-    setLawyerAddress(data.data.preparedBy.address);
-    setLawyerPhone(data.data.preparedBy.phone);
-    setLawyerEmail(data.data.preparedBy.email);
   }, [data]);
 
   const saveBankInfo = async () => {
@@ -38,20 +28,6 @@ export const PlatformSettings = () => {
       toast({ title: "Bank details updated" });
     } catch (e: any) {
       toast({ title: e?.data?.detail || "Failed to update bank details", variant: "destructive" });
-    }
-  };
-
-  const saveLawyer = async () => {
-    setSavingLawyer(true);
-    try {
-      await updateSettings({
-        preparedBy: { name: lawyerName, address: lawyerAddress, phone: lawyerPhone, email: lawyerEmail },
-      }).unwrap();
-      toast({ title: lawyerName ? "Solicitor updated" : "Solicitor removed from agreements" });
-    } catch (e: any) {
-      toast({ title: e?.data?.detail || "Failed to update solicitor details", variant: "destructive" });
-    } finally {
-      setSavingLawyer(false);
     }
   };
 
@@ -89,38 +65,10 @@ export const PlatformSettings = () => {
         </CardContent>
       </Card>
 
-      <Card className="bg-white/90 dark:bg-slate-900 shadow-lg border-slate-200 dark:border-slate-700">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Scale className="h-5 w-5" /> Tenancy Agreement — Prepared By
-          </CardTitle>
-          <CardDescription>
-            The solicitor named on every generated tenancy agreement, platform-wide. Leave every
-            field blank to omit this section from the document entirely.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="ps-lawyer-name">Name</Label>
-            <Input id="ps-lawyer-name" value={lawyerName} onChange={(e) => setLawyerName(e.target.value)} placeholder="e.g. G. Anukun Esq., LL.M, AICMC" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="ps-lawyer-address">Address</Label>
-            <Input id="ps-lawyer-address" value={lawyerAddress} onChange={(e) => setLawyerAddress(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="ps-lawyer-phone">Phone</Label>
-            <Input id="ps-lawyer-phone" value={lawyerPhone} onChange={(e) => setLawyerPhone(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="ps-lawyer-email">Email</Label>
-            <Input id="ps-lawyer-email" type="email" value={lawyerEmail} onChange={(e) => setLawyerEmail(e.target.value)} />
-          </div>
-          <Button onClick={saveLawyer} disabled={savingLawyer}>
-            {savingLawyer ? "Saving..." : "Save solicitor details"}
-          </Button>
-        </CardContent>
-      </Card>
+      <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
+        Looking for the tenancy-agreement solicitor? That's now assigned per estate —
+        open an estate's page and use "Assign Lawyer" there.
+      </p>
     </div>
   );
 };

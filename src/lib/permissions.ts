@@ -90,12 +90,6 @@ export const PERMISSIONS: Record<string, Permission> = {
     description: 'Access to estate properties and tenant management',
     category: 'business'
   },
-  'view_lawyer_agreements': {
-    id: 'view_lawyer_agreements',
-    name: 'View Tenancy Agreements (Counsel)',
-    description: 'Review every tenant-signed agreement platform-wide and add a countersignature',
-    category: 'business'
-  },
   'manage_estate': {
     id: 'manage_estate',
     name: 'Manage Estate',
@@ -659,17 +653,6 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
     ]
   },
 
-  lawyer: {
-    id: 'lawyer',
-    name: 'Counsel',
-    description: 'Reviews and countersigns tenancy agreements platform-wide',
-    priority: 40,
-    permissions: [
-      'view_lawyer_agreements',
-      'view_settings',
-    ]
-  },
-
   tenant: {
     id: 'tenant',
     name: 'Tenant',
@@ -749,7 +732,6 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'assistant': ['view_assistant'],
   'settings': ['view_settings'],
   'estate': ['view_estate'],
-  'lawyer-agreements': ['view_lawyer_agreements'],
   'filling-station': ['view_filling_station'],
   'car-wash': ['view_car_wash'],
   'equipment': ['view_equipment'],

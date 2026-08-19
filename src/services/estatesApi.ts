@@ -58,6 +58,15 @@ export interface AgreementListItem {
   lawyerSignedAt?: string | null;
 }
 
+export interface EstateLawyer {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  businessAddress?: string | null;
+  isActive: boolean;
+}
+
 export interface AgreementsListResponse {
   success: boolean;
   data: AgreementListItem[];
@@ -841,6 +850,39 @@ export const estatesApi = createApi({
       transformResponse: (raw: { success: boolean; data: { terms: string[]; isCustom: boolean } }) => raw.data,
       invalidatesTags: (result, error, { estateId }) => [{ type: 'Estate', id: estateId }],
     }),
+    // Every vendor tagged as a solicitor — the "assign an existing lawyer" picker
+    getLegalVendors: builder.query<EstateLawyer[], void>({
+      query: () => '/api/estates/lawyers',
+      transformResponse: (raw: { success: boolean; data: EstateLawyer[] }) => raw.data,
+      providesTags: [{ type: 'EstateList' as const, id: 'LEGAL_VENDORS' }],
+    }),
+    getEstateLawyer: builder.query<EstateLawyer | null, string>({
+      query: (estateId) => `/api/estates/${estateId}/lawyer`,
+      transformResponse: (raw: { success: boolean; data: EstateLawyer | null }) => raw.data,
+      providesTags: (result, error, estateId) => [{ type: 'Estate', id: estateId }],
+    }),
+    assignEstateLawyer: builder.mutation<
+      EstateLawyer,
+      { estateId: string; vendorId?: string; name?: string; email?: string; phone?: string; businessAddress?: string }
+    >({
+      query: ({ estateId, ...body }) => ({
+        url: `/api/estates/${estateId}/lawyer`,
+        method: 'PUT',
+        body: { vendorId: body.vendorId, name: body.name, email: body.email, phone: body.phone, businessAddress: body.businessAddress },
+      }),
+      transformResponse: (raw: { success: boolean; data: EstateLawyer }) => raw.data,
+      invalidatesTags: (result, error, { estateId }) => [
+        { type: 'Estate', id: estateId },
+        { type: 'EstateList' as const, id: 'LEGAL_VENDORS' },
+      ],
+    }),
+    unassignEstateLawyer: builder.mutation<{ success: boolean; message: string }, string>({
+      query: (estateId) => ({ url: `/api/estates/${estateId}/lawyer`, method: 'DELETE' }),
+      invalidatesTags: (result, error, estateId) => [
+        { type: 'Estate' as const, id: estateId },
+        { type: 'EstateList' as const, id: 'LEGAL_VENDORS' },
+      ],
+    }),
     getEstateOverview: builder.query<EstateOverviewResponse, string>({
       query: (id) => `/api/estates/${id}/overview`,
       providesTags: (result, error, id) => [{ type: 'Estate', id }],
@@ -1551,6 +1593,10 @@ export const {
   useDeleteEstateMutation,
   useLazyGetEstateTenancyTermsQuery,
   useUpdateEstateTenancyTermsMutation,
+  useGetLegalVendorsQuery,
+  useGetEstateLawyerQuery,
+  useAssignEstateLawyerMutation,
+  useUnassignEstateLawyerMutation,
   useGetEstateOverviewQuery,
   useGetAllEstatesOverviewQuery,
   useGetDashboardOverviewQuery,

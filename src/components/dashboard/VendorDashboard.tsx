@@ -56,6 +56,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { VENDOR_DEMO_DATA } from "@/data/demoData";
+import LawyerAgreementsPage from "@/components/dashboard/LawyerAgreementsPage";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrencyIntl as formatCurrency, formatDateNg as formatDate, getStatusColor, getPriorityColor } from "@/utils/propertyUtils";
@@ -181,6 +182,7 @@ export const VendorDashboard: React.FC = () => {
           <TabsTrigger value="performance">Stats</TabsTrigger>
           <TabsTrigger value="documents">Docs</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="agreements">Tenancy Agreements</TabsTrigger>
         </TabsList>
 
         {/* 1. Work Overview */}
@@ -496,6 +498,12 @@ export const VendorDashboard: React.FC = () => {
             formatDate={formatDate}
             getStatusColor={getStatusColor}
           />
+        </TabsContent>
+
+        {/* Tenancy Agreements — only relevant if this vendor is assigned as
+            an estate's solicitor; empty otherwise (see LawyerAgreementsPage) */}
+        <TabsContent value="agreements">
+          <LawyerAgreementsPage />
         </TabsContent>
       </Tabs>
 

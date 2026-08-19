@@ -56,16 +56,8 @@ export interface ApproveRejectResponse {
   };
 }
 
-export interface PreparedBy {
-  name: string;
-  address: string;
-  phone: string;
-  email: string;
-}
-
 export interface PlatformSettings {
   bankInfo: BankInfo;
-  preparedBy: PreparedBy;
 }
 
 export interface PlatformSettingsResponse {
@@ -99,7 +91,7 @@ export const bankDepositsApi = createApi({
 
     updatePlatformSettings: builder.mutation<
       PlatformSettingsResponse,
-      { bankInfo?: Partial<BankInfo>; preparedBy?: Partial<PreparedBy> }
+      { bankInfo?: Partial<BankInfo> }
     >({
       query: (body) => ({
         url: '/api/settings',
@@ -110,7 +102,6 @@ export const bankDepositsApi = createApi({
             account_number: body.bankInfo.accountNumber,
             account_name: body.bankInfo.accountName,
           },
-          prepared_by: body.preparedBy,
         },
       }),
       invalidatesTags: ['PlatformSettings'],

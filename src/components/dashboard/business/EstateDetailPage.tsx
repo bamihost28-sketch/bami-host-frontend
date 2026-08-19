@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EstateTeam } from './EstateTeam';
+import { EstateLawyerCard } from './EstateLawyerCard';
 import {
   useGetEstateQuery,
   useGetEstateTenantsQuery,
@@ -374,6 +375,7 @@ export const EstateDetailPage = () => {
       </Card>
 
       {estateId && <EstateTeam estateId={estateId} />}
+      {estateId && <EstateLawyerCard estateId={estateId} />}
 
       <Card data-tour="estate-detail-tenants">
         <CardHeader className="pb-4">
