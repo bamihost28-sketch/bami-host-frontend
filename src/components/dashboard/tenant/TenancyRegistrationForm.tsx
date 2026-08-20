@@ -25,13 +25,19 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 const LANDLORD_NAME = "MR. ALFRED EBAMI";
-const SOLICITOR_NAME = "G. Anukun Esq., LL.M, AICMC.";
-const SOLICITOR_ADDRESS_LINES = [
-  "No. 12 Deco Road, by Efejuku Street Junction",
-  "Warri, Delta State.",
-  "G.S.M: 08050696537, 08068202655",
-  "E-mail: godfreyanukun@gmail.com",
-];
+
+// The solicitor shown here comes from the estate's assigned lawyer
+// (Estate.lawyer_id, surfaced via parties.preparedBy* on the fetched
+// agreement) — never hardcoded, since different estates can have
+// different lawyers or none at all. See buildSolicitorLines below.
+function buildSolicitorLines(address?: string | null, phone?: string | null, email?: string | null): string[] {
+  const lines: string[] = [];
+  if (address) lines.push(address);
+  if (phone) lines.push(`G.S.M: ${phone}`);
+  if (email) lines.push(`E-mail: ${email}`);
+  return lines;
+}
+
 const DEFAULT_LANDLORD_PARAGRAPH =
   'MR. ALFRED EBAMI of No. 5, Oke Street, Egbokodo Itsekiri in Warri South Local Government Area of Delta State, Nigeria, (hereinafter referred to as “THE LANDLORD”, which expression shall where the context so admits include his Heirs, Assigns, Agents, Successors-in-title and Legal Representatives, of the ONE PART.';
 
@@ -79,6 +85,8 @@ interface SubmissionData {
   tenantWitnessSigImage: string;
   solicitorSigImage: string | null;
   solicitorSigImage2: string | null;
+  solicitorName: string;
+  solicitorAddressLines: string[];
   terms: string[];
   landlordParagraph: string;
   submittedAt: string;
@@ -204,23 +212,25 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
   doc.text(boxLines, boxX + 16, cy + 20);
   cy += boxH + 60;
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("PREPARED BY:", boxX, cy);
-  try { doc.addImage(NBA_SEAL_DATA, "JPEG", boxX + 460 - 70, cy - 50, 70, 70); } catch { /* ignore */ }
-  cy += 20;
-  if (d.solicitorSigImage) {
-    try { doc.addImage(d.solicitorSigImage, "PNG", boxX, cy, 170, 55); } catch { /* ignore */ }
-    cy += 60;
-  } else {
-    doc.setDrawColor(150, 142, 120);
-    doc.line(boxX, cy + 20, boxX + 200, cy + 20);
-    cy += 30;
+  if (d.solicitorName) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("PREPARED BY:", boxX, cy);
+    try { doc.addImage(NBA_SEAL_DATA, "JPEG", boxX + 460 - 70, cy - 50, 70, 70); } catch { /* ignore */ }
+    cy += 20;
+    if (d.solicitorSigImage) {
+      try { doc.addImage(d.solicitorSigImage, "PNG", boxX, cy, 170, 55); } catch { /* ignore */ }
+      cy += 60;
+    } else {
+      doc.setDrawColor(150, 142, 120);
+      doc.line(boxX, cy + 20, boxX + 200, cy + 20);
+      cy += 30;
+    }
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(60, 58, 48);
+    [d.solicitorName, ...d.solicitorAddressLines].forEach((line) => { doc.text(line, boxX, cy); cy += 15; });
   }
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9.5);
-  doc.setTextColor(60, 58, 48);
-  [SOLICITOR_NAME, ...SOLICITOR_ADDRESS_LINES].forEach((line) => { doc.text(line, boxX, cy); cy += 15; });
 
   doc.addPage();
   y = 56;
@@ -402,24 +412,26 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
 
   y += 16;
   checkPage(100);
-  heading("Prepared By");
-  if (d.solicitorSigImage2) {
-    try { doc.addImage(d.solicitorSigImage2, "PNG", margin, y, 160, 50); } catch { /* ignore */ }
-    y += 58;
-  } else {
-    doc.setDrawColor(150, 142, 120);
-    doc.line(margin, y + 20, margin + 180, y + 20);
-    y += 30;
+  if (d.solicitorName) {
+    heading("Prepared By");
+    if (d.solicitorSigImage2) {
+      try { doc.addImage(d.solicitorSigImage2, "PNG", margin, y, 160, 50); } catch { /* ignore */ }
+      y += 58;
+    } else {
+      doc.setDrawColor(150, 142, 120);
+      doc.line(margin, y + 20, margin + 180, y + 20);
+      y += 30;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(20, 20, 20);
+    doc.text(d.solicitorName, margin, y);
+    y += 14;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(60, 58, 48);
+    d.solicitorAddressLines.forEach((line) => { doc.text(line, margin, y); y += 13; });
   }
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(20, 20, 20);
-  doc.text(SOLICITOR_NAME, margin, y);
-  y += 14;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(60, 58, 48);
-  SOLICITOR_ADDRESS_LINES.forEach((line) => { doc.text(line, margin, y); y += 13; });
 
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
@@ -430,13 +442,15 @@ function buildPdf(d: SubmissionData, copyLabel: string) {
     margin, y + 18, { maxWidth: pageW - margin * 2 }
   );
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(90, 86, 71);
-  doc.text(
-    "Prepared by: " + SOLICITOR_NAME + " · " + SOLICITOR_ADDRESS_LINES.join(", "),
-    margin, y + 32, { maxWidth: pageW - margin * 2 }
-  );
+  if (d.solicitorName) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(90, 86, 71);
+    doc.text(
+      "Prepared by: " + d.solicitorName + " · " + d.solicitorAddressLines.join(", "),
+      margin, y + 32, { maxWidth: pageW - margin * 2 }
+    );
+  }
 
   doc.save("Tenancy-" + d.ref + "-" + copyLabel.replace(/[^A-Za-z]/g, "") + ".pdf");
 }
@@ -481,6 +495,11 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
 
   const [terms, setTerms] = useState<TermItem[]>([]);
   const [agreedTerms, setAgreedTerms] = useState(false);
+
+  // The estate's assigned solicitor — blank until the fetch resolves, and
+  // stays blank (Prepared By section omitted) if this estate has none.
+  const [solicitorName, setSolicitorName] = useState("");
+  const [solicitorAddressLines, setSolicitorAddressLines] = useState<string[]>([]);
 
   const [landlordTypedSig, setLandlordTypedSig] = useState(LANDLORD_NAME);
   const [landlordSigDate, setLandlordSigDate] = useState("");
@@ -585,6 +604,11 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
         if (p.tenantName) setTenantName(p.tenantName);
         if (p.tenantPhone) setTenantPhone(p.tenantPhone);
         if (p.tenantEmail) setTenantEmail(p.tenantEmail);
+
+        if (p.preparedByName) {
+          setSolicitorName(p.preparedByName);
+          setSolicitorAddressLines(buildSolicitorLines(p.preparedByAddress, p.preparedByPhone, p.preparedByEmail));
+        }
 
         const apartment = [p.unitLabel, p.estateName, p.estateAddress].filter(Boolean).join(", ");
         if (apartment) setApartmentAddress(apartment);
@@ -752,6 +776,8 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
       tenantWitnessSigImage: tenantWitnessSigRef.current?.dataUrl() || "",
       solicitorSigImage: solicitorSigRef.current?.hasSignature() ? solicitorSigRef.current.dataUrl() : null,
       solicitorSigImage2: solicitorSig2Ref.current?.hasSignature() ? solicitorSig2Ref.current.dataUrl() : null,
+      solicitorName,
+      solicitorAddressLines,
       terms: terms.map((t) => t.text),
       landlordParagraph: landlordParagraphRef.current?.textContent?.trim() || DEFAULT_LANDLORD_PARAGRAPH,
       submittedAt: new Date().toLocaleString(),
@@ -966,15 +992,15 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
               lying at <Blank value={apartmentAddress.trim()} placeholder="apartment address" /> in Warri South
               Local Government Area of Delta State, Nigeria).
             </div>
-            {(viewOnly || agreementStatus === "approved") && (
+            {(viewOnly || agreementStatus === "approved") && solicitorName && (
               <>
                 <div className="tenancy-reg-form__cover-prepared-row">
                   <p className="tenancy-reg-form__cover-prepared-label">PREPARED BY:</p>
                   <img src={NBA_SEAL_DATA} className="tenancy-reg-form__cover-seal" alt="Nigerian Bar Association verification seal" />
                 </div>
                 <div className="tenancy-reg-form__cover-solicitor">
-                  <strong>{SOLICITOR_NAME}</strong><br />
-                  {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
+                  <strong>{solicitorName}</strong><br />
+                  {solicitorAddressLines.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
                 </div>
               </>
             )}
@@ -1093,12 +1119,12 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                     </div>
                     <div className="tenancy-reg-form__field">
                       <label className="tenancy-reg-form__label">Prepared By (Solicitor)</label>
-                      <input className="tenancy-reg-form__control" type="text" value="G. Anukun Esq., LL.M, AICMC" readOnly />
+                      <input className="tenancy-reg-form__control" type="text" value={solicitorName || "Not yet assigned"} readOnly />
                     </div>
                   </div>
                   <div className="tenancy-reg-form__row">
                     <div className="tenancy-reg-form__field">
-                      <label className="tenancy-reg-form__label">Full Legal Name of Tenant</label>
+                      <label className="tenancy-reg-form__label">Full Legal Name of Tenant<span className="tenancy-reg-form__req">*</span></label>
                       <div className="tenancy-reg-form__name-group">
                         <select className="tenancy-reg-form__select" required value={tenantTitle} onChange={(e) => setTenantTitle(e.target.value)}>
                           <option value="">Title</option>
@@ -1392,6 +1418,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                         signed={tenantSigned}
                         viewOnly={viewOnly}
                         imageSrc={tenantSigImageUrl}
+                        optionalHint="No mouse or touchscreen handy? Use Upload Signature to add a photo of your handwritten signature instead — it's used exactly like a drawn one and becomes your legal signature on this tenancy agreement."
                       />
                     </div>
                     <div className="tenancy-reg-form__row">
@@ -1443,7 +1470,7 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                     </div>
                   </div>
 
-                  {viewOnly && (
+                  {viewOnly && solicitorName && (
                     <div className="tenancy-reg-form__witness-block">
                       <p className="tenancy-reg-form__witness-heading">Prepared By</p>
                       <div className="tenancy-reg-form__row">
@@ -1454,9 +1481,9 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
                           viewOnly
                         />
                       </div>
-                      <p className="tenancy-reg-form__witness-name" style={{ marginTop: 14 }}>{SOLICITOR_NAME}</p>
+                      <p className="tenancy-reg-form__witness-name" style={{ marginTop: 14 }}>{solicitorName}</p>
                       <p className="tenancy-reg-form__witness-note" style={{ fontStyle: "normal" }}>
-                        {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
+                        {solicitorAddressLines.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
                       </p>
                     </div>
                   )}
@@ -1500,14 +1527,14 @@ export function TenancyRegistrationForm({ tenantId }: { tenantId?: string } = {}
           </div>
         </div>
 
-        {(viewOnly || agreementStatus === "approved") && (
+        {(viewOnly || agreementStatus === "approved") && solicitorName && (
           <div className="tenancy-reg-form__prepared-by">
             <div className="tenancy-reg-form__prepared-by-text">
               <div className="tenancy-reg-form__prepared-by-line" />
               <p className="tenancy-reg-form__prepared-by-label">Prepared By:</p>
               <p>
-                <strong>{SOLICITOR_NAME}</strong><br />
-                {SOLICITOR_ADDRESS_LINES.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
+                <strong>{solicitorName}</strong><br />
+                {solicitorAddressLines.map((line) => <React.Fragment key={line}>{line}<br /></React.Fragment>)}
               </p>
             </div>
             <img src={NBA_SEAL_DATA} className="tenancy-reg-form__prepared-by-seal" alt="Nigerian Bar Association verification seal" />
