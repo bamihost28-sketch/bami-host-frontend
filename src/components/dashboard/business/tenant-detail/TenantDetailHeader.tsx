@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { useUpdateTenantMutation, useUpdateEstateUnitMutation, useResendTenantCredentialsMutation, useRenewTenantMutation } from '@/services/estatesApi';
+import { useUpdateTenantMutation, useUpdateEstateUnitMutation, useResendTenantCredentialsMutation, useRenewTenantMutation, useSetTenantAccountStatusMutation } from '@/services/estatesApi';
+import { Textarea } from '@/components/ui/textarea';
 import { useGetTenantAgreementQuery } from '@/services/agreementApi';
 import { formatDate, formatDateToDDMMYYYY, toDateInput } from '@/utils/propertyUtils';
 
@@ -25,11 +26,30 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
   const [updateUnit, { isLoading: updatingUnit }] = useUpdateEstateUnitMutation();
   const [resendCredentials, { isLoading: resendingCredentials }] = useResendTenantCredentialsMutation();
   const [renewTenantLease, { isLoading: renewingLease }] = useRenewTenantMutation();
+  const [setAccountStatus, { isLoading: settingAccountStatus }] = useSetTenantAccountStatusMutation();
   const { data: agreementData } = useGetTenantAgreementQuery(tenantId as string, { skip: !tenantId });
 
   // Resend login credentials state
   const [resendOpen, setResendOpen] = useState(false);
   const tenantEmail = tenant?.email || overview?.email || tenant?.tenantEmail || '';
+
+  // Suspend/reactivate account state — locks the login only, independent of
+  // occupancy, lease, and billing. For a dispute/issue to resolve, not a move-out.
+  const [suspendOpen, setSuspendOpen] = useState(false);
+  const [suspendReason, setSuspendReason] = useState('');
+  const accountActive = overview?.accountActive;
+
+  const handleAccountStatus = async (nextActive: boolean) => {
+    if (!tenantId) return;
+    try {
+      const res = await setAccountStatus({ tenantId, isActive: nextActive, reason: suspendReason.trim() || undefined }).unwrap();
+      toast({ title: res?.message || (nextActive ? 'Account access restored' : 'Account access suspended') });
+      setSuspendOpen(false);
+      setSuspendReason('');
+    } catch (e: any) {
+      toast({ title: e?.data?.detail || 'Failed to update account access', variant: 'destructive' });
+    }
+  };
 
   const handleResendCredentials = async () => {
     if (!tenantId) return;
@@ -412,6 +432,50 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
             </div>
           </DialogContent>
         </Dialog>
+
+        {typeof accountActive === 'boolean' && (
+          accountActive ? (
+            <Dialog open={suspendOpen} onOpenChange={setSuspendOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10">
+                  Suspend Account
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Suspend this tenant's account?</DialogTitle>
+                </DialogHeader>
+                <div className="py-2 text-sm space-y-3">
+                  <p className="text-muted-foreground">
+                    They'll be logged out immediately and unable to sign back in until you
+                    reactivate their account. Their lease, billing, and occupancy status are
+                    not affected — use this for a dispute or issue to resolve, not a move-out.
+                  </p>
+                  <div className="grid gap-2">
+                    <Label htmlFor="suspend-reason">Reason (optional, kept on record)</Label>
+                    <Textarea
+                      id="suspend-reason"
+                      value={suspendReason}
+                      onChange={(e) => setSuspendReason(e.target.value)}
+                      placeholder="e.g. Payment dispute under review"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 mt-2">
+                  <Button variant="ghost" onClick={() => setSuspendOpen(false)}>Cancel</Button>
+                  <Button variant="destructive" onClick={() => handleAccountStatus(false)} disabled={settingAccountStatus}>
+                    {settingAccountStatus ? 'Suspending...' : 'Suspend account'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => handleAccountStatus(true)} disabled={settingAccountStatus}>
+              {settingAccountStatus ? 'Restoring...' : 'Reactivate Account'}
+            </Button>
+          )
+        )}
 
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>Back</Button>
       </div>

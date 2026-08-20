@@ -1092,6 +1092,23 @@ export const estatesApi = createApi({
         { type: 'TenantList', id: 'LIST' },
       ],
     }),
+    // Locks/restores a tenant's login only — occupancy, lease, and billing
+    // are untouched either way. For disputes/issues, not move-outs.
+    setTenantAccountStatus: builder.mutation<
+      { success: boolean; message?: string; data?: { tenantId: string; userIsActive: boolean } },
+      { tenantId: string; isActive: boolean; reason?: string }
+    >({
+      query: ({ tenantId, isActive, reason }) => ({
+        url: `/api/tenants/${tenantId}/account-status`,
+        method: 'PUT',
+        body: { is_active: isActive, reason },
+      }),
+      invalidatesTags: (result, error, { tenantId }) => [
+        { type: 'Tenant', id: tenantId },
+        { type: 'EstateTenants', id: tenantId },
+        { type: 'TenantList', id: 'LIST' },
+      ],
+    }),
     getTenantHistory: builder.query<TenantHistoryEntry[], string>({
       query: (tenantId) => `/api/tenants/${tenantId}/history`,
       providesTags: (result, error, tenantId) => [{ type: 'Tenant' as const, id: tenantId }],
@@ -1626,6 +1643,7 @@ export const {
   useResendTenantCredentialsMutation,
   useAdjustTenantBalanceMutation,
   useRenewTenantMutation,
+  useSetTenantAccountStatusMutation,
   useGetTenantHistoryQuery,
   useGetTenantTransactionsQuery,
   useGetMyPaymentHistoryQuery,
