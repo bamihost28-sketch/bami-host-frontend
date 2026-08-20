@@ -220,21 +220,25 @@ export const PaymentCollectionDialog = ({
                     <SelectItem value="rent">Rent</SelectItem>
                     <SelectItem value="service_charge">Service Charge</SelectItem>
                     <SelectItem value="bundle">Rent + Service Bundle</SelectItem>
+                    <SelectItem value="caution_fee">Caution Fee (one-time)</SelectItem>
+                    <SelectItem value="legal_fee">Legal Fee (one-time)</SelectItem>
                     <SelectItem value="deposit">Deposit</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
-                <Label>Duration (Months)</Label>
-                <Select value={manualMonths} onValueChange={(v) => setManualMonths(v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="6">6 months</SelectItem>
-                    <SelectItem value="12">12 months</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {['rent', 'service_charge', 'bundle'].includes(manualType) && (
+                <div className="grid gap-2">
+                  <Label>Duration (Months)</Label>
+                  <Select value={manualMonths} onValueChange={(v) => setManualMonths(v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6">6 months</SelectItem>
+                      <SelectItem value="12">12 months</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             <div className="grid gap-2">
