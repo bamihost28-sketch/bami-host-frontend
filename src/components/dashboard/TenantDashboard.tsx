@@ -213,19 +213,28 @@ export const TenantDashboard: React.FC = () => {
     ? Math.ceil((new Date(tenantInfo.nextPaymentDue).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
     : 30;
 
-  const handleSelectBillingItem = (itemCode: string) => {
-    let newSelection = [...selectedBillingItems];
+  // Some charges must always be paid together — never one without the
+  // other. Rent/Service Charge always come as a pair; Caution Fee/Legal
+  // Fee do too, but only bundle with a partner this tenant is actually
+  // being charged for (a renewing tenant may have neither).
+  const ONE_TIME_BUNDLE = ["caution_fee", "legal_fee"];
+  const billingBundlePartners = (code: string): string[] => {
+    if (code === "rent" || code === "service_charge") return ["rent", "service_charge"];
+    if (ONE_TIME_BUNDLE.includes(code)) {
+      return ONE_TIME_BUNDLE.filter((c) => c === code || oneTimeItems.some((i) => i.code === c));
+    }
+    return [code];
+  };
 
-    if (newSelection.includes(itemCode)) {
-      newSelection = newSelection.filter(item => item !== itemCode);
-      if (itemCode === "rent") {
-        newSelection = newSelection.filter(item => item !== "service_charge");
-      }
+  const handleSelectBillingItem = (itemCode: string) => {
+    const group = billingBundlePartners(itemCode);
+    const turningOn = !selectedBillingItems.includes(itemCode);
+
+    let newSelection = [...selectedBillingItems];
+    if (turningOn) {
+      group.forEach((c) => { if (!newSelection.includes(c)) newSelection.push(c); });
     } else {
-      newSelection.push(itemCode);
-      if (itemCode === "rent" && !newSelection.includes("service_charge")) {
-        newSelection.push("service_charge");
-      }
+      newSelection = newSelection.filter((c) => !group.includes(c));
     }
 
     setSelectedBillingItems(newSelection);
