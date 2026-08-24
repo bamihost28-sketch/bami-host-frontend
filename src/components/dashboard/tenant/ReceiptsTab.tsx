@@ -34,8 +34,15 @@ function generatePrintHTML(r: PaymentReceipt): string {
   const row = (label: string, value: string, color = "#4472c4") =>
     `<tr style="color:${color}"><td>${label}</td><td>${value}</td></tr>`;
   const naira = (n: number) => `&#8358; ${(n || 0).toLocaleString()}`;
-  const name = (r.estateName || "BamiHost").toUpperCase();
+  const companyName = r.companyName || r.estateName || "BamiHost";
+  const nameLines = companyName.split("\n");
+  const name = nameLines[0].toUpperCase();
+  const nameLine2 = nameLines[1]?.toUpperCase();
+  const companyPhone = r.companyPhone || r.estatePhone;
   const initials = name.split(/\s+/).slice(0, 2).map(w => w[0]).join("");
+  const logoHtml = r.logoUrl
+    ? `<img src="${r.logoUrl}" alt="${name}" class="logo-img"/>`
+    : `<div class="logo-fallback">${initials}</div>`;
   const hasIncrease =
     r.increaseCycleYears > 0 && r.increasePercent > 0 && !!r.nextIncreaseDate &&
     (r.nextRentIncrease > 0 || r.nextServiceChargeIncrease > 0);
@@ -50,8 +57,11 @@ function generatePrintHTML(r: PaymentReceipt): string {
     body{font-family:Arial,sans-serif;color:#1e293b;padding:32px;font-size:12px}
     .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
     .co{font-size:24px;font-weight:bold;color:#4472c4}
+    .co2{font-size:16px;font-weight:bold;color:#4472c4;text-decoration:underline;margin-top:2px}
     .sub{font-size:12px;color:#1e293b;margin-top:3px}
-    .logo{width:72px;height:72px;background:#0056b3;border:2px solid #2c5aa0;color:white;
+    .logo{width:72px;height:72px;flex-shrink:0}
+    .logo-img{width:100%;height:100%;object-fit:contain}
+    .logo-fallback{width:100%;height:100%;background:#0056b3;border:2px solid #2c5aa0;color:white;
           display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px}
     .titlebar{display:flex;justify-content:space-between;align-items:center;margin-bottom:0}
     .title{font-size:15px;font-weight:bold;background:#e7e6e6;padding:5px 10px}
@@ -69,10 +79,11 @@ function generatePrintHTML(r: PaymentReceipt): string {
   <div class="head">
     <div>
       <div class="co">${name}</div>
+      ${nameLine2 ? `<div class="co2">${nameLine2}</div>` : ""}
       ${r.estateAddress ? `<div class="sub">${r.estateAddress.toUpperCase()}</div>` : ""}
-      ${r.estatePhone ? `<div class="sub">Tel: ${r.estatePhone}</div>` : ""}
+      ${companyPhone ? `<div class="sub">Tel: ${companyPhone}</div>` : ""}
     </div>
-    <div class="logo">${initials}</div>
+    <div class="logo">${logoHtml}</div>
   </div>
   <div class="titlebar">
     <span class="title">RECEIPT</span>
@@ -307,25 +318,46 @@ export const ReceiptsTab: React.FC = () => {
               {/* ── Classic paper receipt preview (same design as print + PDF) ── */}
               <div className="bg-white text-slate-900 px-5 pt-5 pb-4">
                 {/* Letterhead */}
-                <div className="flex justify-between items-start mb-3">
-                  <div className="min-w-0 pr-3">
-                    <p className="text-xl font-bold leading-tight" style={{ color: "#4472c4" }}>
-                      {(selectedReceipt.estateName || "BamiHost").toUpperCase()}
-                    </p>
-                    {selectedReceipt.estateAddress && (
-                      <p className="text-[11px] mt-0.5">{selectedReceipt.estateAddress.toUpperCase()}</p>
-                    )}
-                    {selectedReceipt.estatePhone && (
-                      <p className="text-[11px]">Tel: {selectedReceipt.estatePhone}</p>
-                    )}
-                  </div>
-                  <div
-                    className="w-14 h-14 shrink-0 flex items-center justify-center font-bold text-white text-base"
-                    style={{ background: "#0056b3", border: "2px solid #2c5aa0" }}
-                  >
-                    {(selectedReceipt.estateName || "BamiHost").split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase()}
-                  </div>
-                </div>
+                {(() => {
+                  const companyName = selectedReceipt.companyName || selectedReceipt.estateName || "BamiHost";
+                  const [nameLine1, nameLine2] = companyName.split("\n");
+                  const companyPhone = selectedReceipt.companyPhone || selectedReceipt.estatePhone;
+                  const initials = nameLine1.split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
+                  return (
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="min-w-0 pr-3">
+                        <p className="text-xl font-bold leading-tight" style={{ color: "#4472c4" }}>
+                          {nameLine1.toUpperCase()}
+                        </p>
+                        {nameLine2 && (
+                          <p className="text-sm font-bold underline mt-0.5" style={{ color: "#4472c4" }}>
+                            {nameLine2.toUpperCase()}
+                          </p>
+                        )}
+                        {selectedReceipt.estateAddress && (
+                          <p className="text-[11px] mt-0.5">{selectedReceipt.estateAddress.toUpperCase()}</p>
+                        )}
+                        {companyPhone && (
+                          <p className="text-[11px]">Tel: {companyPhone}</p>
+                        )}
+                      </div>
+                      {selectedReceipt.logoUrl ? (
+                        <img
+                          src={selectedReceipt.logoUrl}
+                          alt={nameLine1}
+                          className="w-14 h-14 shrink-0 object-contain"
+                        />
+                      ) : (
+                        <div
+                          className="w-14 h-14 shrink-0 flex items-center justify-center font-bold text-white text-base"
+                          style={{ background: "#0056b3", border: "2px solid #2c5aa0" }}
+                        >
+                          {initials}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* RECEIPT bar + date */}
                 <div className="flex justify-between items-center mb-1">
