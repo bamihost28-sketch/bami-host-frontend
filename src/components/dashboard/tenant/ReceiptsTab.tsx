@@ -120,7 +120,7 @@ function generatePrintHTML(r: PaymentReceipt): string {
   <div class="notice-t">Important Notice Regarding Rent Adjustment</div>
   <div class="notice-b">Please be advised that there will be a <strong>${r.increasePercent}% increase in the combined Rent and Service Charge</strong> applicable <strong>every ${r.increaseCycleYears === 2 ? "two (2)" : r.increaseCycleYears} year${r.increaseCycleYears !== 1 ? "s" : ""}</strong> of continuous tenancy. We appreciate your understanding and continued residency.</div>` : ""}
 
-  <div class="footer">BamiHost Property Management System &bull; Ref: ${r.reference}</div>
+  <div class="footer">Powered by: BamiHost Management System &bull; Ref: ${r.reference}</div>
   <script>window.onload=function(){window.print()}</script>
 </body>
 </html>`;
@@ -421,7 +421,7 @@ export const ReceiptsTab: React.FC = () => {
                 )}
 
                 <p className="text-[9px] text-slate-400 text-center mt-3">
-                  BamiHost Property Management System &bull; Ref: {selectedReceipt.reference}
+                  Powered by: BamiHost Management System &bull; Ref: {selectedReceipt.reference}
                 </p>
               </div>
 
