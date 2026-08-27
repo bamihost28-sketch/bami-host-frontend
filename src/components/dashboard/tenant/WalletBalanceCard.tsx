@@ -61,16 +61,16 @@ export const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
         </div>
         <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-2">
           <Button size="sm" onClick={onDeposit} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto" disabled={isDepositing}>
-            <ArrowDownRight className="h-4 w-4 mr-1 shrink-0" />
-            <span className="truncate">{isDepositing ? "..." : "Deposit"}</span>
+            <ArrowDownRight className="h-4 w-4 shrink-0 sm:mr-1" />
+            <span className="sr-only sm:not-sr-only">{isDepositing ? "..." : "Deposit"}</span>
           </Button>
           <Button size="sm" variant="outline" onClick={onWithdraw} className="w-full sm:w-auto" disabled={isWithdrawing}>
-            <ArrowUpRight className="h-4 w-4 mr-1 shrink-0" />
-            <span className="truncate">{isWithdrawing ? "..." : "Withdraw"}</span>
+            <ArrowUpRight className="h-4 w-4 shrink-0 sm:mr-1" />
+            <span className="sr-only sm:not-sr-only">{isWithdrawing ? "..." : "Withdraw"}</span>
           </Button>
           <Button size="sm" variant="outline" onClick={onTransfer} className="w-full sm:w-auto" disabled={isTransferring}>
-            <Send className="h-4 w-4 mr-1 shrink-0" />
-            <span className="truncate">{isTransferring ? "..." : "Transfer"}</span>
+            <Send className="h-4 w-4 shrink-0 sm:mr-1" />
+            <span className="sr-only sm:not-sr-only">{isTransferring ? "..." : "Transfer"}</span>
           </Button>
         </div>
       </div>
