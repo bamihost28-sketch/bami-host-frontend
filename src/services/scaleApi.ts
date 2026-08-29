@@ -1,14 +1,14 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { BASE_API_URL } from "./api";
+import { BASE_API_URL, withColdStartRetry } from "./api";
 
-const baseQuery = fetchBaseQuery({
+const baseQuery = withColdStartRetry(fetchBaseQuery({
   baseUrl: BASE_API_URL,
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     if (token) headers.set("Authorization", `Bearer ${token}`);
     return headers;
   },
-});
+}));
 
 export interface LevelRow { level: number; name: string; done: boolean; progress: string; }
 export interface StatedPlan {

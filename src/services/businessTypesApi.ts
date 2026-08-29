@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface BusinessType {
     _id: string;
@@ -45,7 +45,7 @@ export interface GetBusinessTypesParams {
 
 export const businessTypesApi = createApi({
     reducerPath: 'businessTypesApi',
-    baseQuery: fetchBaseQuery({
+    baseQuery: withColdStartRetry(fetchBaseQuery({
         baseUrl: BASE_API_URL,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem('token');
@@ -53,7 +53,7 @@ export const businessTypesApi = createApi({
             headers.set('content-type', 'application/json');
             return headers;
         },
-    }),
+    })),
     tagTypes: ['BusinessType', 'BusinessTypeList'],
     endpoints: (builder) => ({
         getBusinessTypes: builder.query<BusinessTypesListResponse, GetBusinessTypesParams | void>({

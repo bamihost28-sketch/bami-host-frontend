@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface UploadResponse {
   success: boolean;
@@ -33,14 +33,14 @@ export interface TenantHistoryEntry {
 
 export const uploadApi = createApi({
   reducerPath: 'uploadApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) headers.set('authorization', `Bearer ${token}`);
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Upload', 'TenantHistory'],
   endpoints: (builder) => ({
     uploadImage: builder.mutation<UploadResponse, File>({

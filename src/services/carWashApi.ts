@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // Backend builds these dicts snake_case, but camelize_response_middleware
 // (fastapi_app/middleware/camelize.py) auto-converts every JSON response's
@@ -213,14 +213,14 @@ interface ItemResponse<T> { success: boolean; data: T }
 
 export const carWashApi = createApi({
   reducerPath: 'carWashApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) headers.set('authorization', `Bearer ${token}`);
       return headers;
     },
-  }),
+  })),
   tagTypes: ['CarWashStation', 'CarWashStationList', 'CarWashService', 'CarWashAddon',
     'CarWashVehicle', 'CarWashOrder', 'CarWashOrderList', 'CarWashTicket', 'CarWashTicketList', 'CarWashStaff'],
   endpoints: (builder) => ({

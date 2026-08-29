@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 import {
   WalletResponse,
   WalletTransactionResponse,
@@ -97,7 +97,7 @@ export interface AdminCreditData {
 // RTK Query API
 export const walletApi = createApi({
   reducerPath: 'walletApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -107,7 +107,7 @@ export const walletApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Wallet', 'GlobalWallet', 'PersonalWallet', 'WalletTransactions'],
   endpoints: (builder) => ({
     // GLOBAL WALLET ENDPOINTS (Multi-Engine)

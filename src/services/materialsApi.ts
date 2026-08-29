@@ -3,10 +3,11 @@
 // The full implementation will be added when the materials feature is complete
 
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { withColdStartRetry } from './api';
 
 export const materialsApi = createApi({
   reducerPath: 'materialsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  baseQuery: withColdStartRetry(fetchBaseQuery({ baseUrl: '/api' })),
   endpoints: (builder) => ({
     getMaterials: builder.query({
       query: () => '/materials',

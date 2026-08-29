@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // The backend's global camelize middleware converts every JSON response from
 // snake_case to camelCase (see middleware/camelize.py) — these field names
@@ -85,14 +85,14 @@ export interface SignAgreementRequest {
 
 export const agreementApi = createApi({
   reducerPath: 'agreementApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
       if (token) headers.set('authorization', `Bearer ${token}`);
       return headers;
     },
-  }),
+  })),
   tagTypes: ['MyAgreement', 'TenantAgreement'],
   endpoints: (builder) => ({
     getMyAgreement: builder.query<AgreementResponse, void>({

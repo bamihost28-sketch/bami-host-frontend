@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -104,7 +104,7 @@ export interface RegisterMeterRequest {
 
 export const meterApi = createApi({
   reducerPath: 'meterApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -112,7 +112,7 @@ export const meterApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Meter', 'MeterHistory'],
   endpoints: (builder) => ({
 

@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface Subscription {
     _id?: string;
@@ -66,7 +66,7 @@ export interface SubscriptionResponse {
 
 export const subscriptionsApi = createApi({
     reducerPath: 'subscriptionsApi',
-    baseQuery: fetchBaseQuery({
+    baseQuery: withColdStartRetry(fetchBaseQuery({
         baseUrl: BASE_API_URL,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem('token');
@@ -74,7 +74,7 @@ export const subscriptionsApi = createApi({
             headers.set('content-type', 'application/json');
             return headers;
         },
-    }),
+    })),
     tagTypes: ['Subscription', 'SubscriptionList'],
     endpoints: (builder) => ({
         getSubscriptions: builder.query<PaginatedSubscriptionsResponse, GetSubscriptionsParams | void>({

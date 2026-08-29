@@ -16,11 +16,11 @@ import type {
   BulkDeletionRequest,
   BulkDeletionResponse
 } from '../types/folders';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export const foldersApi = createApi({
   reducerPath: 'foldersApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -30,7 +30,7 @@ export const foldersApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Folder', 'FolderContents'],
   endpoints: (builder) => ({
     // Get all folders with optional query parameters

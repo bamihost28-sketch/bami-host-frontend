@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ export interface AnalyticsResponse {
 
 export const billionaireApi = createApi({
   reducerPath: 'billionaireApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -80,7 +80,7 @@ export const billionaireApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Summary', 'Mission', 'TimeBlock', 'KingsAudit', 'TimeValue', 'Analytics'],
   endpoints: (builder) => ({
 

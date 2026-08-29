@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface BankInfo {
   bankName: string;
@@ -68,7 +68,7 @@ export interface PlatformSettingsResponse {
 
 export const bankDepositsApi = createApi({
   reducerPath: 'bankDepositsApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -77,7 +77,7 @@ export const bankDepositsApi = createApi({
       // multipart/form-data which the browser sets automatically with the correct boundary.
       return headers;
     },
-  }),
+  })),
   tagTypes: ['BankDeposits', 'MyDeposits', 'PlatformSettings'],
   endpoints: (builder) => ({
     getBankInfo: builder.query<{ success: boolean; data: BankInfo }, void>({

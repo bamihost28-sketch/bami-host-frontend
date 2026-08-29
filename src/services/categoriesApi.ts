@@ -6,11 +6,11 @@ import type {
   CategoryResponse, 
   CategoriesResponse 
 } from '../types/categories';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export const categoriesApi = createApi({
   reducerPath: 'categoriesApi',
-   baseQuery: fetchBaseQuery({
+   baseQuery: withColdStartRetry(fetchBaseQuery({
       baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       // Get token directly from localStorage
@@ -21,7 +21,7 @@ export const categoriesApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Category'],
   endpoints: (builder) => ({
     // Get all categories

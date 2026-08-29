@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface Vendor {
     _id: string;
@@ -91,7 +91,7 @@ export interface UpdateVendorStatusPayload {
 
 export const vendorsApi = createApi({
     reducerPath: 'vendorsApi',
-    baseQuery: fetchBaseQuery({
+    baseQuery: withColdStartRetry(fetchBaseQuery({
         baseUrl: BASE_API_URL,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem('token');
@@ -99,7 +99,7 @@ export const vendorsApi = createApi({
             headers.set('content-type', 'application/json');
             return headers;
         },
-    }),
+    })),
     tagTypes: ['Vendor', 'VendorList'],
     endpoints: (builder) => ({
         getVendors: builder.query<VendorsListResponse, PaginationParams | void>({

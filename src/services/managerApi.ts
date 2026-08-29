@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -176,14 +176,14 @@ export interface VacantUnit {
 
 export const managerApi = createApi({
   reducerPath: 'managerApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (token) headers.set('Authorization', `Bearer ${token}`);
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Overview', 'Tenants', 'Issues', 'Payments', 'Enquiries', 'Applications', 'Billing', 'ServiceRequests', 'VacantUnits'],
   endpoints: (builder) => ({
 

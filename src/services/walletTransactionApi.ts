@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // ============================================
 // TYPE DEFINITIONS
@@ -188,7 +188,7 @@ export interface TransactionListParams {
 
 export const walletTransactionApi = createApi({
   reducerPath: 'walletTransactionApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -198,7 +198,7 @@ export const walletTransactionApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Wallet', 'Transaction'],
   endpoints: (builder) => ({
     // 1. Get Wallet Balance

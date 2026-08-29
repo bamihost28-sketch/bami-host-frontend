@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 // Types
 export interface ScalableImpactNotification {
@@ -59,7 +59,7 @@ export interface ScalableImpactProgress {
 // RTK Query API
 export const scalableImpactApi = createApi({
     reducerPath: 'scalableImpactApi',
-    baseQuery: fetchBaseQuery({
+    baseQuery: withColdStartRetry(fetchBaseQuery({
         baseUrl: BASE_API_URL,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem('token');
@@ -69,7 +69,7 @@ export const scalableImpactApi = createApi({
             headers.set('content-type', 'application/json');
             return headers;
         },
-    }),
+    })),
     tagTypes: ['Notifications', 'NotificationPreferences', 'Progress', 'DashboardData'],
     endpoints: (builder) => ({
         // Notification Queries

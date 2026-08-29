@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { BASE_API_URL } from './api';
+import { BASE_API_URL, withColdStartRetry } from './api';
 
 export interface Feedback {
   id: string;
@@ -48,7 +48,7 @@ export interface RespondFeedbackBody {
 
 export const feedbackApi = createApi({
   reducerPath: 'feedbackApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: withColdStartRetry(fetchBaseQuery({
     baseUrl: BASE_API_URL,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
@@ -56,7 +56,7 @@ export const feedbackApi = createApi({
       headers.set('content-type', 'application/json');
       return headers;
     },
-  }),
+  })),
   tagTypes: ['Feedback'],
   endpoints: (builder) => ({
     getFeedback: builder.query<FeedbackListResponse, { status?: string; category?: string; page?: number; limit?: number } | void>({
