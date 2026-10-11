@@ -18,7 +18,7 @@ import { AlertCircle, Loader, Calendar, Receipt, Wallet, Plus, TrendingUp, Credi
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useToggleAutoPayMutation, useGetMyPaymentHistoryQuery, useGetIssuesQuery, type TenantPaymentRecord } from "@/services/estatesApi";
+import { useGetDashboardOverviewQuery, useGetMyBillingQuery, usePayBillingMutation, useInitializePaystackMutation, useToggleAutoPayMutation, useGetMyPaymentHistoryQuery, useGetIssuesQuery, type TenantPaymentRecord } from "@/services/estatesApi";
 import { Switch } from "@/components/ui/switch";
 import {
   useGetWalletBalanceQuery,
@@ -100,6 +100,8 @@ export const TenantDashboard: React.FC = () => {
   const { data: overviewData, isLoading: overviewLoading } = useGetDashboardOverviewQuery();
   const { data: billingData } = useGetMyBillingQuery();
   const [payBilling, { isLoading: isPaying }] = usePayBillingMutation();
+  const [initializePaystack, { isLoading: isStartingPaystack }] = useInitializePaystackMutation();
+  const [onlineAmount, setOnlineAmount] = useState("");
   const [toggleAutoPay, { isLoading: isTogglingAutoPay }] = useToggleAutoPayMutation();
   const { data: transactionsData, isLoading: transactionsLoading } = useGetMyPaymentHistoryQuery(
     { page: 1, limit: 20 }
@@ -296,6 +298,39 @@ export const TenantDashboard: React.FC = () => {
   };
 
   const handleReportMaintenance = () => setMaintenanceDialogOpen(true);
+  // Hands off to Paystack's hosted checkout; the user returns to /payment/verify.
+  const startPaystack = async (
+    request: Parameters<typeof initializePaystack>[0],
+  ) => {
+    try {
+      const res = await initializePaystack(request).unwrap();
+      window.location.assign(res.data.authorizationUrl);
+    } catch (error: any) {
+      toast(`Error: ${error?.data?.detail || error?.data?.message || "Could not start the payment"}`);
+    }
+  };
+
+  const handlePaystackTopUp = () => {
+    const amount = parseFloat(onlineAmount);
+    if (!amount || amount < 100) {
+      toast("Error: Minimum top-up is ₦100");
+      return;
+    }
+    startPaystack({ purpose: "topup", amount });
+  };
+
+  const handlePaystackBills = () => {
+    if (selectedBillingItems.length === 0) {
+      toast("Error: Please select items to pay");
+      return;
+    }
+    startPaystack({
+      purpose: "bill",
+      itemIds: selectedBillingItems,
+      ...(selectedBillingItems.includes("rent") && { durationMonths: rentPaymentMonths }),
+    });
+  };
+
   const handleOpenDeposit = () => {
     setDepositForm({ amount: "" });
     setDepositProofFile(null);
@@ -1218,14 +1253,14 @@ export const TenantDashboard: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      {/* Topping up means transferring to the company account and
-                          submitting the proof — there is no card gateway. */}
+                      {/* Opens the top-up dialog: pay online with Paystack, or
+                          transfer to the company account and submit proof. */}
                       <Button
                         size="sm"
                         onClick={handleOpenDeposit}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        <Plus className="h-3 w-3 mr-1.5" />Fund wallet by bank transfer
+                        <Plus className="h-3 w-3 mr-1.5" />Fund wallet
                       </Button>
                     </div>
                   )}
@@ -1262,6 +1297,19 @@ export const TenantDashboard: React.FC = () => {
                         <Wallet className="h-5 w-5 mr-2" />
                         Pay {formatCurrency(calculateSelectedTotal())} from Wallet
                       </>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={handlePaystackBills}
+                    disabled={selectedBillingItems.length === 0 || isStartingPaystack || isProcessingPayment}
+                    className="w-full h-12 border-green-600 text-green-700 hover:bg-green-50"
+                  >
+                    {isStartingPaystack ? (
+                      <><Loader className="h-4 w-4 mr-2 animate-spin" />Opening Paystack...</>
+                    ) : (
+                      <><CreditCard className="h-5 w-5 mr-2" />Pay {formatCurrency(calculateSelectedTotal())} online with Paystack</>
                     )}
                   </Button>
 
@@ -1496,7 +1544,7 @@ export const TenantDashboard: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Add Funds to Wallet</DialogTitle>
             <DialogDescription>
-              Transfer to the UBA account below, then upload your proof of payment.
+              Pay online with Paystack, or transfer to the UBA account below and upload your proof of payment.
             </DialogDescription>
           </DialogHeader>
 
@@ -1509,6 +1557,34 @@ export const TenantDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
+              {/* Online payment (card, bank transfer, USSD) — credited automatically */}
+              <div className="border rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <CreditCard className="h-4 w-4 text-green-600" />
+                  Pay online — credited instantly
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min="100"
+                    placeholder="Amount (min ₦100)"
+                    value={onlineAmount}
+                    onChange={(e) => setOnlineAmount(e.target.value)}
+                  />
+                  <Button
+                    onClick={handlePaystackTopUp}
+                    disabled={isStartingPaystack || !onlineAmount}
+                    className="bg-green-600 hover:bg-green-700 shrink-0"
+                  >
+                    {isStartingPaystack ? <Loader className="h-4 w-4 animate-spin" /> : "Pay with Paystack"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="h-px flex-1 bg-border" />or transfer manually<div className="h-px flex-1 bg-border" />
+              </div>
+
               {/* Bank account details */}
               <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2 text-green-800 dark:text-green-300 text-sm font-semibold">

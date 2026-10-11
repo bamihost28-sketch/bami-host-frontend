@@ -15,6 +15,7 @@ import { LoginPage } from "@/components/auth/LoginPage";
 import { RegistrationPage } from "@/components/auth/RegistrationPage";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { DepositVerification } from "@/components/wallet/DepositVerification";
+import { PaymentVerify } from "@/components/wallet/PaymentVerify";
 
 // Lazy-loaded page components for code splitting
 const About = lazy(() => import("./pages/About"));
@@ -78,6 +79,8 @@ const AppContent: React.FC = () => {
                         
                         {/* Wallet funding info page (outside dashboard) */}
                         <Route path="/wallet/verify" element={<DepositVerification />} />
+                        {/* Paystack return page */}
+                        <Route path="/payment/verify" element={<PaymentVerify />} />
 
                         {/* Catch-all for 404 */}
                         <Route path="*" element={<NotFound />} />

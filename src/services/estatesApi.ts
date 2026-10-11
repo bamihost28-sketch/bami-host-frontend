@@ -1183,6 +1183,30 @@ export const estatesApi = createApi({
         { type: 'Payment', id: 'TENANT' },
       ],
     }),
+    // Paystack checkout. The server fixes the amount (bills are priced server-
+    // side) and confirms the payment with Paystack before crediting anything.
+    initializePaystack: builder.mutation<
+      { success: boolean; data: { authorizationUrl: string; reference: string; amount: number } },
+      { purpose: 'topup'; amount: number } | { purpose: 'bill'; itemIds: string[]; durationMonths?: 6 | 12 }
+    >({
+      query: (body) => ({ url: '/api/paystack/initialize', method: 'POST', body }),
+    }),
+    verifyPaystack: builder.mutation<
+      {
+        success: boolean;
+        data: {
+          status: 'completed' | 'pending' | 'processing' | 'mismatch' | string;
+          alreadyApplied?: boolean;
+          balance?: number;
+          message?: string;
+          bill?: { paid: boolean; reason?: string } | null;
+        };
+      },
+      string
+    >({
+      query: (reference) => ({ url: `/api/paystack/verify/${encodeURIComponent(reference)}`, method: 'GET' }),
+      invalidatesTags: () => [{ type: 'Tenant', id: 'ME' }, { type: 'Payment', id: 'TENANT' }],
+    }),
     toggleAutoPay: builder.mutation<
       { success: boolean; message: string; data: { autoPayEnabled: boolean } },
       { enabled: boolean }
@@ -1628,6 +1652,8 @@ export const {
   useInitiateLegalFeePaymentMutation,
   useInitiateInitialPaymentMutation,
   usePayBillingMutation,
+  useInitializePaystackMutation,
+  useVerifyPaystackMutation,
   useToggleAutoPayMutation,
   useCreateEstateTenantMutation,
   useCreateEstateUnitMutation,
