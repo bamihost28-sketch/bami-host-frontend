@@ -100,6 +100,31 @@ export interface RegisterMeterRequest {
   lowBalanceThreshold?: number;
 }
 
+export interface BulkMeterRow {
+  unitLabel: string;
+  deviceId: string;
+  meterNumber?: string;
+  ratePerKwh?: number;
+}
+
+export interface BulkMetersRequest {
+  estateId: string;
+  rows: BulkMeterRow[];
+  dryRun: boolean;
+}
+
+export interface BulkMetersResponse {
+  success: boolean;
+  data: {
+    dryRun: boolean;
+    total: number;
+    valid: number;
+    errors: number;
+    created: number;
+    results: { row: number; unitLabel: string; deviceId: string; status: 'ok' | 'error'; error: string | null }[];
+  };
+}
+
 // ── API ───────────────────────────────────────────────────────────────────────
 
 export const meterApi = createApi({
@@ -121,6 +146,13 @@ export const meterApi = createApi({
     registerMeter: builder.mutation<{ success: boolean; data: MeterDevice }, RegisterMeterRequest>({
       query: (body) => ({ url: '/api/meters', method: 'POST', body }),
       invalidatesTags: ['Meter'],
+    }),
+
+    // Attach many meters to the apartments of one estate, matched by unit label.
+    // dryRun validates only; real runs are all-or-nothing.
+    bulkRegisterMeters: builder.mutation<BulkMetersResponse, BulkMetersRequest>({
+      query: (body) => ({ url: '/api/meters/bulk', method: 'POST', body }),
+      invalidatesTags: (_r, _e, arg) => (arg.dryRun ? [] : ['Meter']),
     }),
 
     listMeters: builder.query<MeterListResponse, { estateId?: string; unitId?: string; page?: number; limit?: number }>({
@@ -194,6 +226,7 @@ export const meterApi = createApi({
 
 export const {
   useRegisterMeterMutation,
+  useBulkRegisterMetersMutation,
   useListMetersQuery,
   useUpdateMeterMutation,
   useDeleteMeterMutation,

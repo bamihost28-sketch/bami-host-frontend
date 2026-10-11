@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   Zap, ZapOff, Plus, Search, RefreshCw, Wifi, WifiOff,
-  Power, PowerOff, RotateCcw, Settings, Trash2, ChevronLeft, ChevronRight,
+  Power, PowerOff, RotateCcw, Settings, Trash2, ChevronLeft, ChevronRight, Upload,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import {
   type MeterDevice,
 } from "@/services/meterApi";
 import { useListUnitsQuery } from "@/services/estatesApi";
+import { BulkImportDialog } from "./BulkImportDialog";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(n);
@@ -311,6 +312,7 @@ export default function AdminMeterPage() {
   const [search, setSearch]     = useState("");
   const [page, setPage]         = useState(1);
   const [registerOpen, setReg]  = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const LIMIT = 12;
 
   const { data, isLoading, isFetching, refetch } = useListMetersQuery({ page, limit: LIMIT });
@@ -344,6 +346,10 @@ export default function AdminMeterPage() {
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 mr-1.5 ${isFetching ? "animate-spin" : ""}`} />
             Refresh
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
+            <Upload className="h-4 w-4 mr-1.5" />
+            Bulk Import
           </Button>
           <Button size="sm" onClick={() => setReg(true)}>
             <Plus className="h-4 w-4 mr-1.5" />
@@ -420,6 +426,7 @@ export default function AdminMeterPage() {
       )}
 
       <RegisterDialog open={registerOpen} onOpenChange={setReg} />
+      <BulkImportDialog open={bulkOpen} onOpenChange={setBulkOpen} />
     </div>
   );
 }
