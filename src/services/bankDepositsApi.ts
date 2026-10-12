@@ -58,6 +58,11 @@ export interface ApproveRejectResponse {
 
 export interface PlatformSettings {
   bankInfo: BankInfo;
+  /** ₦ per 0.01 kWh — the smallest step a prepaid meter takes. */
+  electricityUnitPrice: number;
+  electricityRatePerKwh: number;
+  /** Only on update: how many meters took the new price. */
+  metersRepriced?: number;
 }
 
 export interface PlatformSettingsResponse {
@@ -91,7 +96,7 @@ export const bankDepositsApi = createApi({
 
     updatePlatformSettings: builder.mutation<
       PlatformSettingsResponse,
-      { bankInfo?: Partial<BankInfo> }
+      { bankInfo?: Partial<BankInfo>; electricityUnitPrice?: number }
     >({
       query: (body) => ({
         url: '/api/settings',
@@ -102,6 +107,7 @@ export const bankDepositsApi = createApi({
             account_number: body.bankInfo.accountNumber,
             account_name: body.bankInfo.accountName,
           },
+          electricity_unit_price: body.electricityUnitPrice,
         },
       }),
       invalidatesTags: ['PlatformSettings'],

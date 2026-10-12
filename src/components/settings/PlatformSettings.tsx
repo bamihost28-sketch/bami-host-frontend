@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Landmark } from "lucide-react";
+import { Landmark, Zap } from "lucide-react";
 import { useGetPlatformSettingsQuery, useUpdatePlatformSettingsMutation } from "@/services/bankDepositsApi";
 import { toast } from "@/components/ui/use-toast";
 
@@ -14,12 +14,15 @@ export const PlatformSettings = () => {
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [savingPrice, setSavingPrice] = useState(false);
 
   useEffect(() => {
     if (!data?.data) return;
     setBankName(data.data.bankInfo.bankName);
     setAccountNumber(data.data.bankInfo.accountNumber);
     setAccountName(data.data.bankInfo.accountName);
+    setUnitPrice(String(data.data.electricityUnitPrice ?? 0.7));
   }, [data]);
 
   const saveBankInfo = async () => {
@@ -28,6 +31,25 @@ export const PlatformSettings = () => {
       toast({ title: "Bank details updated" });
     } catch (e: any) {
       toast({ title: e?.data?.detail || "Failed to update bank details", variant: "destructive" });
+    }
+  };
+
+  const price = Number(unitPrice);
+  const priceValid = Number.isFinite(price) && price > 0 && price <= 1000;
+
+  const savePrice = async () => {
+    if (!priceValid) return;
+    setSavingPrice(true);
+    try {
+      const res = await updateSettings({ electricityUnitPrice: price }).unwrap();
+      toast({
+        title: "Electricity price updated",
+        description: `₦${price} per 0.01 kWh — applied to ${res.data.metersRepriced ?? 0} meter(s).`,
+      });
+    } catch (e: any) {
+      toast({ title: e?.data?.detail || "Failed to update the price", variant: "destructive" });
+    } finally {
+      setSavingPrice(false);
     }
   };
 
@@ -61,6 +83,40 @@ export const PlatformSettings = () => {
           </div>
           <Button onClick={saveBankInfo} disabled={savingBank}>
             {savingBank ? "Saving..." : "Save bank details"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-white/90 dark:bg-slate-900 shadow-lg border-slate-200 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5" /> Electricity Price
+          </CardTitle>
+          <CardDescription>
+            What tenants pay for prepaid electricity. Prepaid meters count in steps of 0.01 kWh, so the price is set per step.
+            Changing it applies to every meter; credit already on a meter keeps its kWh.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="ps-unit-price">Price per 0.01 kWh (₦)</Label>
+            <Input
+              id="ps-unit-price"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)}
+              placeholder="0.70"
+            />
+            <p className="text-xs text-muted-foreground">
+              {priceValid
+                ? `= ₦${(price * 100).toLocaleString(undefined, { maximumFractionDigits: 2 })} per kWh · ₦1,000 buys ${(1000 / (price * 100)).toLocaleString(undefined, { maximumFractionDigits: 2 })} kWh`
+                : "Enter a price above ₦0 (max ₦1,000)."}
+            </p>
+          </div>
+          <Button onClick={savePrice} disabled={savingPrice || !priceValid}>
+            {savingPrice ? "Saving..." : "Save price"}
           </Button>
         </CardContent>
       </Card>
