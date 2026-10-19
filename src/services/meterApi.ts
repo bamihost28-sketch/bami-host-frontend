@@ -134,6 +134,20 @@ export interface BulkPrepaymentResponse {
   };
 }
 
+export interface AdminTopUpResponse {
+  success: boolean;
+  message: string;
+  data: {
+    amount: number;
+    kwhCredited: number;
+    /** 'completed' once the meter confirms; 'unconfirmed' = sent, awaiting the meter. */
+    status: 'completed' | 'unconfirmed';
+    balanceKwh: number | null;
+    transactionId: string;
+    tenant: string;
+  };
+}
+
 export interface BulkMeterRow {
   unitLabel: string;
   deviceId: string;
@@ -199,6 +213,12 @@ export const meterApi = createApi({
     bulkSetPrepayment: builder.mutation<BulkPrepaymentResponse, BulkPrepaymentRequest>({
       query: (body) => ({ url: '/api/meters/prepayment/bulk', method: 'POST', body }),
       invalidatesTags: (_r, _e, arg) => (arg.dryRun ? [] : ['Meter']),
+    }),
+
+    // Credit a tenant's meter on their behalf (cash paid at the office etc.). Wallet untouched.
+    adminTopUpMeter: builder.mutation<AdminTopUpResponse, { id: string; amount: number; reason: string }>({
+      query: ({ id, ...body }) => ({ url: `/api/meters/${id}/topup`, method: 'POST', body }),
+      invalidatesTags: ['Meter'],
     }),
 
     listMeters: builder.query<MeterListResponse, { estateId?: string; unitId?: string; page?: number; limit?: number }>({
@@ -272,6 +292,7 @@ export const meterApi = createApi({
 
 export const {
   useRegisterMeterMutation,
+  useAdminTopUpMeterMutation,
   useSetMeterPrepaymentMutation,
   useBulkSetPrepaymentMutation,
   useBulkRegisterMetersMutation,

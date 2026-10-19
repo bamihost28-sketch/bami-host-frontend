@@ -27,6 +27,7 @@ import {
 import { useListUnitsQuery } from "@/services/estatesApi";
 import { BulkImportDialog } from "./BulkImportDialog";
 import { BulkPrepaidDialog } from "./BulkPrepaidDialog";
+import { AdminTopUpDialog } from "./AdminTopUpDialog";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -206,6 +207,7 @@ function MeterCard({ meter }: { meter: MeterDevice }) {
   const [setPrepayment, { isLoading: switching }] = useSetMeterPrepaymentMutation();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmCut, setConfirmCut] = useState(false);
+  const [topUpOpen, setTopUpOpen] = useState(false);
 
   // The meter's own prepaid mode. Turning it ON with no credit cuts power at once,
   // so that case asks first.
@@ -289,6 +291,10 @@ function MeterCard({ meter }: { meter: MeterDevice }) {
 
           {/* actions */}
           <div className="flex gap-1.5 flex-wrap">
+            <Button variant="outline" size="sm" className="h-7 text-xs text-emerald-600 border-emerald-500/30"
+              onClick={() => setTopUpOpen(true)}>
+              <Zap className="h-3 w-3 mr-1" /> Top up
+            </Button>
             {meter.isConnected ? (
               <Button variant="outline" size="sm" className="h-7 text-xs text-red-500 border-red-500/30"
                 onClick={() => action(() => disconnect(meter.id).unwrap(), "Meter disconnected")}>
@@ -317,6 +323,8 @@ function MeterCard({ meter }: { meter: MeterDevice }) {
           )}
         </CardContent>
       </Card>
+
+      <AdminTopUpDialog meter={meter} open={topUpOpen} onOpenChange={setTopUpOpen} />
 
       <AlertDialog open={confirmCut} onOpenChange={setConfirmCut}>
         <AlertDialogContent>
