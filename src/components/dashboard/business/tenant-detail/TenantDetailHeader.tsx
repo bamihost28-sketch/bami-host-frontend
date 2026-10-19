@@ -74,6 +74,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
   const [editEntryDate, setEditEntryDate] = useState('');
   const [editNextDueDate, setEditNextDueDate] = useState('');
   const [editIncreaseStart, setEditIncreaseStart] = useState('');
+  const [editMeterNumber, setEditMeterNumber] = useState('');
 
   // Renew Lease state
   const [renewOpen, setRenewOpen] = useState(false);
@@ -118,6 +119,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
       setEditEntryDate(toDateInput((tenant as any).entryDate));
       setEditNextDueDate(toDateInput((tenant as any).nextDueDate));
       setEditIncreaseStart(toDateInput((tenant as any).rentIncreaseStart));
+      setEditMeterNumber(overview?.meter || tenant.electricMeterNumber || '');
     }
   };
 
@@ -225,6 +227,16 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
                 />
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="edit-meter-number">Electric meter number</Label>
+                <Input
+                  id="edit-meter-number"
+                  className="font-mono"
+                  value={editMeterNumber}
+                  onChange={(e) => setEditMeterNumber(e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground -mt-1">The meter number shown on this tenant's page. Registering a smart meter for their unit updates it automatically.</p>
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="edit-entry-date">Original move-in date</Label>
                 <Input
                   id="edit-entry-date"
@@ -273,6 +285,11 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
                     }
                     if (editNextDueDate) {
                       payload.nextDueDate = formatDateToDDMMYYYY(editNextDueDate);
+                    }
+                    // Only sent when changed, so saving other edits never rewrites it.
+                    const currentMeter = overview?.meter || tenant?.electricMeterNumber || '';
+                    if (editMeterNumber.trim() !== currentMeter) {
+                      payload.electricMeterNumber = editMeterNumber.trim();
                     }
                     // Sent unconditionally so clearing the field removes the override.
                     payload.rentIncreaseStart = editIncreaseStart ? formatDateToDDMMYYYY(editIncreaseStart) : '';
