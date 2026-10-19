@@ -1,10 +1,11 @@
 import { retry } from '@reduxjs/toolkit/query/react';
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 
-// Fall back to the production backend when the build env is missing the URL —
-// a Vercel build without VITE_BASE_API_URL once shipped a bundle whose every
-// API call hit the SPA's own rewrite (HTML instead of JSON) and broke login.
-export const BASE_API_URL = import.meta.env.VITE_BASE_API_URL || 'https://staging-bami-backend.onrender.com';
+// The production backend, fixed on purpose. It used to be read from
+// VITE_BASE_API_URL, but a build env that was missing or still held an old
+// address shipped bundles whose API calls hit the wrong server (or the SPA's
+// own rewrite, returning HTML instead of JSON, which broke login).
+export const BASE_API_URL = 'https://api.bamihost.com';
 export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
 
 // The backend's free hosting tier spins down after ~15 minutes idle and can
