@@ -21,10 +21,14 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   useListMetersQuery, useRegisterMeterMutation, useDisconnectMeterMutation,
   useReconnectMeterMutation, useResetBaselineMutation, useDeleteMeterMutation,
+  useSetMeterPrepaymentMutation,
   type MeterDevice,
 } from "@/services/meterApi";
 import { useListUnitsQuery } from "@/services/estatesApi";
 import { BulkImportDialog } from "./BulkImportDialog";
+import { BulkPrepaidDialog } from "./BulkPrepaidDialog";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/contexts/AuthContext";
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(n);
@@ -199,7 +203,24 @@ function MeterCard({ meter }: { meter: MeterDevice }) {
   const [reconnect]  = useReconnectMeterMutation();
   const [resetBL]    = useResetBaselineMutation();
   const [remove]     = useDeleteMeterMutation();
+  const [setPrepayment, { isLoading: switching }] = useSetMeterPrepaymentMutation();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmCut, setConfirmCut] = useState(false);
+
+  // The meter's own prepaid mode. Turning it ON with no credit cuts power at once,
+  // so that case asks first.
+  const togglePrepaid = async (enabled: boolean, confirm = false) => {
+    try {
+      await setPrepayment({ id: meter.id, enabled, confirm }).unwrap();
+      toast({ title: enabled ? "Prepaid mode on" : "Prepaid mode off" });
+    } catch (e: any) {
+      toast({ title: e?.data?.detail || "Could not change prepaid mode", variant: "destructive" });
+    }
+  };
+  const onPrepaidSwitch = (enabled: boolean) => {
+    if (enabled && meter.creditBalance <= 0) setConfirmCut(true);
+    else togglePrepaid(enabled);
+  };
 
   const action = async (fn: () => Promise<unknown>, msg: string) => {
     try { await fn(); toast({ title: msg }); }
@@ -254,6 +275,18 @@ function MeterCard({ meter }: { meter: MeterDevice }) {
             </div>
           </div>
 
+          {/* prepaid mode */}
+          <div className="flex items-center justify-between rounded border px-3 py-2 mb-3">
+            <div>
+              <p className="text-xs font-medium">Prepaid mode</p>
+              <p className="text-[11px] text-muted-foreground">
+                {meter.balanceKwh != null ? `${meter.balanceKwh} kWh left · ` : ""}
+                {meter.prepaidMode ? "Meter cuts power at zero credit" : "Off — meter keeps running"}
+              </p>
+            </div>
+            <Switch checked={meter.prepaidMode} disabled={switching} onCheckedChange={onPrepaidSwitch} />
+          </div>
+
           {/* actions */}
           <div className="flex gap-1.5 flex-wrap">
             {meter.isConnected ? (
@@ -285,6 +318,23 @@ function MeterCard({ meter }: { meter: MeterDevice }) {
         </CardContent>
       </Card>
 
+      <AlertDialog open={confirmCut} onOpenChange={setConfirmCut}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>This meter has no credit</AlertDialogTitle>
+            <AlertDialogDescription>
+              Turning prepaid mode on now will cut power to this apartment immediately. Top the meter up first, or go ahead if that's what you want.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-red-500 hover:bg-red-600" onClick={() => togglePrepaid(true, true)}>
+              Turn on and cut power
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -313,6 +363,9 @@ export default function AdminMeterPage() {
   const [page, setPage]         = useState(1);
   const [registerOpen, setReg]  = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [prepaidOpen, setPrepaidOpen] = useState(false);
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "super_admin";
   const LIMIT = 12;
 
   const { data, isLoading, isFetching, refetch } = useListMetersQuery({ page, limit: LIMIT });
@@ -347,6 +400,12 @@ export default function AdminMeterPage() {
             <RefreshCw className={`h-4 w-4 mr-1.5 ${isFetching ? "animate-spin" : ""}`} />
             Refresh
           </Button>
+          {isSuperAdmin && (
+            <Button variant="outline" size="sm" onClick={() => setPrepaidOpen(true)}>
+              <Zap className="h-4 w-4 mr-1.5" />
+              Prepaid for all
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => setBulkOpen(true)}>
             <Upload className="h-4 w-4 mr-1.5" />
             Bulk Import
@@ -427,6 +486,7 @@ export default function AdminMeterPage() {
 
       <RegisterDialog open={registerOpen} onOpenChange={setReg} />
       <BulkImportDialog open={bulkOpen} onOpenChange={setBulkOpen} />
+      {isSuperAdmin && <BulkPrepaidDialog open={prepaidOpen} onOpenChange={setPrepaidOpen} />}
     </div>
   );
 }

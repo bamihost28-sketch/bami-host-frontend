@@ -15,6 +15,8 @@ export interface MeterDevice {
   ratePerKwh: number;
   prepaidMode: boolean;
   creditBalance: number;
+  /** kWh of credit left on the meter itself. */
+  balanceKwh?: number | null;
   lowBalanceThreshold: number;
   lastKwh: number;
   lastVoltage: number;
@@ -100,6 +102,38 @@ export interface RegisterMeterRequest {
   lowBalanceThreshold?: number;
 }
 
+export interface BulkPrepaymentRequest {
+  enabled: boolean;
+  /** Omit for every estate. */
+  estateId?: string;
+  /** Allow switching ON for meters with no credit — they lose power immediately. */
+  includeNoCredit?: boolean;
+  /** true (default) previews without changing anything. */
+  dryRun: boolean;
+}
+
+export type PrepaymentRowStatus =
+  | 'will_change' | 'changed' | 'unchanged' | 'skipped_no_credit' | 'unreachable' | 'unsupported' | 'failed';
+
+export interface BulkPrepaymentResponse {
+  success: boolean;
+  data: {
+    dryRun: boolean;
+    enabled: boolean;
+    total: number;
+    counts: Partial<Record<PrepaymentRowStatus, number>>;
+    results: {
+      meterId: string;
+      deviceId: string;
+      unitLabel: string;
+      estate: string | null;
+      balanceKwh: number | null;
+      status: PrepaymentRowStatus;
+      detail: string;
+    }[];
+  };
+}
+
 export interface BulkMeterRow {
   unitLabel: string;
   deviceId: string;
@@ -152,6 +186,18 @@ export const meterApi = createApi({
     // dryRun validates only; real runs are all-or-nothing.
     bulkRegisterMeters: builder.mutation<BulkMetersResponse, BulkMetersRequest>({
       query: (body) => ({ url: '/api/meters/bulk', method: 'POST', body }),
+      invalidatesTags: (_r, _e, arg) => (arg.dryRun ? [] : ['Meter']),
+    }),
+
+    // The meter's OWN prepaid mode: ON = the meter itself cuts power at zero credit.
+    setMeterPrepayment: builder.mutation<{ success: boolean; data: MeterDevice }, { id: string; enabled: boolean; confirm?: boolean }>({
+      query: ({ id, ...body }) => ({ url: `/api/meters/${id}/prepayment`, method: 'POST', body }),
+      invalidatesTags: ['Meter'],
+    }),
+
+    // Super admin: switch many meters at once. Preview first (dryRun), then apply.
+    bulkSetPrepayment: builder.mutation<BulkPrepaymentResponse, BulkPrepaymentRequest>({
+      query: (body) => ({ url: '/api/meters/prepayment/bulk', method: 'POST', body }),
       invalidatesTags: (_r, _e, arg) => (arg.dryRun ? [] : ['Meter']),
     }),
 
@@ -226,6 +272,8 @@ export const meterApi = createApi({
 
 export const {
   useRegisterMeterMutation,
+  useSetMeterPrepaymentMutation,
+  useBulkSetPrepaymentMutation,
   useBulkRegisterMetersMutation,
   useListMetersQuery,
   useUpdateMeterMutation,
