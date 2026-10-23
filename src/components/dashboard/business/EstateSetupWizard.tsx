@@ -398,8 +398,8 @@ export const EstateSetupWizard = ({ open, onOpenChange }: EstateSetupWizardProps
       }).unwrap();
       setTenantDone(true);
       toast({ title: 'Tenant added', description: 'Welcome email and wallet created.' });
-    } catch {
-      toast({ title: 'Failed to add tenant', variant: 'destructive' });
+    } catch (e) {
+      toast({ title: 'Failed to add tenant', description: (typeof (e as any)?.data?.detail === 'string' ? (e as any).data.detail : undefined), variant: 'destructive' });
     }
   };
 

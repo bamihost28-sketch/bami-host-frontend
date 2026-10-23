@@ -298,7 +298,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
                     toast({ title: 'Tenant updated' });
                     setEditTenantOpen(false);
                   } catch (e) {
-                    toast({ title: 'Failed to update tenant', variant: 'destructive' });
+                    toast({ title: 'Failed to update tenant', description: (typeof (e as any)?.data?.detail === 'string' ? (e as any).data.detail : undefined), variant: 'destructive' });
                   }
                 }}
                 disabled={updatingTenant}

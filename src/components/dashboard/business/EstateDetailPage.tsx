@@ -182,7 +182,7 @@ export const EstateDetailPage = () => {
       setTenantType('new'); setEntryDate(''); setDurationMonths('');
       setNextDueDate(''); setOutstandingRent(''); setOutstandingServiceCharge('');
     } catch (e) {
-      toast({ title: 'Failed to add tenant', variant: 'destructive' });
+      toast({ title: 'Failed to add tenant', description: (typeof (e as any)?.data?.detail === 'string' ? (e as any).data.detail : undefined), variant: 'destructive' });
     }
   };
 
