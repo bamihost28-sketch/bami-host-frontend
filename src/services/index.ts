@@ -64,8 +64,10 @@ export {
   subscriptionsApi,
   useGetSubscriptionsQuery,
   useGetSubscriptionQuery,
+  useGetSubscriptionSpendQuery,
   useCreateSubscriptionMutation,
   useUpdateSubscriptionMutation,
+  useRenewSubscriptionMutation,
   useDeleteSubscriptionMutation,
 } from './subscriptionsApi';
 

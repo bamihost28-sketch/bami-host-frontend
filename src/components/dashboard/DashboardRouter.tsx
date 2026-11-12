@@ -42,6 +42,7 @@ import { SuperAdminTransactions } from '@/components/dashboard/SuperAdminTransac
 import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
 import BillionaireOS from '@/components/billionaire/BillionaireOS';
 import { Subscription } from '@/components/dashboard/Subscription';
+import { PlatformSpend } from '@/components/dashboard/PlatformSpend';
 import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
 import { AIOpsCenter } from '@/components/skills/AIOpsCenter';
 import { ScaleDashboard } from '@/components/skills/ScaleDashboard';
@@ -115,6 +116,7 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('business-types')) return 'business-types';
     if (pathname.includes('accounting')) return 'accounting';
     if (pathname.includes('subscription')) return 'subscription';
+    if (pathname.includes('platform-spend')) return 'platform-spend';
     return 'overview';
   };
 
@@ -564,6 +566,19 @@ const DashboardRouter: React.FC = () => {
               feature="Subscription"
               showUpgradePrompt={false}
               viewName="subscription"
+            />
+          }
+        />
+
+        {/* Platform Spend — what the platform costs to run (for profit checks) */}
+        <Route
+          path="/platform-spend"
+          element={
+            <ProtectedRoute
+              element={<PlatformSpend />}
+              feature="Platform Spend"
+              showUpgradePrompt={false}
+              viewName="platform-spend"
             />
           }
         />

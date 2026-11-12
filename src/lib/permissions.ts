@@ -749,6 +749,7 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'people': ['view_people', 'manage_users'],
   'business-types': ['view_business_types', 'manage_business_types'],
   'subscription': ['view_subscription', 'manage_subscription'],
+  'platform-spend': ['view_subscription', 'manage_subscription'],
   // Financial
   'accounting': ['view_all_data', 'manage_accounting'],
   // Business Skills

@@ -1,6 +1,18 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BASE_API_URL, withColdStartRetry } from './api';
 
+export type SubscriptionCategory = 'domain' | 'frontend' | 'backend' | 'other';
+
+export interface SubscriptionPayment {
+    id: string;
+    paidOn: string;
+    amount: number;
+    months?: number | null;
+    periodStart?: string | null;
+    periodEnd?: string | null;
+    note?: string | null;
+}
+
 export interface Subscription {
     _id?: string;
     id?: string;
@@ -9,6 +21,11 @@ export interface Subscription {
     billingPeriod: 'month' | 'year' | 'week' | 'day' | 'one-time';
     description?: string;
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
+    category?: SubscriptionCategory | null;
+    provider?: string | null;
+    payments?: SubscriptionPayment[];
+    /** Sum of every payment recorded against this subscription. */
+    totalPaid?: number;
     status: 'Active' | 'Inactive';
     features: string[];
     startDate?: string;
@@ -23,6 +40,8 @@ export interface CreateSubscriptionPayload {
     billingPeriod: 'month' | 'year' | 'week' | 'day' | 'one-time';
     description?: string;
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
+    category?: SubscriptionCategory;
+    provider?: string;
     status?: 'Active' | 'Inactive';
     features?: string;
     startDate?: string;
@@ -35,10 +54,44 @@ export interface UpdateSubscriptionPayload {
     billingPeriod?: 'month' | 'year' | 'week' | 'day' | 'one-time';
     description?: string;
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
+    category?: SubscriptionCategory;
+    provider?: string;
     status?: 'Active' | 'Inactive';
     features?: string;
     startDate?: string;
     expiresAt?: string;
+}
+
+export interface RenewSubscriptionPayload {
+    months: number;
+    /** Defaults to the plan's price on the server. */
+    amount?: number;
+    paidOn?: string;
+    note?: string;
+}
+
+export interface SpendPayment {
+    paymentId: string;
+    subscriptionId: string;
+    name: string;
+    category: SubscriptionCategory;
+    provider?: string | null;
+    paidOn: string;
+    amount: number;
+    months?: number | null;
+    periodStart?: string | null;
+    periodEnd?: string | null;
+    note?: string | null;
+}
+
+export interface SubscriptionSpend {
+    total: number;
+    thisMonth: number;
+    thisYear: number;
+    paymentCount: number;
+    byMonth: { month: string; amount: number }[];
+    byCategory: { category: SubscriptionCategory; amount: number }[];
+    payments: SpendPayment[];
 }
 
 export interface GetSubscriptionsParams {
@@ -78,7 +131,8 @@ export const subscriptionsApi = createApi({
     tagTypes: ['Subscription', 'SubscriptionList'],
     endpoints: (builder) => ({
         getSubscriptions: builder.query<PaginatedSubscriptionsResponse, GetSubscriptionsParams | void>({
-            query: (params = {}) => {
+            query: (arg) => {
+                const params = (arg as GetSubscriptionsParams | undefined) ?? {};
                 const qs = new URLSearchParams();
                 if (params.status) qs.set('status', params.status);
                 if (params.billingPeriod) qs.set('billingPeriod', params.billingPeriod);
@@ -94,6 +148,17 @@ export const subscriptionsApi = createApi({
                     ]
                     : [{ type: 'SubscriptionList' as const, id: 'LIST' }],
         }),
+        getSubscriptionSpend: builder.query<{ success: boolean; data: SubscriptionSpend }, { from?: string; to?: string } | void>({
+            query: (arg) => {
+                const params = (arg as { from?: string; to?: string } | undefined) ?? {};
+                const qs = new URLSearchParams();
+                if (params.from) qs.set('from', params.from);
+                if (params.to) qs.set('to', params.to);
+                return `/api/subscriptions/spend${qs.toString() ? `?${qs.toString()}` : ''}`;
+            },
+            // renewals / new subscriptions change the totals
+            providesTags: [{ type: 'SubscriptionList', id: 'SPEND' }],
+        }),
         getSubscription: builder.query<SubscriptionResponse, string>({
             query: (id) => `/api/subscriptions/${id}`,
             providesTags: (result, error, id) => [{ type: 'Subscription', id }],
@@ -104,7 +169,7 @@ export const subscriptionsApi = createApi({
                 method: 'POST',
                 body: payload,
             }),
-            invalidatesTags: [{ type: 'SubscriptionList', id: 'LIST' }],
+            invalidatesTags: [{ type: 'SubscriptionList', id: 'LIST' }, { type: 'SubscriptionList', id: 'SPEND' }],
         }),
         updateSubscription: builder.mutation<SubscriptionResponse, { id: string; payload: UpdateSubscriptionPayload }>({
             query: ({ id, payload }) => ({
@@ -115,6 +180,19 @@ export const subscriptionsApi = createApi({
             invalidatesTags: (result, error, { id }) => [
                 { type: 'Subscription', id },
                 { type: 'SubscriptionList', id: 'LIST' },
+                { type: 'SubscriptionList', id: 'SPEND' },
+            ],
+        }),
+        renewSubscription: builder.mutation<SubscriptionResponse, { id: string; payload: RenewSubscriptionPayload }>({
+            query: ({ id, payload }) => ({
+                url: `/api/subscriptions/${id}/renew`,
+                method: 'POST',
+                body: payload,
+            }),
+            invalidatesTags: (result, error, { id }) => [
+                { type: 'Subscription', id },
+                { type: 'SubscriptionList', id: 'LIST' },
+                { type: 'SubscriptionList', id: 'SPEND' },
             ],
         }),
         deleteSubscription: builder.mutation<{ success: boolean; message?: string }, string>({
@@ -125,6 +203,7 @@ export const subscriptionsApi = createApi({
             invalidatesTags: (result, error, id) => [
                 { type: 'Subscription', id },
                 { type: 'SubscriptionList', id: 'LIST' },
+                { type: 'SubscriptionList', id: 'SPEND' },
             ],
         }),
     }),
@@ -133,7 +212,9 @@ export const subscriptionsApi = createApi({
 export const {
     useGetSubscriptionsQuery,
     useGetSubscriptionQuery,
+    useGetSubscriptionSpendQuery,
     useCreateSubscriptionMutation,
     useUpdateSubscriptionMutation,
+    useRenewSubscriptionMutation,
     useDeleteSubscriptionMutation,
 } = subscriptionsApi;
