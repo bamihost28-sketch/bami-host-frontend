@@ -32,9 +32,18 @@ export interface ContractPayment {
     rejectReason?: string | null;
 }
 
+export type ContractKind = 'project' | 'retainer';
+
 export interface Contract {
     id: string;
     title: string;
+    /** project = fixed price job; retainer = monthly support with no fixed total. */
+    kind: ContractKind;
+    monthlyAmount?: number | null;
+    /** Day of the month (1-28) a monthly payment falls due. */
+    billingDay?: number | null;
+    startDate?: string | null;
+    endDate?: string | null;
     description?: string | null;
     clientName?: string | null;
     developerId?: string | null;
@@ -83,7 +92,14 @@ export interface CreateContractPayload {
     title: string;
     description?: string;
     clientName?: string;
-    totalAmount: number;
+    kind?: ContractKind;
+    /** Projects: the agreed price. */
+    totalAmount?: number;
+    /** Monthly support: the amount due each month, on `billingDay`. */
+    monthlyAmount?: number;
+    billingDay?: number;
+    startDate?: string;
+    endDate?: string;
     currency: Currency;
     /** Owners must say whose contract it is; developers' own contracts ignore this. */
     developerId?: string;
@@ -97,6 +113,11 @@ export interface UpdateContractPayload {
     description?: string;
     clientName?: string;
     totalAmount?: number;
+    monthlyAmount?: number;
+    billingDay?: number;
+    startDate?: string;
+    /** An empty string clears the end date. */
+    endDate?: string;
     currency?: Currency;
     status?: ContractStatus;
     developerId?: string;

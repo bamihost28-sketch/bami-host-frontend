@@ -57,6 +57,8 @@ const dueText = (i: Pick<ContractInstalment, 'daysUntilDue' | 'overdue'>) => {
 
 interface FormRow { label: string; amount: string; dueDate: string }
 const emptyForm = () => ({
+    kind: "project" as 'project' | 'retainer',
+    monthlyAmount: "", billingDay: "1", startDate: toInputDate(new Date()), endDate: "",
     title: "", clientName: "", developerId: "", currency: "NGN" as Currency, total: "", description: "",
     instalments: [] as FormRow[],
     receivedAmount: "", receivedDate: toInputDate(new Date()), receivedMethod: "",
@@ -131,6 +133,8 @@ export const Contracts = () => {
         setForm({
             ...emptyForm(),
             title: c.title, clientName: c.clientName ?? "", developerId: c.developerId ?? "", currency: c.currency,
+            kind: c.kind, monthlyAmount: c.monthlyAmount ? String(c.monthlyAmount) : "", billingDay: String(c.billingDay ?? 1),
+            startDate: c.startDate ?? "", endDate: c.endDate ?? "",
             total: String(c.totalAmount), description: c.description ?? "",
             instalments: c.instalments.map((i) => ({ label: i.label, amount: String(i.amount), dueDate: i.dueDate ?? "" })),
         });
@@ -141,45 +145,59 @@ export const Contracts = () => {
         setForm((f) => ({ ...f, instalments: f.instalments.map((r, i) => (i === idx ? { ...r, ...patch } : r)) }));
 
     const handleSave = async () => {
+        const retainer = form.kind === 'retainer';
         const total = num(form.total);
-        if (!form.title.trim()) return toastError("Give the contract a name, e.g. Mobile app");
-        if (isNaN(total) || total <= 0) return toastError("Enter the total amount agreed");
+        const monthly = num(form.monthlyAmount);
+        const day = parseInt(form.billingDay, 10);
+        if (!form.title.trim()) return toastError(retainer ? "Give it a name, e.g. Monthly support" : "Give the contract a name, e.g. Mobile app");
+        if (!retainer && (isNaN(total) || total <= 0)) return toastError("Enter the total amount agreed");
+        if (retainer && (isNaN(monthly) || monthly <= 0)) return toastError("Enter the monthly amount");
+        if (retainer && !(day >= 1 && day <= 28)) return toastError("Pick a day of the month between 1 and 28");
+        if (retainer && form.startDate && form.endDate && form.endDate < form.startDate) return toastError("The end date is before the start date");
         if (isOwner && !form.developerId) return toastError("Choose the developer this contract belongs to");
 
-        const rows = form.instalments.filter((r) => r.label.trim() || r.amount.trim() || r.dueDate);
-        for (const r of rows) {
-            if (!r.label.trim() || isNaN(num(r.amount)) || num(r.amount) <= 0) {
-                return toastError("Each instalment needs a name and an amount");
+        let instalments: { label: string; amount: number; dueDate?: string }[] = [];
+        if (!retainer) {
+            const rows = form.instalments.filter((r) => r.label.trim() || r.amount.trim() || r.dueDate);
+            for (const r of rows) {
+                if (!r.label.trim() || isNaN(num(r.amount)) || num(r.amount) <= 0) {
+                    return toastError("Each instalment needs a name and an amount");
+                }
             }
+            instalments = rows.map((r) => ({ label: r.label.trim(), amount: num(r.amount), dueDate: r.dueDate || undefined }));
+            if (instalments.reduce((sum, i) => sum + i.amount, 0) > total + 0.01) return toastError("The instalments add up to more than the total");
         }
-        const instalments = rows.map((r) => ({ label: r.label.trim(), amount: num(r.amount), dueDate: r.dueDate || undefined }));
-        if (instalments.reduce((s, i) => s + i.amount, 0) > total + 0.01) return toastError("The instalments add up to more than the total");
 
         const received = !editingId && form.receivedAmount.trim() ? num(form.receivedAmount) : 0;
         if (received && (isNaN(received) || received < 0)) return toastError("Enter the amount already received, or leave it empty");
-        if (received > total) return toastError("The amount already received is more than the total");
+        if (!retainer && received > total) return toastError("The amount already received is more than the total");
 
         try {
             if (editingId) {
                 await updateContract({
                     id: editingId,
                     payload: {
-                        title: form.title.trim(), clientName: form.clientName, description: form.description,
-                        totalAmount: total, currency: form.currency, instalments,
+                        title: form.title.trim(), clientName: form.clientName, description: form.description, currency: form.currency,
+                        ...(retainer
+                            ? { monthlyAmount: monthly, billingDay: day, startDate: form.startDate || undefined, endDate: form.endDate }
+                            : { totalAmount: total, instalments }),
                         ...(isOwner ? { developerId: form.developerId } : {}),
                     },
                 }).unwrap();
-                success("Contract updated");
+                success(retainer ? "Monthly support updated" : "Contract updated");
             } else {
                 await createContract({
                     title: form.title.trim(), clientName: form.clientName.trim() || undefined,
-                    description: form.description.trim() || undefined, totalAmount: total, currency: form.currency,
-                    developerId: isOwner ? form.developerId : undefined, instalments,
+                    description: form.description.trim() || undefined, currency: form.currency, kind: form.kind,
+                    ...(retainer
+                        ? { monthlyAmount: monthly, billingDay: day, startDate: form.startDate || undefined, endDate: form.endDate || undefined }
+                        : { totalAmount: total, instalments }),
+                    developerId: isOwner ? form.developerId : undefined,
                     received: received > 0
                         ? [{ amount: received, paidOn: form.receivedDate || undefined, method: form.receivedMethod.trim() || undefined }]
                         : [],
                 }).unwrap();
-                success("Contract added");
+                success(retainer ? "Monthly support added" : "Contract added");
             }
             setFormOpen(false);
         } catch (e: any) {
@@ -190,7 +208,7 @@ export const Contracts = () => {
     // ── record a payment ─────────────────────────────────────────────────────
     const openPay = (c: Contract) => {
         const next = c.nextDue?.outstanding ?? c.balance;
-        setPay({ amount: String(Math.min(next || c.balance, c.balance)), paidOn: toInputDate(new Date()), method: "", note: "" });
+        setPay({ amount: String(c.kind === 'retainer' ? (next || c.monthlyAmount || '') : Math.min(next || c.balance, c.balance)), paidOn: toInputDate(new Date()), method: "", note: "" });
         setPayFor(c);
     };
 
@@ -304,7 +322,7 @@ export const Contracts = () => {
             {!isLoading && !error && contracts.length > 0 && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
-                        { label: 'Total contracted', value: formatTotals(sum('contracted')), tone: 'text-slate-900 dark:text-white' },
+                        { label: 'Projects: total agreed', value: formatTotals(sum('contracted')), tone: 'text-slate-900 dark:text-white' },
                         { label: 'Received so far', value: formatTotals(sum('received')), tone: 'text-emerald-600',
                           caption: pendingText !== '—' ? `+ ${pendingText} waiting for confirmation` : undefined },
                         { label: 'Still owed', value: formatTotals(sum('outstanding')), tone: 'text-amber-600' },
@@ -392,24 +410,26 @@ export const Contracts = () => {
                                         <div className="min-w-0">
                                             <h3 className="font-semibold text-lg text-slate-900 dark:text-white truncate">{c.title}</h3>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                {c.clientName ? `For ${c.clientName}` : 'No client named'}
+                                                {c.kind === 'retainer' && <span className="font-medium text-slate-600 dark:text-slate-300">Monthly support · </span>}{c.clientName ? `For ${c.clientName}` : 'No client named'}
                                                 {isOwner && c.developerName ? ` · Developer: ${c.developerName}` : ''}
                                             </p>
                                         </div>
-                                        <Badge className={st.badge}>{st.label}</Badge>
+                                        <Badge className={st.badge}>{c.kind === 'retainer' && c.paymentStatus === 'paid' ? 'Up to date' : st.label}</Badge>
                                     </div>
 
-                                    <div>
-                                        <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                                            <div className={`h-full rounded-full ${st.bar}`} style={{ width: `${c.percentPaid}%` }} />
+                                    {c.kind === 'project' && (
+                                        <div>
+                                            <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                                <div className={`h-full rounded-full ${st.bar}`} style={{ width: `${c.percentPaid}%` }} />
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-1">{c.percentPaid}% paid</p>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-1">{c.percentPaid}% paid</p>
-                                    </div>
+                                    )}
 
                                     <div className="grid grid-cols-3 gap-2 text-sm">
-                                        <div><p className="text-xs text-slate-500">Agreed</p><p className="font-mono font-semibold">{formatMoney(c.totalAmount, c.currency)}</p></div>
+                                        <div><p className="text-xs text-slate-500">{c.kind === 'retainer' ? `Monthly (day ${c.billingDay ?? 1})` : 'Agreed'}</p><p className="font-mono font-semibold">{formatMoney(c.kind === 'retainer' ? (c.monthlyAmount ?? 0) : c.totalAmount, c.currency)}</p></div>
                                         <div><p className="text-xs text-slate-500">Received</p><p className="font-mono font-semibold text-emerald-600">{formatMoney(c.paid, c.currency)}</p></div>
-                                        <div><p className="text-xs text-slate-500">Still owed</p><p className="font-mono font-semibold text-amber-600">{formatMoney(c.balance, c.currency)}</p></div>
+                                        <div><p className="text-xs text-slate-500">{c.kind === 'retainer' ? 'Owed now' : 'Still owed'}</p><p className="font-mono font-semibold text-amber-600">{formatMoney(c.balance, c.currency)}</p></div>
                                     </div>
 
                                     {c.pendingCount > 0 && (
@@ -419,7 +439,7 @@ export const Contracts = () => {
                                     )}
 
                                     <p className="text-sm text-slate-600 dark:text-slate-300">
-                                        {c.paymentStatus === 'paid' ? (
+                                        {c.paymentStatus === 'paid' && !c.nextDue ? (
                                             <span className="flex items-center gap-1.5 text-emerald-600"><CheckCircle2 className="w-4 h-4" /> Nothing left to pay</span>
                                         ) : c.nextDue ? (
                                             <>Next: <span className="font-medium">{c.nextDue.label}</span> · {formatMoney(c.nextDue.outstanding, c.currency)}
@@ -430,7 +450,7 @@ export const Contracts = () => {
                                     </p>
 
                                     <div className="flex gap-2 pt-1">
-                                        {c.balance > 0 && c.status !== 'cancelled' && (
+                                        {(c.balance > 0 || (c.kind === 'retainer' && c.status === 'active')) && c.status !== 'cancelled' && (
                                             <Button size="sm" onClick={() => openPay(c)}><Wallet className="w-3.5 h-3.5 mr-1.5" /> Record payment</Button>
                                         )}
                                         <Button size="sm" variant="outline" onClick={() => setDetailId(c.id)}>Details</Button>
@@ -451,14 +471,30 @@ export const Contracts = () => {
                         <DialogDescription>
                             {editingId
                                 ? 'Change the details or the payment schedule. To record money received, use Record payment instead.'
-                                : 'Enter the job, the total agreed, and anything already paid.'}
+                                : form.kind === 'retainer'
+                                    ? 'A regular amount paid each month to keep the work going. It is tracked separately from any project, so it never reduces what a project still owes.'
+                                    : 'Enter the job, the total agreed, and anything already paid.'}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-2">
+                        {!editingId && (
+                            <div className="grid sm:grid-cols-2 gap-3">
+                                {([
+                                    ['project', 'Project', 'A job with an agreed total price'],
+                                    ['retainer', 'Monthly support', 'A regular monthly amount to keep the work going'],
+                                ] as const).map(([k, name, blurb]) => (
+                                    <button key={k} type="button" onClick={() => setForm({ ...form, kind: k })}
+                                        className={`text-left rounded-md border p-3 transition-colors ${form.kind === k ? 'border-primary bg-primary/5' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+                                        <span className="block text-sm font-semibold">{name}</span>
+                                        <span className="block text-xs text-slate-500">{blurb}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                         <div className="grid sm:grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="c-title">Job / contract name *</Label>
-                                <Input id="c-title" placeholder="e.g. Mobile app" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                                <Label htmlFor="c-title">{form.kind === 'retainer' ? 'Name *' : 'Job / contract name *'}</Label>
+                                <Input id="c-title" placeholder={form.kind === 'retainer' ? 'e.g. Monthly support' : 'e.g. Mobile app'} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="c-client">Client</Label>
@@ -486,17 +522,47 @@ export const Contracts = () => {
                                     <SelectContent>{CURRENCY_ORDER.map((c) => <SelectItem key={c} value={c}>{CURRENCY_LABEL[c]}</SelectItem>)}</SelectContent>
                                 </Select>
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="c-total">Total agreed ({CURRENCY_SYMBOL[form.currency]}) *</Label>
-                                <Input id="c-total" inputMode="decimal" placeholder="e.g. 150000" value={form.total} onChange={(e) => setForm({ ...form, total: e.target.value })} />
-                            </div>
+                            {form.kind === 'retainer' ? (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="c-monthly">Amount per month ({CURRENCY_SYMBOL[form.currency]}) *</Label>
+                                    <Input id="c-monthly" inputMode="decimal" placeholder="e.g. 50000" value={form.monthlyAmount} onChange={(e) => setForm({ ...form, monthlyAmount: e.target.value })} />
+                                </div>
+                            ) : (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="c-total">Total agreed ({CURRENCY_SYMBOL[form.currency]}) *</Label>
+                                    <Input id="c-total" inputMode="decimal" placeholder="e.g. 150000" value={form.total} onChange={(e) => setForm({ ...form, total: e.target.value })} />
+                                </div>
+                            )}
                         </div>
+
+                        {form.kind === 'retainer' && (
+                            <div className="grid gap-2">
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="c-day">Due on day *</Label>
+                                        <Input id="c-day" type="number" min={1} max={28} value={form.billingDay} onChange={(e) => setForm({ ...form, billingDay: e.target.value })} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="c-start">Starts</Label>
+                                        <Input id="c-start" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="c-end">Ends (optional)</Label>
+                                        <Input id="c-end" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-slate-500">
+                                    One payment falls due each month on that day (1–28), with a reminder before it.
+                                    {editingId ? ' Changing the amount re-prices every month of this arrangement.' : ''}
+                                </p>
+                            </div>
+                        )}
 
                         {!editingId && (
                             <div className="rounded-md border border-slate-200 dark:border-slate-700 p-3 grid gap-3">
                                 <div>
                                     <p className="text-sm font-medium">Already received</p>
-                                    <p className="text-xs text-slate-500">What has been paid so far, e.g. 50000 on the ₦150,000 app. Leave empty if nothing yet.{isOwner && form.developerId !== user?.id ? ' The developer will be asked to confirm it.' : ''}</p>
+                                    <p className="text-xs text-slate-500">{form.kind === 'retainer' ? 'Support already received, e.g. the months paid so far. Leave empty if nothing yet.' : 'What has been paid so far, e.g. 50000 on the ₦150,000 app. Leave empty if nothing yet.'}{isOwner && form.developerId !== user?.id ? ' The developer will be asked to confirm it.' : ''}</p>
                                 </div>
                                 <div className="grid sm:grid-cols-3 gap-3">
                                     <Input inputMode="decimal" placeholder={`Amount (${CURRENCY_SYMBOL[form.currency]})`} value={form.receivedAmount} onChange={(e) => setForm({ ...form, receivedAmount: e.target.value })} />
@@ -506,6 +572,7 @@ export const Contracts = () => {
                             </div>
                         )}
 
+                        {form.kind === 'project' && (
                         <div className="grid gap-2">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -527,6 +594,7 @@ export const Contracts = () => {
                                 </div>
                             ))}
                         </div>
+                        )}
 
                         <div className="grid gap-2">
                             <Label htmlFor="c-desc">Notes</Label>
@@ -549,7 +617,7 @@ export const Contracts = () => {
                     <DialogHeader>
                         <DialogTitle>Record payment — {payFor?.title}</DialogTitle>
                         <DialogDescription>
-                            {payFor ? `${formatMoney(payFor.balance, payFor.currency)} is still owed on this contract.${payFor.developerId !== user?.id ? ` It will count once ${payFor.developerName ?? 'the developer'} confirms receiving it.` : ''}` : ''}
+                            {payFor ? `${payFor.kind === 'retainer' ? `${formatMoney(payFor.balance, payFor.currency)} is due now (${formatMoney(payFor.monthlyAmount ?? 0, payFor.currency)} a month). You can also pay ahead.` : `${formatMoney(payFor.balance, payFor.currency)} is still owed on this contract.`}${payFor.developerId !== user?.id ? ` It will count once ${payFor.developerName ?? 'the developer'} confirms receiving it.` : ''}` : ''}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-2">
@@ -589,13 +657,15 @@ export const Contracts = () => {
                             <DialogHeader>
                                 <DialogTitle>{detail.title}</DialogTitle>
                                 <DialogDescription>
-                                    {formatMoney(detail.paid, detail.currency)} received of {formatMoney(detail.totalAmount, detail.currency)} · {formatMoney(detail.balance, detail.currency)} still owed
+                                    {detail.kind === 'retainer'
+                                        ? `Monthly support · ${formatMoney(detail.monthlyAmount ?? 0, detail.currency)} on day ${detail.billingDay ?? 1} · ${formatMoney(detail.paid, detail.currency)} received · ${formatMoney(detail.balance, detail.currency)} owed now`
+                                        : `${formatMoney(detail.paid, detail.currency)} received of ${formatMoney(detail.totalAmount, detail.currency)} · ${formatMoney(detail.balance, detail.currency)} still owed`}
                                 </DialogDescription>
                             </DialogHeader>
                             {detail.description && <p className="text-sm text-slate-600 dark:text-slate-300">{detail.description}</p>}
 
                             <div>
-                                <h4 className="font-semibold text-sm mb-2">Payment schedule</h4>
+                                <h4 className="font-semibold text-sm mb-2">{detail.kind === 'retainer' ? 'Monthly schedule' : 'Payment schedule'}</h4>
                                 {detail.instalments.length === 0 ? (
                                     <p className="text-sm text-slate-500">No instalments set. Edit the contract to add payment dates and get reminders.</p>
                                 ) : (
@@ -691,7 +761,7 @@ export const Contracts = () => {
                                         {detail.balance > 0 ? 'Invoice (PDF)' : 'Statement (PDF)'}
                                     </Button>
                                 </div>
-                                {detail.balance > 0 && detail.status !== 'cancelled' && (
+                                {(detail.balance > 0 || (detail.kind === 'retainer' && detail.status === 'active')) && detail.status !== 'cancelled' && (
                                     <Button onClick={() => { const c = detail; setDetailId(null); openPay(c); }}><Wallet className="w-4 h-4 mr-2" /> Record payment</Button>
                                 )}
                             </DialogFooter>
