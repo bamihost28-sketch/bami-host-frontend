@@ -17,7 +17,8 @@ export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localho
 // out silently. Genuine client errors (400s/401s — wrong password, bad
 // input) bail out on the first attempt so they still surface immediately.
 export function withColdStartRetry(
-  rawBaseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>
+  rawBaseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>,
+  maxRetries = 8
 ) {
   return retry(
     async (args, api, extraOptions) => {
@@ -30,6 +31,6 @@ export function withColdStartRetry(
       }
       return result;
     },
-    { maxRetries: 8 }
+    { maxRetries }
   );
 }

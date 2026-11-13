@@ -127,7 +127,7 @@ export const subscriptionsApi = createApi({
             headers.set('content-type', 'application/json');
             return headers;
         },
-    })),
+    }), 2),
     tagTypes: ['Subscription', 'SubscriptionList'],
     endpoints: (builder) => ({
         getSubscriptions: builder.query<PaginatedSubscriptionsResponse, GetSubscriptionsParams | void>({
