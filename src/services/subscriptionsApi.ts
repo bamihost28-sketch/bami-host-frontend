@@ -3,6 +3,8 @@ import { BASE_API_URL, withColdStartRetry } from './api';
 import type { Currency, CurrencyTotals } from '@/lib/money';
 
 export type SubscriptionCategory = 'domain' | 'frontend' | 'backend' | 'other';
+/** Spend also includes development work, paid through contracts. */
+export type SpendCategory = SubscriptionCategory | 'development';
 
 export interface SubscriptionPayment {
     id: string;
@@ -87,7 +89,9 @@ export interface SpendPayment {
     paymentId: string;
     subscriptionId: string;
     name: string;
-    category: SubscriptionCategory;
+    category: SpendCategory;
+    /** 'contract' = a confirmed payment on a development contract; the provider is then the developer. */
+    source?: 'subscription' | 'contract';
     provider?: string | null;
     paidOn: string;
     amount: number;
@@ -111,7 +115,7 @@ export interface SubscriptionSpend {
     ngnMissing: number;
     paymentCount: number;
     byMonth: { month: string; amounts: CurrencyTotals }[];
-    byCategory: { category: SubscriptionCategory; amounts: CurrencyTotals }[];
+    byCategory: { category: SpendCategory; amounts: CurrencyTotals }[];
     payments: SpendPayment[];
 }
 
@@ -169,12 +173,13 @@ export const subscriptionsApi = createApi({
                     ]
                     : [{ type: 'SubscriptionList' as const, id: 'LIST' }],
         }),
-        getSubscriptionSpend: builder.query<{ success: boolean; data: SubscriptionSpend }, { from?: string; to?: string } | void>({
+        getSubscriptionSpend: builder.query<{ success: boolean; data: SubscriptionSpend }, { from?: string; to?: string; includeContracts?: boolean } | void>({
             query: (arg) => {
-                const params = (arg as { from?: string; to?: string } | undefined) ?? {};
+                const params = (arg as { from?: string; to?: string; includeContracts?: boolean } | undefined) ?? {};
                 const qs = new URLSearchParams();
                 if (params.from) qs.set('from', params.from);
                 if (params.to) qs.set('to', params.to);
+                if (params.includeContracts === false) qs.set('includeContracts', 'false');
                 return `/api/subscriptions/spend${qs.toString() ? `?${qs.toString()}` : ''}`;
             },
             // renewals / new subscriptions change the totals
@@ -216,6 +221,14 @@ export const subscriptionsApi = createApi({
                 { type: 'SubscriptionList', id: 'SPEND' },
             ],
         }),
+        deleteSubscriptionPayment: builder.mutation<SubscriptionResponse, { id: string; paymentId: string }>({
+            query: ({ id, paymentId }) => ({ url: `/api/subscriptions/${id}/payments/${paymentId}`, method: 'DELETE' }),
+            invalidatesTags: (result, error, { id }) => [
+                { type: 'Subscription', id },
+                { type: 'SubscriptionList', id: 'LIST' },
+                { type: 'SubscriptionList', id: 'SPEND' },
+            ],
+        }),
         deleteSubscription: builder.mutation<{ success: boolean; message?: string }, string>({
             query: (id) => ({
                 url: `/api/subscriptions/${id}`,
@@ -237,5 +250,6 @@ export const {
     useCreateSubscriptionMutation,
     useUpdateSubscriptionMutation,
     useRenewSubscriptionMutation,
+    useDeleteSubscriptionPaymentMutation,
     useDeleteSubscriptionMutation,
 } = subscriptionsApi;

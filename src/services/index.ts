@@ -68,6 +68,7 @@ export {
   useCreateSubscriptionMutation,
   useUpdateSubscriptionMutation,
   useRenewSubscriptionMutation,
+  useDeleteSubscriptionPaymentMutation,
   useDeleteSubscriptionMutation,
 } from './subscriptionsApi';
 

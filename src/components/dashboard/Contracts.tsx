@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, CheckCircle2, FilePlus2, Loader2, Package, Plus, Trash2, UserPlus, Wallet, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Clock, Download, FilePlus2, Loader2, Package, Plus, Trash2, UserPlus, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -24,7 +24,11 @@ import {
     useDeleteContractPaymentMutation,
     useGetDevelopersQuery,
     useOnboardDeveloperMutation,
+    useConfirmContractPaymentMutation,
+    useRejectContractPaymentMutation,
+    downloadContractPdf,
     type Contract,
+    type ContractPayment,
     type ContractInstalment,
     type ContractPaymentStatus,
     type OnboardedDeveloper,
@@ -70,6 +74,8 @@ export const Contracts = () => {
     const [deleteContract] = useDeleteContractMutation();
     const [addPayment, { isLoading: isPaying }] = useAddContractPaymentMutation();
     const [deletePayment] = useDeleteContractPaymentMutation();
+    const [confirmPayment] = useConfirmContractPaymentMutation();
+    const [rejectPayment, { isLoading: isRejecting }] = useRejectContractPaymentMutation();
     const [onboardDeveloper, { isLoading: isOnboarding }] = useOnboardDeveloperMutation();
 
     const contracts = data?.data ?? [];
@@ -82,6 +88,9 @@ export const Contracts = () => {
     const [pay, setPay] = useState({ amount: "", paidOn: toInputDate(new Date()), method: "", note: "" });
     const [detailId, setDetailId] = useState<string | null>(null);
     const [deleting, setDeleting] = useState<Contract | null>(null);
+    const [rejecting, setRejecting] = useState<{ c: Contract; p: ContractPayment } | null>(null);
+    const [rejectReason, setRejectReason] = useState("");
+    const [downloading, setDownloading] = useState<string | null>(null);
     const [onboardOpen, setOnboardOpen] = useState(false);
     const [dev, setDev] = useState({ name: "", email: "", phone: "" });
     const [onboarded, setOnboarded] = useState<OnboardedDeveloper | null>(null);
@@ -94,7 +103,7 @@ export const Contracts = () => {
 
     // ── summary ──────────────────────────────────────────────────────────────
     const summary = data?.summary ?? {};
-    const sum = (k: 'contracted' | 'received' | 'outstanding' | 'overdue'): CurrencyTotals => {
+    const sum = (k: 'contracted' | 'received' | 'outstanding' | 'overdue' | 'pending'): CurrencyTotals => {
         const out: CurrencyTotals = {};
         CURRENCY_ORDER.forEach((c) => { if (summary[c]) out[c] = summary[c]![k]; });
         return out;
@@ -103,6 +112,11 @@ export const Contracts = () => {
         .filter((c) => c.status !== 'cancelled')
         .flatMap((c) => c.instalments.filter((i) => i.overdue || i.dueSoon).map((i) => ({ c, i })))
         .sort((a, b) => (a.i.daysUntilDue ?? 0) - (b.i.daysUntilDue ?? 0));
+
+    const pendingText = formatTotals(sum('pending'));
+    // Payments the developer still has to confirm (shown to them) / that others are waiting on (shown to admins).
+    const awaitingMe = contracts.filter((c) => c.developerId === user?.id && c.pendingCount > 0);
+    const awaitingOthers = contracts.filter((c) => c.developerId !== user?.id && c.pendingCount > 0);
 
     // ── add / edit contract ──────────────────────────────────────────────────
     const openNew = () => {
@@ -205,6 +219,38 @@ export const Contracts = () => {
         }
     };
 
+    const handleConfirm = async (c: Contract, p: ContractPayment) => {
+        try {
+            await confirmPayment({ id: c.id, paymentId: p.id }).unwrap();
+            success(`Confirmed ${formatMoney(p.amount, c.currency)}`);
+        } catch (e: any) {
+            toastError(apiError(e, "Could not confirm the payment"));
+        }
+    };
+
+    const handleReject = async () => {
+        if (!rejecting) return;
+        try {
+            await rejectPayment({ id: rejecting.c.id, paymentId: rejecting.p.id, reason: rejectReason.trim() || undefined }).unwrap();
+            success("Marked as not received");
+            setRejecting(null);
+            setRejectReason("");
+        } catch (e: any) {
+            toastError(apiError(e, "Could not reject the payment"));
+        }
+    };
+
+    const handleDownload = async (path: string, fallbackName: string, key: string) => {
+        setDownloading(key);
+        try {
+            await downloadContractPdf(path, fallbackName);
+        } catch (e: any) {
+            toastError(e?.message || "Could not download the PDF");
+        } finally {
+            setDownloading(null);
+        }
+    };
+
     const handleDelete = async () => {
         if (!deleting) return;
         try {
@@ -259,14 +305,16 @@ export const Contracts = () => {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
                         { label: 'Total contracted', value: formatTotals(sum('contracted')), tone: 'text-slate-900 dark:text-white' },
-                        { label: 'Received so far', value: formatTotals(sum('received')), tone: 'text-emerald-600' },
+                        { label: 'Received so far', value: formatTotals(sum('received')), tone: 'text-emerald-600',
+                          caption: pendingText !== '—' ? `+ ${pendingText} waiting for confirmation` : undefined },
                         { label: 'Still owed', value: formatTotals(sum('outstanding')), tone: 'text-amber-600' },
                         { label: 'Overdue', value: formatTotals(sum('overdue')), tone: 'text-red-600' },
-                    ].map(({ label, value, tone }) => (
+                    ].map(({ label, value, tone, caption }) => (
                         <Card key={label} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                             <CardContent className="pt-4 pb-3">
                                 <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
                                 <p className={`text-xl font-bold mt-1 break-words ${tone}`}>{value}</p>
+                                {caption && <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">{caption}</p>}
                             </CardContent>
                         </Card>
                     ))}
@@ -288,6 +336,28 @@ export const Contracts = () => {
                         ))}
                     </div>
                 </div>
+            )}
+
+            {awaitingMe.length > 0 && (
+                <div className="rounded-lg border border-blue-300 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-4 flex gap-3">
+                    <Clock className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-900 dark:text-blue-200 space-y-1">
+                        <p className="font-semibold">Payments waiting for you to confirm</p>
+                        {awaitingMe.map((c) => (
+                            <p key={c.id}>
+                                <span className="font-medium">{c.title}</span> — {formatMoney(c.pendingAmount, c.currency)} recorded as paid
+                                {' — '}
+                                <button className="underline font-medium" onClick={() => setDetailId(c.id)}>Review</button>
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {awaitingOthers.length > 0 && (
+                <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    {awaitingOthers.reduce((n, c) => n + c.pendingCount, 0)} payment(s) are waiting for the developer to confirm.
+                </p>
             )}
 
             {isLoading ? (
@@ -341,6 +411,12 @@ export const Contracts = () => {
                                         <div><p className="text-xs text-slate-500">Received</p><p className="font-mono font-semibold text-emerald-600">{formatMoney(c.paid, c.currency)}</p></div>
                                         <div><p className="text-xs text-slate-500">Still owed</p><p className="font-mono font-semibold text-amber-600">{formatMoney(c.balance, c.currency)}</p></div>
                                     </div>
+
+                                    {c.pendingCount > 0 && (
+                                        <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                            <Clock className="w-3.5 h-3.5" /> {formatMoney(c.pendingAmount, c.currency)} waiting for {c.developerId === user?.id ? 'your' : "the developer's"} confirmation
+                                        </p>
+                                    )}
 
                                     <p className="text-sm text-slate-600 dark:text-slate-300">
                                         {c.paymentStatus === 'paid' ? (
@@ -420,7 +496,7 @@ export const Contracts = () => {
                             <div className="rounded-md border border-slate-200 dark:border-slate-700 p-3 grid gap-3">
                                 <div>
                                     <p className="text-sm font-medium">Already received</p>
-                                    <p className="text-xs text-slate-500">What has been paid so far, e.g. 50000 on the ₦150,000 app. Leave empty if nothing yet.</p>
+                                    <p className="text-xs text-slate-500">What has been paid so far, e.g. 50000 on the ₦150,000 app. Leave empty if nothing yet.{isOwner && form.developerId !== user?.id ? ' The developer will be asked to confirm it.' : ''}</p>
                                 </div>
                                 <div className="grid sm:grid-cols-3 gap-3">
                                     <Input inputMode="decimal" placeholder={`Amount (${CURRENCY_SYMBOL[form.currency]})`} value={form.receivedAmount} onChange={(e) => setForm({ ...form, receivedAmount: e.target.value })} />
@@ -473,7 +549,7 @@ export const Contracts = () => {
                     <DialogHeader>
                         <DialogTitle>Record payment — {payFor?.title}</DialogTitle>
                         <DialogDescription>
-                            {payFor ? `${formatMoney(payFor.balance, payFor.currency)} is still owed on this contract.` : ''}
+                            {payFor ? `${formatMoney(payFor.balance, payFor.currency)} is still owed on this contract.${payFor.developerId !== user?.id ? ` It will count once ${payFor.developerName ?? 'the developer'} confirms receiving it.` : ''}` : ''}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-2">
@@ -555,34 +631,66 @@ export const Contracts = () => {
                                     <p className="text-sm text-slate-500">Nothing received yet.</p>
                                 ) : (
                                     <Table>
-                                        <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Amount</TableHead><TableHead>How / note</TableHead><TableHead /></TableRow></TableHeader>
+                                        <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead><TableHead /></TableRow></TableHeader>
                                         <TableBody>
-                                            {[...detail.payments].reverse().map((p) => (
-                                                <TableRow key={p.id}>
-                                                    <TableCell className="whitespace-nowrap">{fmtDate(p.paidOn)}</TableCell>
-                                                    <TableCell className="font-mono font-semibold whitespace-nowrap">{formatMoney(p.amount, detail.currency)}</TableCell>
-                                                    <TableCell className="text-sm text-slate-500">
-                                                        {[p.method, p.note].filter(Boolean).join(' · ') || '—'}
-                                                        {p.recordedByName && <div className="text-xs">recorded by {p.recordedByName}</div>}
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="Remove this payment (use only to fix a mistake)" onClick={() => handleDeletePayment(detail, p.id)}>
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {[...detail.payments].reverse().map((p) => {
+                                                const isDeveloper = user?.id === detail.developerId;
+                                                // a confirmed payment is the developer's record; unconfirmed ones can also be withdrawn by whoever entered them
+                                                const canDelete = p.status === 'confirmed' ? isDeveloper : (isDeveloper || p.recordedBy === user?.id);
+                                                return (
+                                                    <TableRow key={p.id}>
+                                                        <TableCell className="whitespace-nowrap">{fmtDate(p.paidOn)}</TableCell>
+                                                        <TableCell className="font-mono font-semibold whitespace-nowrap">{formatMoney(p.amount, detail.currency)}</TableCell>
+                                                        <TableCell className="text-sm">
+                                                            <Badge className={p.status === 'confirmed' ? 'bg-emerald-500 hover:bg-emerald-500 text-white' : p.status === 'pending' ? 'bg-blue-500 hover:bg-blue-500 text-white' : 'bg-red-500 hover:bg-red-500 text-white'}>
+                                                                {p.status === 'confirmed' ? 'Confirmed' : p.status === 'pending' ? 'Waiting for confirmation' : 'Not confirmed'}
+                                                            </Badge>
+                                                            <div className="text-xs text-slate-500 mt-1">
+                                                                {[p.method, p.note].filter(Boolean).join(' · ')}
+                                                                {p.recordedByName && <span>{[p.method, p.note].some(Boolean) ? ' · ' : ''}recorded by {p.recordedByName}</span>}
+                                                            </div>
+                                                            {p.status === 'rejected' && p.rejectReason && <div className="text-xs text-red-600">Reason: {p.rejectReason}</div>}
+                                                        </TableCell>
+                                                        <TableCell className="text-right whitespace-nowrap">
+                                                            {p.status === 'pending' && isDeveloper && (
+                                                                <>
+                                                                    <Button size="sm" className="mr-1" onClick={() => handleConfirm(detail, p)}><Check className="w-3.5 h-3.5 mr-1" /> Confirm</Button>
+                                                                    <Button size="sm" variant="outline" className="mr-1" onClick={() => { setRejecting({ c: detail, p }); setRejectReason(""); }}>Not received</Button>
+                                                                </>
+                                                            )}
+                                                            {p.status === 'confirmed' && (
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8" title="Download receipt (PDF)" disabled={downloading === p.id}
+                                                                    onClick={() => handleDownload(`/api/contracts/${detail.id}/payments/${p.id}/receipt.pdf`, `receipt-${p.id.slice(0, 8)}.pdf`, p.id)}>
+                                                                    {downloading === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                                                </Button>
+                                                            )}
+                                                            {canDelete && (
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="Remove this payment (use only to fix a mistake)" onClick={() => handleDeletePayment(detail, p.id)}>
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
                                         </TableBody>
                                     </Table>
                                 )}
                             </div>
 
-                            <DialogFooter className="sm:justify-between">
-                                {isOwner ? (
-                                    <Button variant="ghost" className="text-red-600" onClick={() => setDeleting(detail)}>
-                                        <Trash2 className="w-4 h-4 mr-2" /> Remove contract
+                            <DialogFooter className="sm:justify-between gap-2">
+                                <div className="flex gap-2">
+                                    {isOwner && (
+                                        <Button variant="ghost" className="text-red-600" onClick={() => setDeleting(detail)}>
+                                            <Trash2 className="w-4 h-4 mr-2" /> Remove contract
+                                        </Button>
+                                    )}
+                                    <Button variant="outline" disabled={downloading === 'invoice'}
+                                        onClick={() => handleDownload(`/api/contracts/${detail.id}/invoice.pdf`, 'invoice.pdf', 'invoice')}>
+                                        {downloading === 'invoice' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                                        {detail.balance > 0 ? 'Invoice (PDF)' : 'Statement (PDF)'}
                                     </Button>
-                                ) : <span />}
+                                </div>
                                 {detail.balance > 0 && detail.status !== 'cancelled' && (
                                     <Button onClick={() => { const c = detail; setDetailId(null); openPay(c); }}><Wallet className="w-4 h-4 mr-2" /> Record payment</Button>
                                 )}
@@ -636,6 +744,28 @@ export const Contracts = () => {
                             <DialogFooter><Button onClick={closeOnboard}>Done</Button></DialogFooter>
                         </>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Not received */}
+            <Dialog open={!!rejecting} onOpenChange={(open) => !open && setRejecting(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Mark as not received?</DialogTitle>
+                        <DialogDescription>
+                            {rejecting ? `${formatMoney(rejecting.p.amount, rejecting.c.currency)} recorded by ${rejecting.p.recordedByName ?? 'someone'} will not count. It stays in the history, marked as not confirmed.` : ''}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-2 py-2">
+                        <Label htmlFor="rej">Reason (optional)</Label>
+                        <Input id="rej" placeholder="e.g. Nothing came into my account" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRejecting(null)}>Cancel</Button>
+                        <Button onClick={handleReject} disabled={isRejecting}>
+                            {isRejecting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Not received
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 

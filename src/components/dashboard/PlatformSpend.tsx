@@ -6,16 +6,17 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Loader2, Receipt, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useGetSubscriptionSpendQuery, type SubscriptionCategory } from "@/services/subscriptionsApi";
+import { useGetSubscriptionSpendQuery, type SpendCategory } from "@/services/subscriptionsApi";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatMoney, formatTotals } from "@/lib/money";
 
 type Range = 'all' | 'month' | 'year' | 'custom';
 
-const CATEGORY_LABEL: Record<SubscriptionCategory, string> = {
-    domain: 'Domain', frontend: 'Frontend hosting', backend: 'Backend hosting', other: 'Other',
+const CATEGORY_LABEL: Record<SpendCategory, string> = {
+    domain: 'Domain', frontend: 'Frontend hosting', backend: 'Backend hosting', other: 'Other', development: 'Development fees',
 };
-const CATEGORY_BAR: Record<SubscriptionCategory, string> = {
-    domain: 'bg-amber-500', frontend: 'bg-blue-500', backend: 'bg-purple-500', other: 'bg-slate-400',
+const CATEGORY_BAR: Record<SpendCategory, string> = {
+    domain: 'bg-amber-500', frontend: 'bg-blue-500', backend: 'bg-purple-500', other: 'bg-slate-400', development: 'bg-emerald-500',
 };
 
 const fmtDate = (d?: string | null) =>
@@ -33,6 +34,7 @@ export const PlatformSpend = () => {
     const [range, setRange] = useState<Range>('all');
     const [customFrom, setCustomFrom] = useState("");
     const [customTo, setCustomTo] = useState("");
+    const [includeContracts, setIncludeContracts] = useState(true);
 
     const params = useMemo(() => {
         const now = new Date();
@@ -42,7 +44,9 @@ export const PlatformSpend = () => {
         return {};
     }, [range, customFrom, customTo]);
 
-    const { data, isLoading, isFetching, error } = useGetSubscriptionSpendQuery(params);
+    const queryArgs = useMemo(() => ({ ...params, includeContracts }), [params, includeContracts]);
+    // refetch on open: confirming a contract payment elsewhere changes these totals
+    const { data, isLoading, isFetching, error } = useGetSubscriptionSpendQuery(queryArgs, { refetchOnMountOrArgChange: true });
     const spend = data?.data;
     const periodLabel = { all: 'All time', month: 'This month', year: 'This year', custom: 'Selected dates' }[range];
     // Dollars and naira can't share one bar scale, so bars only show when there is a single currency.
@@ -87,7 +91,7 @@ export const PlatformSpend = () => {
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Platform Spend</h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-2">
-                        Everything spent on running the platform — domain, hosting and other subscriptions. Compare this with your income to see the real profit.
+                        Everything spent on running the platform — domain, hosting, other subscriptions and development fees. Compare this with your income to see the real profit.
                     </p>
                 </div>
                 <Button variant="outline" onClick={exportCsv} disabled={!spend?.payments.length}>
@@ -121,6 +125,10 @@ export const PlatformSpend = () => {
                         </div>
                     </>
                 )}
+                <div className="flex items-center gap-2 mb-2">
+                    <Checkbox id="inc-dev" checked={includeContracts} onCheckedChange={(v) => setIncludeContracts(v === true)} />
+                    <Label htmlFor="inc-dev" className="text-sm font-normal cursor-pointer">Include development fees (confirmed payments on contracts)</Label>
+                </div>
                 {isFetching && !isLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 mb-2.5" />}
             </div>
 
@@ -159,7 +167,7 @@ export const PlatformSpend = () => {
                                 <Wallet className="w-12 h-12 mb-4 text-slate-400 opacity-60" />
                                 <p className="text-lg font-medium text-slate-900 dark:text-white">No payments recorded for this period</p>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                    Add your domain and hosting on the Subscription page, or press Renew when you pay again, and they will show up here.
+                                    Add your domain and hosting on the Subscription page, or press Renew when you pay again. Confirmed payments on development contracts show up here too.
                                 </p>
                             </CardContent>
                         </Card>

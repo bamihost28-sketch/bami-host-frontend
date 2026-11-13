@@ -25,7 +25,11 @@ export interface ContractPayment {
     amount: number;
     method?: string | null;
     note?: string | null;
+    recordedBy?: string | null;
     recordedByName?: string | null;
+    /** Only confirmed payments count. The developer confirms what others record. */
+    status: 'confirmed' | 'pending' | 'rejected';
+    rejectReason?: string | null;
 }
 
 export interface Contract {
@@ -41,6 +45,9 @@ export interface Contract {
     payments: ContractPayment[];
     paid: number;
     balance: number;
+    /** Recorded but not yet confirmed by the developer (not counted in `paid`). */
+    pendingAmount: number;
+    pendingCount: number;
     percentPaid: number;
     instalments: ContractInstalment[];
     scheduledTotal: number;
@@ -57,6 +64,7 @@ export interface ContractTotals {
     received: number;
     outstanding: number;
     overdue: number;
+    pending: number;
 }
 
 export interface ContractsResponse {
@@ -65,6 +73,7 @@ export interface ContractsResponse {
     summary: Partial<Record<Currency, ContractTotals>>;
     overdueCount: number;
     dueSoonCount: number;
+    pendingCount: number;
 }
 
 export interface ContractInstalmentInput { label: string; amount: number; dueDate?: string }
@@ -142,6 +151,14 @@ export const contractsApi = createApi({
             query: ({ id, paymentId }) => ({ url: `/api/contracts/${id}/payments/${paymentId}`, method: 'DELETE' }),
             invalidatesTags: ['Contract'],
         }),
+        confirmContractPayment: builder.mutation<{ success: boolean; data: Contract }, { id: string; paymentId: string }>({
+            query: ({ id, paymentId }) => ({ url: `/api/contracts/${id}/payments/${paymentId}/confirm`, method: 'POST' }),
+            invalidatesTags: ['Contract'],
+        }),
+        rejectContractPayment: builder.mutation<{ success: boolean; data: Contract }, { id: string; paymentId: string; reason?: string }>({
+            query: ({ id, paymentId, reason }) => ({ url: `/api/contracts/${id}/payments/${paymentId}/reject`, method: 'POST', body: { reason } }),
+            invalidatesTags: ['Contract'],
+        }),
         getDevelopers: builder.query<{ success: boolean; data: Developer[] }, void>({
             query: () => '/api/contracts/developers',
             providesTags: ['Developer'],
@@ -160,6 +177,29 @@ export const {
     useDeleteContractMutation,
     useAddContractPaymentMutation,
     useDeleteContractPaymentMutation,
+    useConfirmContractPaymentMutation,
+    useRejectContractPaymentMutation,
     useGetDevelopersQuery,
     useOnboardDeveloperMutation,
 } = contractsApi;
+
+/** Download a PDF (invoice or receipt). Plain links can't send the login token, so it is fetched and saved. */
+export async function downloadContractPdf(path: string, fallbackName: string): Promise<void> {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${BASE_API_URL}${path}`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
+    if (!res.ok) {
+        let detail = 'Could not download the PDF';
+        try {
+            const body = await res.json();
+            if (typeof body?.detail === 'string') detail = body.detail;
+        } catch { /* not JSON */ }
+        throw new Error(detail);
+    }
+    const name = /filename="?([^";]+)"?/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? fallbackName;
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+}

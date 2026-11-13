@@ -18,6 +18,7 @@ import {
     useCreateSubscriptionMutation,
     useUpdateSubscriptionMutation,
     useRenewSubscriptionMutation,
+    useDeleteSubscriptionPaymentMutation,
     useDeleteSubscriptionMutation,
     type Subscription as SubscriptionItem,
     type SubscriptionCategory,
@@ -112,6 +113,7 @@ export const Subscription = () => {
     const [createSubscription, { isLoading: isCreating }] = useCreateSubscriptionMutation();
     const [updateSubscription, { isLoading: isUpdating }] = useUpdateSubscriptionMutation();
     const [renewSubscription, { isLoading: isRenewing }] = useRenewSubscriptionMutation();
+    const [deletePayment] = useDeleteSubscriptionPaymentMutation();
     const [deleteSubscription, { isLoading: isDeleting }] = useDeleteSubscriptionMutation();
     const { success, error: toastError } = useToast();
 
@@ -253,6 +255,17 @@ export const Subscription = () => {
             setRenewing(null);
         } catch (e: any) {
             toastError(e?.data?.detail || "Failed to record the renewal");
+        }
+    };
+
+    const handleDeletePayment = async (s: SubscriptionItem, paymentId: string) => {
+        if (!window.confirm("Remove this payment? Use this only to fix a mistake. The expiry date will not change — edit the dates if it should.")) return;
+        try {
+            const res = await deletePayment({ id: idOf(s), paymentId }).unwrap();
+            setHistoryFor(res.data);          // keep the open history in step
+            success("Payment removed");
+        } catch (e: any) {
+            toastError(e?.data?.detail || "Could not remove the payment");
         }
     };
 
@@ -633,6 +646,7 @@ export const Subscription = () => {
                                     <TableHead>Covers</TableHead>
                                     <TableHead>Amount</TableHead>
                                     <TableHead>Note</TableHead>
+                                    <TableHead />
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -650,6 +664,11 @@ export const Subscription = () => {
                                             )}
                                         </TableCell>
                                         <TableCell className="text-sm text-slate-500">{p.note || '—'}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="Remove this payment (use only to fix a mistake)" onClick={() => handleDeletePayment(historyFor, p.id)}>
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
