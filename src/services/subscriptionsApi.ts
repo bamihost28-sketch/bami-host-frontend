@@ -1,12 +1,17 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BASE_API_URL, withColdStartRetry } from './api';
+import type { Currency, CurrencyTotals } from '@/lib/money';
 
 export type SubscriptionCategory = 'domain' | 'frontend' | 'backend' | 'other';
 
 export interface SubscriptionPayment {
     id: string;
     paidOn: string;
+    /** Exactly what was paid, in `currency` (payments from before currencies existed are naira). */
     amount: number;
+    currency?: Currency;
+    /** For dollar payments: the naira the bank actually debited, if recorded. */
+    ngnEquivalent?: number | null;
     months?: number | null;
     periodStart?: string | null;
     periodEnd?: string | null;
@@ -18,14 +23,15 @@ export interface Subscription {
     id?: string;
     name: string;
     price: number;
+    currency?: Currency;
     billingPeriod: 'month' | 'year' | 'week' | 'day' | 'one-time';
     description?: string;
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
     category?: SubscriptionCategory | null;
     provider?: string | null;
     payments?: SubscriptionPayment[];
-    /** Sum of every payment recorded against this subscription. */
-    totalPaid?: number;
+    /** Sum of every payment recorded against this subscription, per currency. */
+    totalPaidByCurrency?: CurrencyTotals;
     status: 'Active' | 'Inactive';
     features: string[];
     startDate?: string;
@@ -37,6 +43,9 @@ export interface Subscription {
 export interface CreateSubscriptionPayload {
     name: string;
     price: number;
+    currency?: Currency;
+    /** Naira debited for a dollar payment (optional). */
+    ngnEquivalent?: number;
     billingPeriod: 'month' | 'year' | 'week' | 'day' | 'one-time';
     description?: string;
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
@@ -51,6 +60,7 @@ export interface CreateSubscriptionPayload {
 export interface UpdateSubscriptionPayload {
     name?: string;
     price?: number;
+    currency?: Currency;
     billingPeriod?: 'month' | 'year' | 'week' | 'day' | 'one-time';
     description?: string;
     icon?: 'Layout (Frontend)' | 'Server (Backend)';
@@ -66,6 +76,9 @@ export interface RenewSubscriptionPayload {
     months: number;
     /** Defaults to the plan's price on the server. */
     amount?: number;
+    /** Defaults to the plan's currency on the server. */
+    currency?: Currency;
+    ngnEquivalent?: number;
     paidOn?: string;
     note?: string;
 }
@@ -78,6 +91,8 @@ export interface SpendPayment {
     provider?: string | null;
     paidOn: string;
     amount: number;
+    currency: Currency;
+    ngnEquivalent?: number | null;
     months?: number | null;
     periodStart?: string | null;
     periodEnd?: string | null;
@@ -85,12 +100,18 @@ export interface SpendPayment {
 }
 
 export interface SubscriptionSpend {
-    total: number;
-    thisMonth: number;
-    thisYear: number;
+    /** Currencies that appear in this period, dollars first. */
+    currencies: Currency[];
+    totals: CurrencyTotals;
+    thisMonth: CurrencyTotals;
+    thisYear: CurrencyTotals;
+    /** Naira cost where known: naira payments + naira debited for dollar payments. */
+    ngnTotal: number;
+    /** Dollar payments with no naira amount recorded (so ngnTotal is understated). */
+    ngnMissing: number;
     paymentCount: number;
-    byMonth: { month: string; amount: number }[];
-    byCategory: { category: SubscriptionCategory; amount: number }[];
+    byMonth: { month: string; amounts: CurrencyTotals }[];
+    byCategory: { category: SubscriptionCategory; amounts: CurrencyTotals }[];
     payments: SpendPayment[];
 }
 

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, Loader2, Receipt, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useGetSubscriptionSpendQuery, type SubscriptionCategory } from "@/services/subscriptionsApi";
+import { formatMoney, formatTotals } from "@/lib/money";
 
 type Range = 'all' | 'month' | 'year' | 'custom';
 
@@ -17,7 +18,6 @@ const CATEGORY_BAR: Record<SubscriptionCategory, string> = {
     domain: 'bg-amber-500', frontend: 'bg-blue-500', backend: 'bg-purple-500', other: 'bg-slate-400',
 };
 
-const naira = (n: number) => `₦${Math.round(n).toLocaleString()}`;
 const fmtDate = (d?: string | null) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const monthLabel = (ym: string) =>
@@ -45,14 +45,30 @@ export const PlatformSpend = () => {
     const { data, isLoading, isFetching, error } = useGetSubscriptionSpendQuery(params);
     const spend = data?.data;
     const periodLabel = { all: 'All time', month: 'This month', year: 'This year', custom: 'Selected dates' }[range];
-    const maxCategory = Math.max(1, ...(spend?.byCategory.map((c) => c.amount) ?? [0]));
+    // Dollars and naira can't share one bar scale, so bars only show when there is a single currency.
+    const singleCurrency = spend?.currencies.length === 1 ? spend.currencies[0] : null;
+    const maxCategory = Math.max(1, ...(spend && singleCurrency ? spend.byCategory.map((c) => c.amounts[singleCurrency] ?? 0) : [0]));
+    const hasUsd = !!spend?.currencies.includes('USD');
+    const cards: { label: string; value: string | number; caption?: string }[] = spend ? [
+        { label: `Total spent · ${periodLabel}`, value: formatTotals(spend.totals) },
+        { label: 'Spent this month', value: formatTotals(spend.thisMonth) },
+        { label: 'Spent this year', value: formatTotals(spend.thisYear) },
+        ...(hasUsd ? [{
+            label: 'Naira cost (where known)',
+            value: formatMoney(spend.ngnTotal, 'NGN'),
+            caption: spend.ngnMissing > 0
+                ? `${spend.ngnMissing} dollar payment${spend.ngnMissing === 1 ? ' has' : 's have'} no naira amount recorded`
+                : 'Naira paid + naira debited for dollar payments',
+        }] : []),
+        { label: 'Payments in period', value: spend.paymentCount },
+    ] : [];
 
     const exportCsv = () => {
         if (!spend) return;
         const rows = [
-            ['Date paid', 'Item', 'Category', 'Provider', 'Amount (NGN)', 'Months', 'Covers from', 'Covers until', 'Note'],
+            ['Date paid', 'Item', 'Category', 'Provider', 'Currency', 'Amount', 'Naira debited', 'Months', 'Covers from', 'Covers until', 'Note'],
             ...spend.payments.map((p) => [
-                p.paidOn.slice(0, 10), p.name, CATEGORY_LABEL[p.category], p.provider ?? '', p.amount,
+                p.paidOn.slice(0, 10), p.name, CATEGORY_LABEL[p.category], p.provider ?? '', p.currency, p.amount, p.ngnEquivalent ?? '',
                 p.months ?? '', p.periodStart?.slice(0, 10) ?? '', p.periodEnd?.slice(0, 10) ?? '', p.note ?? '',
             ]),
         ];
@@ -122,17 +138,13 @@ export const PlatformSpend = () => {
                 </Card>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        {[
-                            { label: `Total spent · ${periodLabel}`, value: naira(spend.total) },
-                            { label: 'Spent this month', value: naira(spend.thisMonth) },
-                            { label: 'Spent this year', value: naira(spend.thisYear) },
-                            { label: 'Payments in period', value: spend.paymentCount },
-                        ].map(({ label, value }) => (
+                    <div className={`grid grid-cols-2 gap-3 ${hasUsd ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+                        {cards.map(({ label, value, caption }) => (
                             <Card key={label} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                                 <CardContent className="pt-4 pb-3">
                                     <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
-                                    <p className="text-2xl font-bold mt-1 text-slate-900 dark:text-white">{value}</p>
+                                    <p className="text-xl font-bold mt-1 text-slate-900 dark:text-white break-words">{value}</p>
+                                    {caption && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{caption}</p>}
                                 </CardContent>
                             </Card>
                         ))}
@@ -164,11 +176,13 @@ export const PlatformSpend = () => {
                                             <div key={c.category}>
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-slate-700 dark:text-slate-300">{CATEGORY_LABEL[c.category]}</span>
-                                                    <span className="font-mono font-semibold text-slate-900 dark:text-white">{naira(c.amount)}</span>
+                                                    <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatTotals(c.amounts)}</span>
                                                 </div>
-                                                <div className="mt-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                                                    <div className={`h-full rounded-full ${CATEGORY_BAR[c.category]}`} style={{ width: `${(c.amount / maxCategory) * 100}%` }} />
-                                                </div>
+                                                {singleCurrency && (
+                                                    <div className="mt-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                                        <div className={`h-full rounded-full ${CATEGORY_BAR[c.category]}`} style={{ width: `${((c.amounts[singleCurrency] ?? 0) / maxCategory) * 100}%` }} />
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </CardContent>
@@ -185,7 +199,7 @@ export const PlatformSpend = () => {
                                                 {spend.byMonth.map((m) => (
                                                     <TableRow key={m.month}>
                                                         <TableCell>{monthLabel(m.month)}</TableCell>
-                                                        <TableCell className="text-right font-mono font-semibold">{naira(m.amount)}</TableCell>
+                                                        <TableCell className="text-right font-mono font-semibold">{formatTotals(m.amounts)}</TableCell>
                                                     </TableRow>
                                                 ))}
                                             </TableBody>
@@ -223,14 +237,19 @@ export const PlatformSpend = () => {
                                                         {p.months ? <span className="text-slate-500"> ({p.months} mo)</span> : null}
                                                     </TableCell>
                                                     <TableCell className="text-sm text-slate-500">{p.note || '—'}</TableCell>
-                                                    <TableCell className="text-right font-mono font-semibold">{naira(p.amount)}</TableCell>
+                                                    <TableCell className="text-right font-mono font-semibold whitespace-nowrap">
+                                                        {formatMoney(p.amount, p.currency)}
+                                                        {p.currency === 'USD' && p.ngnEquivalent != null && (
+                                                            <div className="text-xs font-normal text-slate-500">{formatMoney(p.ngnEquivalent, 'NGN')} debited</div>
+                                                        )}
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
                                         <TableFooter>
                                             <TableRow>
                                                 <TableCell colSpan={4} className="font-semibold">Total</TableCell>
-                                                <TableCell className="text-right font-mono font-bold">{naira(spend.total)}</TableCell>
+                                                <TableCell className="text-right font-mono font-bold">{formatTotals(spend.totals)}</TableCell>
                                             </TableRow>
                                         </TableFooter>
                                     </Table>

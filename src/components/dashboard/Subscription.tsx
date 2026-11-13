@@ -22,6 +22,7 @@ import {
     type Subscription as SubscriptionItem,
     type SubscriptionCategory,
 } from "@/services/subscriptionsApi";
+import { CURRENCY_LABEL, CURRENCY_ORDER, CURRENCY_SYMBOL, formatMoney, formatTotals, type Currency, type CurrencyTotals } from "@/lib/money";
 
 const DAY_MS = 86_400_000;
 const EXPIRING_SOON_DAYS = 14;
@@ -36,7 +37,6 @@ const CATEGORY_META: Record<SubscriptionCategory, { label: string; icon: typeof 
     other: { label: 'Other', icon: Package, tone: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' },
 };
 
-const naira = (n: number) => `₦${Math.round(n).toLocaleString()}`;
 const fmtDate = (d?: string | null) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
@@ -98,6 +98,8 @@ const emptyForm = () => ({
     category: "frontend" as SubscriptionCategory,
     provider: "",
     price: "",
+    currency: "USD" as Currency,
+    ngnEquivalent: "",
     period: "month" as Cycle,
     description: "",
     status: "Active" as 'Active' | 'Inactive',
@@ -118,7 +120,7 @@ export const Subscription = () => {
     const [formData, setFormData] = useState(emptyForm());
 
     const [renewing, setRenewing] = useState<SubscriptionItem | null>(null);
-    const [renewForm, setRenewForm] = useState({ months: "3", amount: "", paidOn: toInputDate(new Date()), note: "" });
+    const [renewForm, setRenewForm] = useState({ months: "3", amount: "", currency: "NGN" as Currency, ngn: "", paidOn: toInputDate(new Date()), note: "" });
     const [historyFor, setHistoryFor] = useState<SubscriptionItem | null>(null);
     const [deleting, setDeleting] = useState<SubscriptionItem | null>(null);
 
@@ -126,7 +128,11 @@ export const Subscription = () => {
     const idOf = (s: SubscriptionItem) => s._id ?? s.id ?? '';
 
     // ── summary ──────────────────────────────────────────────────────────────
-    const totalPaid = subscriptions.reduce((sum, s) => sum + (s.totalPaid ?? 0), 0);
+    const totalPaid: CurrencyTotals = {};
+    subscriptions.forEach((s) =>
+        Object.entries(s.totalPaidByCurrency ?? {}).forEach(([c, v]) => {
+            totalPaid[c as Currency] = (totalPaid[c as Currency] ?? 0) + (v ?? 0);
+        }));
     const states = subscriptions.map(expiryState);
     const activeCount = states.filter((x) => x === 'active' || x === 'expiring').length;
     const attention = subscriptions
@@ -142,6 +148,8 @@ export const Subscription = () => {
                 category: categoryOf(s),
                 provider: s.provider ?? "",
                 price: s.price.toString(),
+                currency: s.currency ?? 'NGN',
+                ngnEquivalent: "",
                 period: s.billingPeriod,
                 description: s.description || "",
                 status: s.status,
@@ -165,6 +173,10 @@ export const Subscription = () => {
         if (!formData.name.trim()) return toastError("Please enter a name, e.g. bamihost.com or Frontend hosting");
         const priceNum = parseFloat(formData.price.replace(/[^0-9.]/g, ''));
         if (isNaN(priceNum) || priceNum <= 0) return toastError("Please enter the amount");
+        const ngnNum = !editingId && formData.currency === 'USD' && formData.ngnEquivalent.trim()
+            ? parseFloat(formData.ngnEquivalent.replace(/[^0-9.]/g, ''))
+            : undefined;
+        if (ngnNum !== undefined && (isNaN(ngnNum) || ngnNum < 0)) return toastError("Enter the naira amount that was debited, or leave it empty");
         if (!editingId && (!formData.startDate || !formData.expiresAt)) return toastError("Please enter the start and expiry dates");
         if (formData.startDate && formData.expiresAt && formData.expiresAt <= formData.startDate) {
             return toastError("The expiry date must be after the start date");
@@ -175,6 +187,7 @@ export const Subscription = () => {
             category: formData.category,
             provider: formData.provider.trim() || undefined,
             price: priceNum,
+            currency: formData.currency,
             billingPeriod: formData.period,
             description: formData.description,
             // keeps the icon older screens/records rely on in step with the category
@@ -189,7 +202,7 @@ export const Subscription = () => {
                 await updateSubscription({ id: editingId, payload }).unwrap();
                 success("Subscription updated");
             } else {
-                await createSubscription(payload).unwrap();
+                await createSubscription({ ...payload, ngnEquivalent: ngnNum }).unwrap();
                 success("Subscription added");
             }
             handleCloseDialog();
@@ -201,9 +214,12 @@ export const Subscription = () => {
     // ── renew ────────────────────────────────────────────────────────────────
     const openRenew = (s: SubscriptionItem) => {
         const last = latestPayment(s);
+        const currency: Currency = s.currency ?? last?.currency ?? 'NGN';
         setRenewForm({
             months: String(last?.months ?? 3),
-            amount: String(last?.amount ?? s.price),
+            currency,
+            amount: String(last && (last.currency ?? 'NGN') === currency ? last.amount : s.price),
+            ngn: "",
             paidOn: toInputDate(new Date()),
             note: "",
         });
@@ -226,10 +242,12 @@ export const Subscription = () => {
         const amount = parseFloat(renewForm.amount.replace(/[^0-9.]/g, ''));
         if (!months || months < 1) return toastError("Enter how many months you paid for");
         if (isNaN(amount) || amount < 0) return toastError("Enter the amount you paid");
+        const ngn = renewForm.currency === 'USD' && renewForm.ngn.trim() ? parseFloat(renewForm.ngn.replace(/[^0-9.]/g, '')) : undefined;
+        if (ngn !== undefined && (isNaN(ngn) || ngn < 0)) return toastError("Enter the naira amount that was debited, or leave it empty");
         try {
             await renewSubscription({
                 id: idOf(renewing),
-                payload: { months, amount, paidOn: renewForm.paidOn || undefined, note: renewForm.note.trim() || undefined },
+                payload: { months, amount, currency: renewForm.currency, ngnEquivalent: ngn, paidOn: renewForm.paidOn || undefined, note: renewForm.note.trim() || undefined },
             }).unwrap();
             success(`${renewing.name} renewed for ${months} month${months === 1 ? '' : 's'}`);
             setRenewing(null);
@@ -270,7 +288,7 @@ export const Subscription = () => {
             {!isLoading && !error && subscriptions.length > 0 && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
-                        { label: 'Total paid to date', value: naira(totalPaid), icon: Wallet, tone: 'text-slate-900 dark:text-white' },
+                        { label: 'Total paid to date', value: formatTotals(totalPaid), icon: Wallet, tone: 'text-slate-900 dark:text-white' },
                         { label: 'Running now', value: activeCount, icon: CheckCircle2, tone: 'text-emerald-600' },
                         { label: `Expiring in ${EXPIRING_SOON_DAYS} days`, value: states.filter((x) => x === 'expiring').length, icon: Clock, tone: 'text-amber-600' },
                         { label: 'Expired', value: states.filter((x) => x === 'expired').length, icon: AlertTriangle, tone: 'text-red-600' },
@@ -373,7 +391,7 @@ export const Subscription = () => {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="font-mono font-bold text-slate-900 dark:text-white">
-                                                {s.payments?.length ? naira(s.totalPaid ?? 0) : <span className="text-slate-400 font-normal">Not recorded</span>}
+                                                {s.payments?.length ? formatTotals(s.totalPaidByCurrency) : <span className="text-slate-400 font-normal">Not recorded</span>}
                                                 {!!s.payments?.length && (
                                                     <div className="text-xs font-normal text-slate-500">{s.payments.length} payment{s.payments.length === 1 ? '' : 's'}</div>
                                                 )}
@@ -452,10 +470,19 @@ export const Subscription = () => {
                                     onChange={(e) => setFormData({ ...formData, provider: e.target.value })} />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="price">{editingId ? "Price (₦) *" : "Amount paid (₦) *"}</Label>
-                                <Input id="price" placeholder="e.g. 45000" value={formData.price}
+                                <Label>Paid in *</Label>
+                                <Select value={formData.currency} onValueChange={(v: Currency) => setFormData({ ...formData, currency: v })}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        {CURRENCY_ORDER.map((c) => <SelectItem key={c} value={c}>{CURRENCY_LABEL[c]}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="price">{editingId ? "Price" : "Amount paid"} ({CURRENCY_SYMBOL[formData.currency]}) *</Label>
+                                <Input id="price" inputMode="decimal" placeholder={formData.currency === 'USD' ? "e.g. 27.49" : "e.g. 45000"} value={formData.price}
                                     onChange={(e) => setFormData({ ...formData, price: e.target.value })} />
                             </div>
                             <div className="grid gap-2">
@@ -472,6 +499,14 @@ export const Subscription = () => {
                                 </Select>
                             </div>
                         </div>
+                        {!editingId && formData.currency === 'USD' && (
+                            <div className="grid gap-2">
+                                <Label htmlFor="ngn">Naira debited from your account (₦) — optional</Label>
+                                <Input id="ngn" inputMode="decimal" placeholder="What your bank actually charged, e.g. 41200" value={formData.ngnEquivalent}
+                                    onChange={(e) => setFormData({ ...formData, ngnEquivalent: e.target.value })} />
+                                <p className="text-xs text-slate-500">Lets you see the real naira cost when you compare with profit.</p>
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="startDate">Paid from {!editingId && '*'}</Label>
@@ -529,11 +564,27 @@ export const Subscription = () => {
                                     onChange={(e) => setRenewForm({ ...renewForm, months: e.target.value })} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="r-amount">Amount paid (₦) *</Label>
-                                <Input id="r-amount" value={renewForm.amount}
+                                <Label htmlFor="r-amount">Amount paid ({CURRENCY_SYMBOL[renewForm.currency]}) *</Label>
+                                <Input id="r-amount" inputMode="decimal" value={renewForm.amount}
                                     onChange={(e) => setRenewForm({ ...renewForm, amount: e.target.value })} />
                             </div>
                         </div>
+                        <div className="grid gap-2">
+                            <Label>Paid in</Label>
+                            <Select value={renewForm.currency} onValueChange={(v: Currency) => setRenewForm({ ...renewForm, currency: v })}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    {CURRENCY_ORDER.map((c) => <SelectItem key={c} value={c}>{CURRENCY_LABEL[c]}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {renewForm.currency === 'USD' && (
+                            <div className="grid gap-2">
+                                <Label htmlFor="r-ngn">Naira debited from your account (₦) — optional</Label>
+                                <Input id="r-ngn" inputMode="decimal" placeholder="What your bank actually charged" value={renewForm.ngn}
+                                    onChange={(e) => setRenewForm({ ...renewForm, ngn: e.target.value })} />
+                            </div>
+                        )}
                         <div className="grid gap-2">
                             <Label htmlFor="r-paid">Date paid</Label>
                             <Input id="r-paid" type="date" value={renewForm.paidOn}
@@ -570,7 +621,7 @@ export const Subscription = () => {
                         <DialogTitle>Payment history — {historyFor?.name}</DialogTitle>
                         <DialogDescription>
                             {historyFor?.payments?.length
-                                ? `${historyFor.payments.length} payment${historyFor.payments.length === 1 ? '' : 's'} · ${naira(historyFor.totalPaid ?? 0)} in total`
+                                ? `${historyFor.payments.length} payment${historyFor.payments.length === 1 ? '' : 's'} · ${formatTotals(historyFor.totalPaidByCurrency)} in total`
                                 : 'No payments recorded yet.'}
                         </DialogDescription>
                     </DialogHeader>
@@ -592,7 +643,12 @@ export const Subscription = () => {
                                             {fmtDate(p.periodStart)} → {fmtDate(p.periodEnd)}
                                             {p.months ? <span className="text-slate-500"> ({p.months} mo)</span> : null}
                                         </TableCell>
-                                        <TableCell className="font-mono font-semibold">{naira(p.amount)}</TableCell>
+                                        <TableCell className="font-mono font-semibold whitespace-nowrap">
+                                            {formatMoney(p.amount, p.currency ?? 'NGN')}
+                                            {(p.currency ?? 'NGN') === 'USD' && p.ngnEquivalent != null && (
+                                                <div className="text-xs font-normal text-slate-500">{formatMoney(p.ngnEquivalent, 'NGN')} debited</div>
+                                            )}
+                                        </TableCell>
                                         <TableCell className="text-sm text-slate-500">{p.note || '—'}</TableCell>
                                     </TableRow>
                                 ))}
