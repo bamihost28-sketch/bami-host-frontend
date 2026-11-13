@@ -1,0 +1,165 @@
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { BASE_API_URL, withColdStartRetry } from './api';
+import type { Currency } from '@/lib/money';
+
+export type ContractStatus = 'active' | 'completed' | 'cancelled';
+export type ContractPaymentStatus = 'paid' | 'partial' | 'unpaid' | 'overdue' | 'cancelled';
+
+export interface ContractInstalment {
+    id: string;
+    label: string;
+    amount: number;
+    dueDate: string | null;
+    /** How much of this instalment the payments so far cover. */
+    paid: number;
+    outstanding: number;
+    status: 'paid' | 'partial' | 'unpaid';
+    daysUntilDue: number | null;
+    overdue: boolean;
+    dueSoon: boolean;
+}
+
+export interface ContractPayment {
+    id: string;
+    paidOn: string;
+    amount: number;
+    method?: string | null;
+    note?: string | null;
+    recordedByName?: string | null;
+}
+
+export interface Contract {
+    id: string;
+    title: string;
+    description?: string | null;
+    clientName?: string | null;
+    developerId?: string | null;
+    developerName?: string | null;
+    totalAmount: number;
+    currency: Currency;
+    status: ContractStatus;
+    payments: ContractPayment[];
+    paid: number;
+    balance: number;
+    percentPaid: number;
+    instalments: ContractInstalment[];
+    scheduledTotal: number;
+    overdueAmount: number;
+    overdueCount: number;
+    dueSoonCount: number;
+    nextDue: ContractInstalment | null;
+    paymentStatus: ContractPaymentStatus;
+    createdAt: string;
+}
+
+export interface ContractTotals {
+    contracted: number;
+    received: number;
+    outstanding: number;
+    overdue: number;
+}
+
+export interface ContractsResponse {
+    success: boolean;
+    data: Contract[];
+    summary: Partial<Record<Currency, ContractTotals>>;
+    overdueCount: number;
+    dueSoonCount: number;
+}
+
+export interface ContractInstalmentInput { label: string; amount: number; dueDate?: string }
+export interface ContractPaymentInput { amount: number; paidOn?: string; method?: string; note?: string }
+
+export interface CreateContractPayload {
+    title: string;
+    description?: string;
+    clientName?: string;
+    totalAmount: number;
+    currency: Currency;
+    /** Owners must say whose contract it is; developers' own contracts ignore this. */
+    developerId?: string;
+    instalments?: ContractInstalmentInput[];
+    /** Payments already received before the contract was entered. */
+    received?: ContractPaymentInput[];
+}
+
+export interface UpdateContractPayload {
+    title?: string;
+    description?: string;
+    clientName?: string;
+    totalAmount?: number;
+    currency?: Currency;
+    status?: ContractStatus;
+    developerId?: string;
+    instalments?: ContractInstalmentInput[];
+}
+
+export interface Developer { id: string; name: string; email: string; role: string }
+
+export interface OnboardedDeveloper {
+    id: string;
+    name: string;
+    email: string;
+    /** Shown once so it can be passed on if the email did not arrive. */
+    tempPassword: string;
+    emailSent: boolean;
+}
+
+export const contractsApi = createApi({
+    reducerPath: 'contractsApi',
+    baseQuery: withColdStartRetry(fetchBaseQuery({
+        baseUrl: BASE_API_URL,
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem('token');
+            if (token) headers.set('authorization', `Bearer ${token}`);
+            headers.set('content-type', 'application/json');
+            return headers;
+        },
+    }), 2),
+    tagTypes: ['Contract', 'Developer'],
+    endpoints: (builder) => ({
+        getContracts: builder.query<ContractsResponse, void>({
+            query: () => '/api/contracts',
+            providesTags: ['Contract'],
+        }),
+        createContract: builder.mutation<{ success: boolean; data: Contract }, CreateContractPayload>({
+            query: (body) => ({ url: '/api/contracts', method: 'POST', body }),
+            invalidatesTags: ['Contract'],
+        }),
+        updateContract: builder.mutation<{ success: boolean; data: Contract }, { id: string; payload: UpdateContractPayload }>({
+            query: ({ id, payload }) => ({ url: `/api/contracts/${id}`, method: 'PUT', body: payload }),
+            invalidatesTags: ['Contract'],
+        }),
+        deleteContract: builder.mutation<{ success: boolean }, string>({
+            query: (id) => ({ url: `/api/contracts/${id}`, method: 'DELETE' }),
+            invalidatesTags: ['Contract'],
+        }),
+        addContractPayment: builder.mutation<{ success: boolean; data: Contract }, { id: string; payload: ContractPaymentInput }>({
+            query: ({ id, payload }) => ({ url: `/api/contracts/${id}/payments`, method: 'POST', body: payload }),
+            invalidatesTags: ['Contract'],
+        }),
+        deleteContractPayment: builder.mutation<{ success: boolean; data: Contract }, { id: string; paymentId: string }>({
+            query: ({ id, paymentId }) => ({ url: `/api/contracts/${id}/payments/${paymentId}`, method: 'DELETE' }),
+            invalidatesTags: ['Contract'],
+        }),
+        getDevelopers: builder.query<{ success: boolean; data: Developer[] }, void>({
+            query: () => '/api/contracts/developers',
+            providesTags: ['Developer'],
+        }),
+        onboardDeveloper: builder.mutation<{ success: boolean; data: OnboardedDeveloper }, { name: string; email: string; phone?: string }>({
+            query: (body) => ({ url: '/api/contracts/developers', method: 'POST', body }),
+            invalidatesTags: ['Developer'],
+        }),
+    }),
+});
+
+export const {
+    useGetContractsQuery,
+    useCreateContractMutation,
+    useUpdateContractMutation,
+    useDeleteContractMutation,
+    useAddContractPaymentMutation,
+    useDeleteContractPaymentMutation,
+    useGetDevelopersQuery,
+    useOnboardDeveloperMutation,
+} = contractsApi;

@@ -327,6 +327,18 @@ export const PERMISSIONS: Record<string, Permission> = {
     description: 'Manage subscription plans and billing',
     category: 'system'
   },
+  'view_contracts': {
+    id: 'view_contracts',
+    name: 'View Contracts & Payments',
+    description: 'See contracts, what has been paid and what is still owed',
+    category: 'financial'
+  },
+  'manage_contracts': {
+    id: 'manage_contracts',
+    name: 'Manage Contracts & Payments',
+    description: 'Create contracts, record payments and onboard developers',
+    category: 'financial'
+  },
   'manage_business_types': {
     id: 'manage_business_types',
     name: 'Manage Business Types',
@@ -601,6 +613,19 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
     ]
   },
 
+  developer: {
+    id: 'developer',
+    name: 'Developer',
+    description: 'Tracks their own contracts and payments',
+    priority: 45,
+    permissions: [
+      'view_overview',
+      'view_settings', // own account settings
+      'view_contracts',
+      'manage_contracts' // limited by the server to contracts that belong to them
+    ]
+  },
+
   vendor: {
     id: 'vendor',
     name: 'Vendor Partner',
@@ -749,6 +774,7 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'people': ['view_people', 'manage_users'],
   'business-types': ['view_business_types', 'manage_business_types'],
   'subscription': ['view_subscription', 'manage_subscription'],
+  'contracts': ['view_contracts', 'manage_contracts'],
   'platform-spend': ['view_subscription', 'manage_subscription'],
   // Financial
   'accounting': ['view_all_data', 'manage_accounting'],

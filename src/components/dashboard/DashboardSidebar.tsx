@@ -93,6 +93,7 @@ const sidebarItems: SidebarItem[] = [
   { id: "reports", label: "Reports", icon: FileText, category: "financial", requiredPermissions: ["view_reports"], isPremium: true, path: "/dashboard/reports" },
   { id: "transactions", label: "Transactions", icon: DollarSign, category: "financial", requiredPermissions: ["view_all_data"], path: "/dashboard/transactions" },
   { id: "meters", label: "Smart Meters", icon: Zap, category: "business", requiredPermissions: ["view_all_data"], path: "/dashboard/meters" },
+  { id: "contracts", label: "Contracts & Payments", icon: FileSignature, category: "financial", requiredPermissions: ["view_contracts", "manage_contracts"], path: "/dashboard/contracts" },
   { id: "platform-spend", label: "Platform Spend", icon: Wallet, category: "financial", requiredPermissions: ["view_subscription", "manage_subscription"], path: "/dashboard/platform-spend" },
   { id: "subscription", label: "Subscription", icon: CreditCard, category: "system", requiredPermissions: ["view_subscription", "manage_subscription"], path: "/dashboard/subscription" },
 ];

@@ -43,6 +43,7 @@ import AdminMeterPage from '@/components/dashboard/meters/AdminMeterPage';
 import BillionaireOS from '@/components/billionaire/BillionaireOS';
 import { Subscription } from '@/components/dashboard/Subscription';
 import { PlatformSpend } from '@/components/dashboard/PlatformSpend';
+import { Contracts } from '@/components/dashboard/Contracts';
 import { AutopilotDashboard } from '@/components/skills/AutopilotDashboard';
 import { AIOpsCenter } from '@/components/skills/AIOpsCenter';
 import { ScaleDashboard } from '@/components/skills/ScaleDashboard';
@@ -75,6 +76,8 @@ const DashboardRouter: React.FC = () => {
         return <VendorDashboard />;
       case 'vendor':
         return <VendorDashboard />;
+      case 'developer':
+        return <Contracts />;
       case 'tenant':
         return <TenantDashboard />;
       case 'user':
@@ -117,6 +120,7 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('accounting')) return 'accounting';
     if (pathname.includes('subscription')) return 'subscription';
     if (pathname.includes('platform-spend')) return 'platform-spend';
+    if (pathname.includes('contracts')) return 'contracts';
     return 'overview';
   };
 
@@ -566,6 +570,19 @@ const DashboardRouter: React.FC = () => {
               feature="Subscription"
               showUpgradePrompt={false}
               viewName="subscription"
+            />
+          }
+        />
+
+        {/* Contracts & Payments — what is owed, what has been paid, and when the next payment is due */}
+        <Route
+          path="/contracts"
+          element={
+            <ProtectedRoute
+              element={<Contracts />}
+              feature="Contracts & Payments"
+              showUpgradePrompt={false}
+              viewName="contracts"
             />
           }
         />

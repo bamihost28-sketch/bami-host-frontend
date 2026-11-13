@@ -6,6 +6,7 @@ import { foldersApi } from '../services/foldersApi';
 import { estatesApi } from '../services/estatesApi';
 import { uploadApi } from '../services/uploadApi';
 import { subscriptionsApi } from '../services/subscriptionsApi';
+import { contractsApi } from '../services/contractsApi';
 import { vendorsApi } from '../services/vendorsApi';
 import { businessTypesApi } from '../services/businessTypesApi';
 import { walletApi } from '../services/walletApi';
@@ -37,6 +38,7 @@ export const store = configureStore({
     [estatesApi.reducerPath]: estatesApi.reducer,
     [uploadApi.reducerPath]: uploadApi.reducer,
     [subscriptionsApi.reducerPath]: subscriptionsApi.reducer,
+    [contractsApi.reducerPath]: contractsApi.reducer,
     [vendorsApi.reducerPath]: vendorsApi.reducer,
     [businessTypesApi.reducerPath]: businessTypesApi.reducer,
     [walletApi.reducerPath]: walletApi.reducer,
@@ -72,6 +74,7 @@ export const store = configureStore({
       estatesApi.middleware,
       uploadApi.middleware,
       subscriptionsApi.middleware,
+      contractsApi.middleware,
       vendorsApi.middleware,
       businessTypesApi.middleware,
       walletApi.middleware,
