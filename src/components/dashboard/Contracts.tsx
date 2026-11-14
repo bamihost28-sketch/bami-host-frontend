@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertTriangle, Check, CheckCircle2, Clock, Download, FilePlus2, Loader2, Package, Plus, Trash2, UserPlus, Wallet, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Clock, Download, FilePlus2, FileSignature, Loader2, Package, Plus, Trash2, UserPlus, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -26,14 +26,32 @@ import {
     useOnboardDeveloperMutation,
     useConfirmContractPaymentMutation,
     useRejectContractPaymentMutation,
+    useAcceptContractMutation,
+    useDeclineContractMutation,
     downloadContractPdf,
     type Contract,
+    type ContractCategory,
     type ContractPayment,
     type ContractInstalment,
     type ContractPaymentStatus,
     type OnboardedDeveloper,
 } from "@/services/contractsApi";
 import { CURRENCY_LABEL, CURRENCY_ORDER, CURRENCY_SYMBOL, formatMoney, formatTotals, type Currency, type CurrencyTotals } from "@/lib/money";
+
+const ROLE_LABEL: Record<string, string> = {
+    developer: 'Contractor', vendor: 'Vendor', super_vendor: 'Vendor', super_admin: 'Admin', admin: 'Admin',
+};
+const CATEGORY_OPTIONS: { value: ContractCategory; label: string }[] = [
+    { value: 'development', label: 'Development' }, { value: 'legal', label: 'Legal' },
+    { value: 'maintenance', label: 'Maintenance & repairs' }, { value: 'design', label: 'Design' },
+    { value: 'marketing', label: 'Marketing' }, { value: 'other', label: 'Other' },
+];
+const ACCEPTANCE: Record<string, { label: string; badge: string }> = {
+    accepted: { label: 'Accepted', badge: 'bg-emerald-500 hover:bg-emerald-500 text-white' },
+    pending: { label: 'Waiting for acceptance', badge: 'bg-amber-500 hover:bg-amber-500 text-white' },
+    changed: { label: 'Changed — accept again', badge: 'bg-amber-500 hover:bg-amber-500 text-white' },
+    declined: { label: 'Changes requested', badge: 'bg-red-500 hover:bg-red-500 text-white' },
+};
 
 const fmtDate = (d?: string | null) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
@@ -59,6 +77,7 @@ interface FormRow { label: string; amount: string; dueDate: string }
 const emptyForm = () => ({
     kind: "project" as 'project' | 'retainer',
     monthlyAmount: "", billingDay: "1", startDate: toInputDate(new Date()), endDate: "",
+    category: "" as ContractCategory | "", terms: "",
     title: "", clientName: "", developerId: "", currency: "NGN" as Currency, total: "", description: "",
     instalments: [] as FormRow[],
     receivedAmount: "", receivedDate: toInputDate(new Date()), receivedMethod: "",
@@ -67,10 +86,13 @@ const emptyForm = () => ({
 export const Contracts = () => {
     const { user } = useAuth();
     const isOwner = user?.role === 'super_admin' || user?.role === 'admin';
+    const isManager = user?.role === 'manager' || user?.role === 'super_manager';
+    const isCreator = isOwner || isManager;                       // set contracts up for contractors and vendors
+    const canCreate = isCreator || user?.role === 'developer';    // a company contractor can record their own
     const { success, error: toastError } = useToast();
 
     const { data, isLoading, error } = useGetContractsQuery();
-    const { data: devData } = useGetDevelopersQuery(undefined, { skip: !isOwner });
+    const { data: devData } = useGetDevelopersQuery(undefined, { skip: !isCreator });
     const [createContract, { isLoading: isCreating }] = useCreateContractMutation();
     const [updateContract, { isLoading: isUpdating }] = useUpdateContractMutation();
     const [deleteContract] = useDeleteContractMutation();
@@ -78,6 +100,8 @@ export const Contracts = () => {
     const [deletePayment] = useDeleteContractPaymentMutation();
     const [confirmPayment] = useConfirmContractPaymentMutation();
     const [rejectPayment, { isLoading: isRejecting }] = useRejectContractPaymentMutation();
+    const [acceptContract, { isLoading: isAccepting }] = useAcceptContractMutation();
+    const [declineContract, { isLoading: isDeclining }] = useDeclineContractMutation();
     const [onboardDeveloper, { isLoading: isOnboarding }] = useOnboardDeveloperMutation();
 
     const contracts = data?.data ?? [];
@@ -93,6 +117,9 @@ export const Contracts = () => {
     const [rejecting, setRejecting] = useState<{ c: Contract; p: ContractPayment } | null>(null);
     const [rejectReason, setRejectReason] = useState("");
     const [downloading, setDownloading] = useState<string | null>(null);
+    const [acceptName, setAcceptName] = useState("");
+    const [declineFor, setDeclineFor] = useState<Contract | null>(null);
+    const [declineReason, setDeclineReason] = useState("");
     const [onboardOpen, setOnboardOpen] = useState(false);
     const [dev, setDev] = useState({ name: "", email: "", phone: "" });
     const [onboarded, setOnboarded] = useState<OnboardedDeveloper | null>(null);
@@ -119,12 +146,14 @@ export const Contracts = () => {
     // Payments the developer still has to confirm (shown to them) / that others are waiting on (shown to admins).
     const awaitingMe = contracts.filter((c) => c.developerId === user?.id && c.pendingCount > 0);
     const awaitingOthers = contracts.filter((c) => c.developerId !== user?.id && c.pendingCount > 0);
+    const toAccept = contracts.filter((c) => c.canAccept);                       // contracts waiting for the signed-in person to accept
+    const withoutContract = developers.filter((d) => d.contractCount === 0 && d.role !== 'super_admin' && d.role !== 'admin');
 
     // ── add / edit contract ──────────────────────────────────────────────────
-    const openNew = () => {
+    const openNew = (personId?: string) => {
         const firstDev = developers.find((d) => d.role === 'developer') ?? developers.find((d) => d.id === user?.id);
         setEditingId(null);
-        setForm({ ...emptyForm(), developerId: firstDev?.id ?? "" });
+        setForm({ ...emptyForm(), developerId: personId ?? firstDev?.id ?? "" });
         setFormOpen(true);
     };
 
@@ -135,6 +164,7 @@ export const Contracts = () => {
             title: c.title, clientName: c.clientName ?? "", developerId: c.developerId ?? "", currency: c.currency,
             kind: c.kind, monthlyAmount: c.monthlyAmount ? String(c.monthlyAmount) : "", billingDay: String(c.billingDay ?? 1),
             startDate: c.startDate ?? "", endDate: c.endDate ?? "",
+            category: c.category ?? "", terms: c.terms ?? "",
             total: String(c.totalAmount), description: c.description ?? "",
             instalments: c.instalments.map((i) => ({ label: i.label, amount: String(i.amount), dueDate: i.dueDate ?? "" })),
         });
@@ -154,7 +184,7 @@ export const Contracts = () => {
         if (retainer && (isNaN(monthly) || monthly <= 0)) return toastError("Enter the monthly amount");
         if (retainer && !(day >= 1 && day <= 28)) return toastError("Pick a day of the month between 1 and 28");
         if (retainer && form.startDate && form.endDate && form.endDate < form.startDate) return toastError("The end date is before the start date");
-        if (isOwner && !form.developerId) return toastError("Choose the developer this contract belongs to");
+        if (isCreator && !form.developerId) return toastError("Choose who this contract is with");
 
         let instalments: { label: string; amount: number; dueDate?: string }[] = [];
         if (!retainer) {
@@ -178,10 +208,11 @@ export const Contracts = () => {
                     id: editingId,
                     payload: {
                         title: form.title.trim(), clientName: form.clientName, description: form.description, currency: form.currency,
+                        terms: form.terms, category: form.category || undefined,
                         ...(retainer
                             ? { monthlyAmount: monthly, billingDay: day, startDate: form.startDate || undefined, endDate: form.endDate }
                             : { totalAmount: total, instalments }),
-                        ...(isOwner ? { developerId: form.developerId } : {}),
+                        ...(isCreator ? { developerId: form.developerId } : {}),
                     },
                 }).unwrap();
                 success(retainer ? "Monthly support updated" : "Contract updated");
@@ -189,10 +220,11 @@ export const Contracts = () => {
                 await createContract({
                     title: form.title.trim(), clientName: form.clientName.trim() || undefined,
                     description: form.description.trim() || undefined, currency: form.currency, kind: form.kind,
+                    terms: form.terms.trim() || undefined, category: form.category || undefined,
                     ...(retainer
                         ? { monthlyAmount: monthly, billingDay: day, startDate: form.startDate || undefined, endDate: form.endDate || undefined }
                         : { totalAmount: total, instalments }),
-                    developerId: isOwner ? form.developerId : undefined,
+                    developerId: isCreator ? form.developerId : undefined,
                     received: received > 0
                         ? [{ amount: received, paidOn: form.receivedDate || undefined, method: form.receivedMethod.trim() || undefined }]
                         : [],
@@ -258,6 +290,30 @@ export const Contracts = () => {
         }
     };
 
+    const handleAccept = async (c: Contract) => {
+        if (acceptName.trim().length < 3) return toastError("Type your full name to accept");
+        try {
+            await acceptContract({ id: c.id, typedName: acceptName.trim() }).unwrap();
+            success("Contract accepted");
+            setAcceptName("");
+        } catch (e: any) {
+            toastError(apiError(e, "Could not accept the contract"));
+        }
+    };
+
+    const handleDecline = async () => {
+        if (!declineFor) return;
+        if (declineReason.trim().length < 3) return toastError("Say what you would like changed");
+        try {
+            await declineContract({ id: declineFor.id, reason: declineReason.trim() }).unwrap();
+            success("Your request was sent");
+            setDeclineFor(null);
+            setDeclineReason("");
+        } catch (e: any) {
+            toastError(apiError(e, "Could not send your request"));
+        }
+    };
+
     const handleDownload = async (path: string, fallbackName: string, key: string) => {
         setDownloading(key);
         try {
@@ -283,7 +339,7 @@ export const Contracts = () => {
 
     // ── onboard a developer ──────────────────────────────────────────────────
     const handleOnboard = async () => {
-        if (dev.name.trim().length < 2) return toastError("Enter the developer's name");
+        if (dev.name.trim().length < 2) return toastError("Enter the person's name");
         if (!dev.email.includes('@')) return toastError("Enter a valid email address");
         try {
             const res = await onboardDeveloper({ name: dev.name.trim(), email: dev.email.trim(), phone: dev.phone.trim() || undefined }).unwrap();
@@ -300,21 +356,23 @@ export const Contracts = () => {
             <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                        {isOwner ? 'Contracts & Payments' : 'My Contracts & Payments'}
+                        {isCreator ? 'Contracts & Payments' : 'My Contracts & Payments'}
                     </h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-2">
                         Every job, what was agreed, what has been paid and what is still owed — with a reminder before each payment is due.
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    {isOwner && (
+                    {isCreator && (
                         <Button variant="outline" onClick={() => setOnboardOpen(true)}>
-                            <UserPlus className="w-4 h-4 mr-2" /> Onboard developer
+                            <UserPlus className="w-4 h-4 mr-2" /> Onboard contractor
                         </Button>
                     )}
-                    <Button onClick={openNew}>
-                        <Plus className="w-4 h-4 mr-2" /> New contract
-                    </Button>
+                    {canCreate && (
+                        <Button onClick={() => openNew()}>
+                            <Plus className="w-4 h-4 mr-2" /> New contract
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -356,6 +414,22 @@ export const Contracts = () => {
                 </div>
             )}
 
+            {toAccept.length > 0 && (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 p-4 flex gap-3">
+                    <FileSignature className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-900 dark:text-amber-200 space-y-1">
+                        <p className="font-semibold">Contracts waiting for you to read and accept</p>
+                        {toAccept.map((c) => (
+                            <p key={c.id}>
+                                <span className="font-medium">{c.title}</span>
+                                {c.acceptanceStatus === 'changed' ? ' — changed since you accepted it' : ''}
+                                {' — '}
+                                <button className="underline font-medium" onClick={() => setDetailId(c.id)}>Review</button>
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            )}
             {awaitingMe.length > 0 && (
                 <div className="rounded-lg border border-blue-300 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-4 flex gap-3">
                     <Clock className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
@@ -378,6 +452,22 @@ export const Contracts = () => {
                 </p>
             )}
 
+            {isCreator && withoutContract.length > 0 && (
+                <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                    <CardContent className="pt-4 pb-4">
+                        <p className="text-sm font-semibold mb-1">No contract yet</p>
+                        <p className="text-xs text-slate-500 mb-3">These contractors and vendors have no contract on record. Set one up so what is agreed and paid is tracked.</p>
+                        <div className="flex flex-wrap gap-2">
+                            {withoutContract.map((d) => (
+                                <Button key={d.id} size="sm" variant="outline" onClick={() => openNew(d.id)}>
+                                    <FilePlus2 className="w-3.5 h-3.5 mr-1.5" /> {d.name} · {ROLE_LABEL[d.role] ?? d.role}
+                                </Button>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {isLoading ? (
                 <div className="flex items-center justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>
             ) : error ? (
@@ -394,9 +484,9 @@ export const Contracts = () => {
                         <FilePlus2 className="w-12 h-12 mb-4 text-slate-400 opacity-60" />
                         <p className="text-lg font-medium text-slate-900 dark:text-white">No contracts yet</p>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md">
-                            Add a job with the total agreed and what has been paid so far. The balance and reminders take care of themselves.
+                            {canCreate ? 'Add a job with the total agreed and what has been paid so far. The balance and reminders take care of themselves.' : 'When the company sets up a contract with you, it will appear here for you to read and accept.'}
                         </p>
-                        <Button className="mt-4" onClick={openNew}><Plus className="w-4 h-4 mr-2" /> New contract</Button>
+                        {canCreate && <Button className="mt-4" onClick={() => openNew()}><Plus className="w-4 h-4 mr-2" /> New contract</Button>}
                     </CardContent>
                 </Card>
             ) : (
@@ -411,7 +501,7 @@ export const Contracts = () => {
                                             <h3 className="font-semibold text-lg text-slate-900 dark:text-white truncate">{c.title}</h3>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                                 {c.kind === 'retainer' && <span className="font-medium text-slate-600 dark:text-slate-300">Monthly support · </span>}{c.clientName ? `For ${c.clientName}` : 'No client named'}
-                                                {isOwner && c.developerName ? ` · Developer: ${c.developerName}` : ''}
+                                                {isCreator && c.developerName ? ` · With: ${c.developerName}` : ''}
                                             </p>
                                         </div>
                                         <Badge className={st.badge}>{c.kind === 'retainer' && c.paymentStatus === 'paid' ? 'Up to date' : st.label}</Badge>
@@ -432,6 +522,16 @@ export const Contracts = () => {
                                         <div><p className="text-xs text-slate-500">{c.kind === 'retainer' ? 'Owed now' : 'Still owed'}</p><p className="font-mono font-semibold text-amber-600">{formatMoney(c.balance, c.currency)}</p></div>
                                     </div>
 
+                                    {c.acceptanceStatus !== 'accepted' && (
+                                        <p className={`text-xs flex items-center gap-1 ${c.acceptanceStatus === 'declined' ? 'text-red-600' : 'text-amber-600'}`}>
+                                            <FileSignature className="w-3.5 h-3.5" />
+                                            {c.canAccept
+                                                ? (c.acceptanceStatus === 'changed' ? 'Changed — please review and accept again' : 'Waiting for you to review and accept')
+                                                : c.acceptanceStatus === 'declined' ? `${c.developerName ?? 'They'} asked for changes`
+                                                : c.acceptanceStatus === 'changed' ? `Changed — waiting for ${c.developerName ?? 'them'} to accept again`
+                                                : `Waiting for ${c.developerName ?? 'them'} to accept`}
+                                        </p>
+                                    )}
                                     {c.pendingCount > 0 && (
                                         <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
                                             <Clock className="w-3.5 h-3.5" /> {formatMoney(c.pendingAmount, c.currency)} waiting for {c.developerId === user?.id ? 'your' : "the developer's"} confirmation
@@ -453,8 +553,9 @@ export const Contracts = () => {
                                         {(c.balance > 0 || (c.kind === 'retainer' && c.status === 'active')) && c.status !== 'cancelled' && (
                                             <Button size="sm" onClick={() => openPay(c)}><Wallet className="w-3.5 h-3.5 mr-1.5" /> Record payment</Button>
                                         )}
+                                        {c.canAccept && <Button size="sm" onClick={() => setDetailId(c.id)}><FileSignature className="w-3.5 h-3.5 mr-1.5" /> Review &amp; accept</Button>}
                                         <Button size="sm" variant="outline" onClick={() => setDetailId(c.id)}>Details</Button>
-                                        <Button size="sm" variant="ghost" onClick={() => openEdit(c)}>Edit</Button>
+                                        {c.canEdit && <Button size="sm" variant="ghost" onClick={() => openEdit(c)}>Edit</Button>}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -502,13 +603,13 @@ export const Contracts = () => {
                             </div>
                         </div>
 
-                        {isOwner && (
+                        {isCreator && (
                             <div className="grid gap-2">
-                                <Label>Developer (who is owed the money) *</Label>
+                                <Label>Who is this contract with? *</Label>
                                 <Select value={form.developerId} onValueChange={(v) => setForm({ ...form, developerId: v })}>
-                                    <SelectTrigger><SelectValue placeholder={developers.length ? 'Choose…' : 'No developers yet — onboard one first'} /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder={developers.length ? 'Choose…' : 'No one yet — onboard a contractor first'} /></SelectTrigger>
                                     <SelectContent>
-                                        {developers.map((d) => <SelectItem key={d.id} value={d.id}>{d.name} ({d.email})</SelectItem>)}
+                                        {developers.map((d) => <SelectItem key={d.id} value={d.id}>{d.name} · {ROLE_LABEL[d.role] ?? d.role}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -562,7 +663,7 @@ export const Contracts = () => {
                             <div className="rounded-md border border-slate-200 dark:border-slate-700 p-3 grid gap-3">
                                 <div>
                                     <p className="text-sm font-medium">Already received</p>
-                                    <p className="text-xs text-slate-500">{form.kind === 'retainer' ? 'Support already received, e.g. the months paid so far. Leave empty if nothing yet.' : 'What has been paid so far, e.g. 50000 on the ₦150,000 app. Leave empty if nothing yet.'}{isOwner && form.developerId !== user?.id ? ' The developer will be asked to confirm it.' : ''}</p>
+                                    <p className="text-xs text-slate-500">{form.kind === 'retainer' ? 'Support already received, e.g. the months paid so far. Leave empty if nothing yet.' : 'What has been paid so far, e.g. 50000 on the ₦150,000 app. Leave empty if nothing yet.'}{isCreator && form.developerId !== user?.id ? ' They will be asked to confirm it.' : ''}</p>
                                 </div>
                                 <div className="grid sm:grid-cols-3 gap-3">
                                     <Input inputMode="decimal" placeholder={`Amount (${CURRENCY_SYMBOL[form.currency]})`} value={form.receivedAmount} onChange={(e) => setForm({ ...form, receivedAmount: e.target.value })} />
@@ -595,6 +696,24 @@ export const Contracts = () => {
                             ))}
                         </div>
                         )}
+
+                        <div className="grid gap-2">
+                            <Label>Type of work</Label>
+                            <Select value={form.category || undefined} onValueChange={(v: ContractCategory) => setForm({ ...form, category: v })}>
+                                <SelectTrigger><SelectValue placeholder="Optional — used to group costs in Platform Spend" /></SelectTrigger>
+                                <SelectContent>{CATEGORY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="c-terms">Terms</Label>
+                            <Textarea id="c-terms" rows={4} placeholder="What is to be done, deadlines, warranty, how it is paid…" value={form.terms} onChange={(e) => setForm({ ...form, terms: e.target.value })} />
+                            <p className="text-xs text-slate-500">
+                                {form.developerId && form.developerId !== user?.id || !isCreator
+                                    ? 'The contractor must read and accept these terms. If you change the terms, amounts or dates later, they are asked to accept again.'
+                                    : 'These are the terms of the agreement.'}
+                            </p>
+                        </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="c-desc">Notes</Label>
@@ -663,6 +782,45 @@ export const Contracts = () => {
                                 </DialogDescription>
                             </DialogHeader>
                             {detail.description && <p className="text-sm text-slate-600 dark:text-slate-300">{detail.description}</p>}
+
+                            <div className="rounded-md border border-slate-200 dark:border-slate-700 p-3 space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                    <h4 className="font-semibold text-sm flex items-center gap-2"><FileSignature className="w-4 h-4" /> Agreement</h4>
+                                    <Badge className={ACCEPTANCE[detail.acceptanceStatus].badge}>{ACCEPTANCE[detail.acceptanceStatus].label}</Badge>
+                                </div>
+                                {detail.category && <p className="text-xs text-slate-500">Type of work: {CATEGORY_OPTIONS.find((o) => o.value === detail.category)?.label ?? detail.category}</p>}
+                                {detail.terms
+                                    ? <p className="text-sm whitespace-pre-wrap text-slate-700 dark:text-slate-300">{detail.terms}</p>
+                                    : <p className="text-sm text-slate-500">No written terms — the amounts and dates in this contract are what is agreed.</p>}
+                                {detail.acceptanceStatus === 'accepted' && (
+                                    <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                                        Accepted by {detail.acceptance.typedName} on {fmtDate(detail.acceptance.acceptedAt)}{detail.acceptance.how === 'own contract' ? ' (their own contract)' : ''}.
+                                    </p>
+                                )}
+                                {detail.acceptanceStatus === 'changed' && (
+                                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                                        Changed since {detail.acceptance.typedName} accepted it on {fmtDate(detail.acceptance.acceptedAt)} — it needs to be accepted again.
+                                    </p>
+                                )}
+                                {detail.acceptanceStatus === 'declined' && (
+                                    <p className="text-xs text-red-600">Changes requested: {detail.acceptance.declineReason}</p>
+                                )}
+                                {detail.acceptance.ip && <p className="text-xs text-slate-400">Accepted from IP address {detail.acceptance.ip}</p>}
+
+                                {detail.canAccept && (
+                                    <div className="grid gap-2 pt-3 border-t border-slate-200 dark:border-slate-700">
+                                        <Label htmlFor="acc-name">Type your full name to accept this contract</Label>
+                                        <Input id="acc-name" placeholder="Your full name" value={acceptName} onChange={(e) => setAcceptName(e.target.value)} />
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button onClick={() => handleAccept(detail)} disabled={isAccepting}>
+                                                {isAccepting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSignature className="w-4 h-4 mr-2" />} Accept contract
+                                            </Button>
+                                            <Button variant="outline" onClick={() => { setDeclineFor(detail); setDeclineReason(""); }}>Ask for changes</Button>
+                                        </div>
+                                        <p className="text-xs text-slate-500">By accepting you agree to the terms, amounts and dates shown here. If any of them change later, you will be asked to accept again.</p>
+                                    </div>
+                                )}
+                            </div>
 
                             <div>
                                 <h4 className="font-semibold text-sm mb-2">{detail.kind === 'retainer' ? 'Monthly schedule' : 'Payment schedule'}</h4>
@@ -750,7 +908,7 @@ export const Contracts = () => {
 
                             <DialogFooter className="sm:justify-between gap-2">
                                 <div className="flex gap-2">
-                                    {isOwner && (
+                                    {detail.canDelete && (
                                         <Button variant="ghost" className="text-red-600" onClick={() => setDeleting(detail)}>
                                             <Trash2 className="w-4 h-4 mr-2" /> Remove contract
                                         </Button>
@@ -770,13 +928,13 @@ export const Contracts = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Onboard developer */}
+            {/* Onboard contractor */}
             <Dialog open={onboardOpen} onOpenChange={(open) => !open && closeOnboard()}>
                 <DialogContent className="max-w-md">
                     {!onboarded ? (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Onboard a developer</DialogTitle>
+                                <DialogTitle>Onboard a contractor</DialogTitle>
                                 <DialogDescription>
                                     They get their own login and see only the contracts that belong to them — nothing else in the system.
                                 </DialogDescription>
@@ -814,6 +972,28 @@ export const Contracts = () => {
                             <DialogFooter><Button onClick={closeOnboard}>Done</Button></DialogFooter>
                         </>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Ask for changes */}
+            <Dialog open={!!declineFor} onOpenChange={(open) => !open && setDeclineFor(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Ask for changes</DialogTitle>
+                        <DialogDescription>
+                            {declineFor ? `Tell ${declineFor.createdBy ? 'the person who set up' : ''} "${declineFor.title}" what you would like changed. They are notified, and can update the contract for you to accept.` : ''}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-2 py-2">
+                        <Label htmlFor="dec">What would you like changed? *</Label>
+                        <Textarea id="dec" rows={3} value={declineReason} onChange={(e) => setDeclineReason(e.target.value)} />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeclineFor(null)}>Cancel</Button>
+                        <Button onClick={handleDecline} disabled={isDeclining}>
+                            {isDeclining && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Send
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 

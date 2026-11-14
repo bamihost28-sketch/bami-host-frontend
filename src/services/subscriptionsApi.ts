@@ -4,7 +4,7 @@ import type { Currency, CurrencyTotals } from '@/lib/money';
 
 export type SubscriptionCategory = 'domain' | 'frontend' | 'backend' | 'other';
 /** Spend also includes development work, paid through contracts. */
-export type SpendCategory = SubscriptionCategory | 'development';
+export type SpendCategory = SubscriptionCategory | 'development' | 'legal' | 'maintenance' | 'design' | 'marketing';
 
 export interface SubscriptionPayment {
     id: string;

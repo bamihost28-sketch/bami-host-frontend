@@ -33,12 +33,33 @@ export interface ContractPayment {
 }
 
 export type ContractKind = 'project' | 'retainer';
+/** accepted | pending (not yet) | changed (edited after it was accepted) | declined (changes requested) */
+export type ContractAcceptanceStatus = 'accepted' | 'pending' | 'changed' | 'declined';
+export type ContractCategory = 'development' | 'legal' | 'maintenance' | 'design' | 'marketing' | 'other';
 
 export interface Contract {
     id: string;
     title: string;
     /** project = fixed price job; retainer = monthly support with no fixed total. */
     kind: ContractKind;
+    createdBy?: string | null;
+    category?: ContractCategory | null;
+    /** The written scope and conditions the contractor accepts. */
+    terms?: string | null;
+    acceptanceStatus: ContractAcceptanceStatus;
+    acceptance: {
+        typedName?: string | null;
+        acceptedAt?: string | null;
+        /** "own contract" when the contractor made it themself. */
+        how?: string | null;
+        declineReason?: string | null;
+        /** Audit detail, only sent to admins. */
+        ip?: string | null;
+    };
+    /** What the signed-in person may do with this contract. */
+    canEdit: boolean;
+    canAccept: boolean;
+    canDelete: boolean;
     monthlyAmount?: number | null;
     /** Day of the month (1-28) a monthly payment falls due. */
     billingDay?: number | null;
@@ -93,6 +114,8 @@ export interface CreateContractPayload {
     description?: string;
     clientName?: string;
     kind?: ContractKind;
+    terms?: string;
+    category?: ContractCategory;
     /** Projects: the agreed price. */
     totalAmount?: number;
     /** Monthly support: the amount due each month, on `billingDay`. */
@@ -112,6 +135,8 @@ export interface UpdateContractPayload {
     title?: string;
     description?: string;
     clientName?: string;
+    terms?: string;
+    category?: ContractCategory;
     totalAmount?: number;
     monthlyAmount?: number;
     billingDay?: number;
@@ -124,7 +149,8 @@ export interface UpdateContractPayload {
     instalments?: ContractInstalmentInput[];
 }
 
-export interface Developer { id: string; name: string; email: string; role: string }
+/** Someone a contract can be with: a contractor, a vendor (or an admin). */
+export interface Developer { id: string; name: string; email: string; role: string; contractCount: number }
 
 export interface OnboardedDeveloper {
     id: string;
@@ -154,7 +180,7 @@ export const contractsApi = createApi({
         }),
         createContract: builder.mutation<{ success: boolean; data: Contract }, CreateContractPayload>({
             query: (body) => ({ url: '/api/contracts', method: 'POST', body }),
-            invalidatesTags: ['Contract'],
+            invalidatesTags: ['Contract', 'Developer'],
         }),
         updateContract: builder.mutation<{ success: boolean; data: Contract }, { id: string; payload: UpdateContractPayload }>({
             query: ({ id, payload }) => ({ url: `/api/contracts/${id}`, method: 'PUT', body: payload }),
@@ -180,6 +206,14 @@ export const contractsApi = createApi({
             query: ({ id, paymentId, reason }) => ({ url: `/api/contracts/${id}/payments/${paymentId}/reject`, method: 'POST', body: { reason } }),
             invalidatesTags: ['Contract'],
         }),
+        acceptContract: builder.mutation<{ success: boolean; data: Contract }, { id: string; typedName: string }>({
+            query: ({ id, typedName }) => ({ url: `/api/contracts/${id}/accept`, method: 'POST', body: { typedName } }),
+            invalidatesTags: ['Contract', 'Developer'],
+        }),
+        declineContract: builder.mutation<{ success: boolean; data: Contract }, { id: string; reason: string }>({
+            query: ({ id, reason }) => ({ url: `/api/contracts/${id}/decline`, method: 'POST', body: { reason } }),
+            invalidatesTags: ['Contract'],
+        }),
         getDevelopers: builder.query<{ success: boolean; data: Developer[] }, void>({
             query: () => '/api/contracts/developers',
             providesTags: ['Developer'],
@@ -200,6 +234,8 @@ export const {
     useDeleteContractPaymentMutation,
     useConfirmContractPaymentMutation,
     useRejectContractPaymentMutation,
+    useAcceptContractMutation,
+    useDeclineContractMutation,
     useGetDevelopersQuery,
     useOnboardDeveloperMutation,
 } = contractsApi;

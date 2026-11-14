@@ -14,9 +14,11 @@ type Range = 'all' | 'month' | 'year' | 'custom';
 
 const CATEGORY_LABEL: Record<SpendCategory, string> = {
     domain: 'Domain', frontend: 'Frontend hosting', backend: 'Backend hosting', other: 'Other', development: 'Development fees',
+    legal: 'Legal fees', maintenance: 'Maintenance & repairs', design: 'Design fees', marketing: 'Marketing fees',
 };
 const CATEGORY_BAR: Record<SpendCategory, string> = {
     domain: 'bg-amber-500', frontend: 'bg-blue-500', backend: 'bg-purple-500', other: 'bg-slate-400', development: 'bg-emerald-500',
+    legal: 'bg-rose-500', maintenance: 'bg-orange-500', design: 'bg-pink-500', marketing: 'bg-cyan-500',
 };
 
 const fmtDate = (d?: string | null) =>
@@ -91,7 +93,7 @@ export const PlatformSpend = () => {
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Platform Spend</h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-2">
-                        Everything spent on running the platform — domain, hosting, other subscriptions and development fees. Compare this with your income to see the real profit.
+                        Everything spent on running the platform — domain, hosting, other subscriptions and what is paid to contractors and vendors. Compare this with your income to see the real profit.
                     </p>
                 </div>
                 <Button variant="outline" onClick={exportCsv} disabled={!spend?.payments.length}>
@@ -127,7 +129,7 @@ export const PlatformSpend = () => {
                 )}
                 <div className="flex items-center gap-2 mb-2">
                     <Checkbox id="inc-dev" checked={includeContracts} onCheckedChange={(v) => setIncludeContracts(v === true)} />
-                    <Label htmlFor="inc-dev" className="text-sm font-normal cursor-pointer">Include development fees (confirmed payments on contracts)</Label>
+                    <Label htmlFor="inc-dev" className="text-sm font-normal cursor-pointer">Include contractor & vendor fees (confirmed payments on contracts)</Label>
                 </div>
                 {isFetching && !isLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 mb-2.5" />}
             </div>

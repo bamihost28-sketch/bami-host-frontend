@@ -711,6 +711,13 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
   }
 };
 
+// Contracts & Payments is open to everyone who can be a party to a contract (admins, managers, vendors).
+// What each person actually sees is decided by the server: a vendor only their own contracts, a manager only theirs.
+['admin', 'manager', 'super_manager', 'vendor', 'super_vendor'].forEach((role) => {
+  const cfg = ROLE_CONFIGS[role];
+  if (cfg) cfg.permissions = [...cfg.permissions, 'view_contracts', 'manage_contracts'];
+});
+
 // Utility functions
 export const getRoleConfig = (role: string): RoleConfig | undefined => {
   return ROLE_CONFIGS[role];
