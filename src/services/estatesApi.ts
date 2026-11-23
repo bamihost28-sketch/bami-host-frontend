@@ -779,9 +779,9 @@ export interface EstateTeamResponse {
 export interface AssignMemberPayload {
   estateId: string;
   name: string;
-  email: string;
+  email?: string;
   role: PropertyRole;
-  phone?: string;
+  phone: string;
   sendCredentials?: boolean;
 }
 

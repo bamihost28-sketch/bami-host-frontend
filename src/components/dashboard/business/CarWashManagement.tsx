@@ -416,13 +416,17 @@ function StaffTab({ stationId }: { stationId: string }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const handleAdd = async () => {
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim() || phone.replace(/\D/g, "").length < 10) {
+      toast({ title: "Enter a name and a phone number (at least 10 digits)", variant: "destructive" });
+      return;
+    }
     try {
-      const result = await addStaff({ stationId, data: { name: name.trim(), email: email.trim() } }).unwrap();
-      toast({ title: "Staff added", description: result.data?.credentialsSent ? "Login credentials emailed." : undefined });
-      setOpen(false); setName(""); setEmail("");
+      const result = await addStaff({ stationId, data: { name: name.trim(), email: email.trim() || undefined, phone: phone.trim() } }).unwrap();
+      toast({ title: "Staff added", description: result.data?.credentialsSent ? (result.data?.login === "phone" ? `They sign in with their phone number. Temporary password: ${result.data?.tempPassword ?? ""}` : "Login credentials sent.") : undefined });
+      setOpen(false); setName(""); setEmail(""); setPhone("");
     } catch {
       toast({ title: "Couldn't add staff", variant: "destructive" });
     }
@@ -474,13 +478,17 @@ function StaffTab({ stationId }: { stationId: string }) {
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="grid gap-2">
-              <Label>Email</Label>
+              <Label>Phone number *</Label>
+              <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08012345678" />
+            </div>
+            <div className="grid gap-2">
+              <Label>Email (optional)</Label>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleAdd} disabled={adding || !name.trim() || !email.trim()}>
+            <Button onClick={handleAdd} disabled={adding || !name.trim() || phone.replace(/\D/g, "").length < 10}>
               {adding ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
               Add
             </Button>

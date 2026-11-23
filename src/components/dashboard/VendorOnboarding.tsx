@@ -18,6 +18,7 @@ import { useOnboardVendorMutation } from '@/services/vendorsApi';
 import { useGetManagersQuery } from '@/services/authApi';
 import { useGetBusinessTypesQuery } from '@/services/businessTypesApi';
 import { toast } from '@/components/ui/use-toast';
+import { phoneOk, emailOk, credentialsNote } from '@/lib/onboarding';
 
 export const VendorOnboarding = () => {
     const [open, setOpen] = useState(false);
@@ -60,18 +61,17 @@ export const VendorOnboarding = () => {
             return;
         }
 
-        if (!email.trim()) {
+        if (!phoneOk(phone)) {
             toast({
                 title: 'Validation Error',
-                description: 'Please enter vendor email',
+                description: 'A phone number is required (at least 10 digits)',
                 variant: 'destructive',
             });
             return;
         }
 
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        // Email is optional, but must be valid if given
+        if (email.trim() && !emailOk(email)) {
             toast({
                 title: 'Validation Error',
                 description: 'Please enter a valid email address',
@@ -92,12 +92,12 @@ export const VendorOnboarding = () => {
         try {
             const payload: any = {
                 name: name.trim(),
-                email: email.trim(),
                 managerId,
                 sendCredentials,
+                phone: phone.trim(),
             };
 
-            if (phone.trim()) payload.phone = phone.trim();
+            if (email.trim()) payload.email = email.trim();
             if (position.trim()) payload.position = position.trim();
             if (businessTypeId) payload.businessTypeId = businessTypeId;
 
@@ -105,7 +105,7 @@ export const VendorOnboarding = () => {
 
             toast({
                 title: 'Vendor Onboarded Successfully',
-                description: result.message || `${name} has been onboarded. ${sendCredentials ? 'Credentials sent to their email.' : ''}`,
+                description: `${name} has been onboarded. ${sendCredentials ? credentialsNote((result.data as any)?.credentials) : ''}`,
             });
 
             resetForm();
@@ -131,7 +131,7 @@ export const VendorOnboarding = () => {
                 <DialogHeader>
                     <DialogTitle>Onboard New Vendor</DialogTitle>
                     <DialogDescription>
-                        Add a new vendor to the system. They will receive login credentials via email.
+                        Add a new vendor to the system. They sign in with their phone number and get their login by text message (and email, if you add one).
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
@@ -151,16 +151,13 @@ export const VendorOnboarding = () => {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="email">
-                                Email <span className="text-destructive">*</span>
-                            </Label>
+                            <Label htmlFor="email">Email <span className="text-muted-foreground">(optional)</span></Label>
                             <Input
                                 id="email"
                                 type="email"
                                 placeholder="e.g., john.vendor@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                required
                             />
                         </div>
 
@@ -224,7 +221,7 @@ export const VendorOnboarding = () => {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="phone">Phone</Label>
+                            <Label htmlFor="phone">Phone number <span className="text-destructive">*</span></Label>
                             <Input
                                 id="phone"
                                 type="tel"
@@ -255,7 +252,7 @@ export const VendorOnboarding = () => {
                                 htmlFor="sendCredentials"
                                 className="text-sm font-normal cursor-pointer"
                             >
-                                Send login credentials to vendor's email
+                                Send login credentials to the vendor
                             </Label>
                         </div>
                     </div>

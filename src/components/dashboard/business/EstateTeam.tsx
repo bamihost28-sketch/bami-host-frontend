@@ -8,6 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { phoneOk, emailOk, credentialsNote } from '@/lib/onboarding';
 import { Loader2, Trash2, UserPlus, Shield } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 import {
@@ -43,24 +44,30 @@ export const EstateTeam = ({ estateId }: { estateId: string }) => {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [role, setRole] = useState<PropertyRole>('manager');
 
   const handleAdd = async () => {
-    if (!name.trim() || !email.trim()) {
-      toast({ title: 'Name and email are required', variant: 'destructive' });
+    if (!name.trim() || !phoneOk(phone)) {
+      toast({ title: 'Name and a phone number (at least 10 digits) are required', variant: 'destructive' });
+      return;
+    }
+    if (email.trim() && !emailOk(email)) {
+      toast({ title: 'Enter a valid email address, or leave it blank', variant: 'destructive' });
       return;
     }
     try {
-      const res = await assign({ estateId, name: name.trim(), email: email.trim(), role }).unwrap();
+      const res = await assign({ estateId, name: name.trim(), email: email.trim() || undefined, phone: phone.trim(), role }).unwrap();
       toast({
         title: 'Member assigned',
         description: res?.data?.credentialsSent
-          ? (res?.data?.accountCreated
-              ? 'Login account created — credentials emailed to them.'
-              : 'Access granted — fresh login credentials emailed to them.')
-          : 'Member assigned (no credentials email was sent).',
+          ? (res?.data?.accountCreated ? 'Login account created. ' : 'Access granted. ')
+            + (res?.data?.login === 'phone'
+                ? `They sign in with their phone number. Temporary password: ${res?.data?.tempPassword ?? ''}`
+                : 'Login details sent.')
+          : 'Member assigned (no login details were sent).',
       });
-      setName(''); setEmail(''); setRole('manager');
+      setName(''); setEmail(''); setPhone(''); setRole('manager');
     } catch (e: any) {
       toast({ title: 'Failed to assign member', description: e?.data?.detail, variant: 'destructive' });
     }
@@ -152,7 +159,11 @@ export const EstateTeam = ({ estateId }: { estateId: string }) => {
                     <Input id="mbr-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
                   </div>
                   <div className="grid gap-1">
-                    <Label htmlFor="mbr-email" className="text-xs">Email</Label>
+                    <Label htmlFor="mbr-phone" className="text-xs">Phone number *</Label>
+                    <Input id="mbr-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08012345678" />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="mbr-email" className="text-xs">Email (optional)</Label>
                     <Input id="mbr-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" />
                   </div>
                 </div>
@@ -173,7 +184,7 @@ export const EstateTeam = ({ estateId }: { estateId: string }) => {
                   </Button>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Everyone you assign gets login credentials emailed automatically — a new
+                  Everyone you assign gets login credentials by text message (and email, if you add one) — a new
                   account for new emails, or fresh credentials for an existing account.
                 </p>
               </div>

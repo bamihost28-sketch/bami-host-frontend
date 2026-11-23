@@ -7,6 +7,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { phoneOk, emailOk, credentialsNote } from '@/lib/onboarding';
 import { Loader2, Trash2, Scale, UserPlus } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 import {
@@ -47,13 +48,17 @@ export const EstateLawyerCard = ({ estateId }: { estateId: string }) => {
       }
       return;
     }
-    if (!name.trim() || !email.trim()) {
-      toast({ title: 'Name and email are required', variant: 'destructive' });
+    if (!name.trim() || !phoneOk(phone)) {
+      toast({ title: 'Name and a phone number (at least 10 digits) are required', variant: 'destructive' });
+      return;
+    }
+    if (email.trim() && !emailOk(email)) {
+      toast({ title: 'Enter a valid email address, or leave it blank', variant: 'destructive' });
       return;
     }
     try {
-      await assign({ estateId, name: name.trim(), email: email.trim(), phone: phone.trim(), businessAddress: address.trim() }).unwrap();
-      toast({ title: 'Lawyer assigned', description: 'Login credentials emailed to them.' });
+      const res: any = await assign({ estateId, name: name.trim(), email: email.trim() || undefined, phone: phone.trim(), businessAddress: address.trim() }).unwrap();
+      toast({ title: 'Lawyer assigned', description: credentialsNote(res?.credentials) || undefined });
       setName(''); setEmail(''); setPhone(''); setAddress('');
     } catch (e: any) {
       toast({ title: 'Failed to assign lawyer', description: e?.data?.detail, variant: 'destructive' });
@@ -148,12 +153,12 @@ export const EstateLawyerCard = ({ estateId }: { estateId: string }) => {
                     <Input id="lwr-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
                   </div>
                   <div className="grid gap-1">
-                    <Label htmlFor="lwr-email" className="text-xs">Email</Label>
+                    <Label htmlFor="lwr-email" className="text-xs">Email (optional)</Label>
                     <Input id="lwr-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" />
                   </div>
                   <div className="grid gap-1">
-                    <Label htmlFor="lwr-phone" className="text-xs">Phone</Label>
-                    <Input id="lwr-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Optional" />
+                    <Label htmlFor="lwr-phone" className="text-xs">Phone number *</Label>
+                    <Input id="lwr-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08012345678" />
                   </div>
                   <div className="grid gap-1">
                     <Label htmlFor="lwr-address" className="text-xs">Office address</Label>
@@ -164,7 +169,7 @@ export const EstateLawyerCard = ({ estateId }: { estateId: string }) => {
                   {assigning && <Loader2 className="w-4 h-4 animate-spin" />} Assign
                 </Button>
                 <p className="text-[11px] text-muted-foreground">
-                  Creates a new vendor login and emails them their credentials.
+                  Creates a new vendor login and sends them their credentials by text message (and email, if given).
                 </p>
               </>
             )}

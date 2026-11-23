@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useOnboardManagerMutation } from '@/services/authApi';
 import { toast } from '@/components/ui/use-toast';
+import { phoneOk, emailOk, credentialsNote } from '@/lib/onboarding';
 import { UserPlus } from 'lucide-react';
 
 export const ManagerOnboarding = () => {
@@ -24,23 +25,27 @@ export const ManagerOnboarding = () => {
             toast({ title: 'Name is required', variant: 'destructive' });
             return;
         }
-        if (!email.trim()) {
-            toast({ title: 'Email is required', variant: 'destructive' });
+        if (!phoneOk(phone)) {
+            toast({ title: 'A phone number is required (at least 10 digits)', variant: 'destructive' });
+            return;
+        }
+        if (email.trim() && !emailOk(email)) {
+            toast({ title: 'Enter a valid email address, or leave it blank', variant: 'destructive' });
             return;
         }
 
         try {
             const result = await onboardManager({
                 name: name.trim(),
-                email: email.trim(),
-                ...(phone.trim() && { phone: phone.trim() }),
+                ...(email.trim() && { email: email.trim() }),
+                phone: phone.trim(),
                 ...(position.trim() && { position: position.trim() }),
                 sendCredentials,
             }).unwrap();
 
             toast({
                 title: 'Manager onboarded successfully',
-                description: result.message || `Created account for ${result.data.name}`,
+                description: `Created account for ${result.data.name}. ${sendCredentials ? credentialsNote((result.data as any).credentials) : ''}`,
             });
 
             // Reset form
@@ -86,7 +91,7 @@ export const ManagerOnboarding = () => {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email *</Label>
+                            <Label htmlFor="email">Email (optional)</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -96,7 +101,7 @@ export const ManagerOnboarding = () => {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="phone">Phone</Label>
+                            <Label htmlFor="phone">Phone number * (they sign in with it)</Label>
                             <Input
                                 id="phone"
                                 type="tel"
@@ -127,7 +132,7 @@ export const ManagerOnboarding = () => {
                             htmlFor="sendCredentials"
                             className="text-sm font-normal cursor-pointer"
                         >
-                            Send login credentials via email
+                            Send login credentials (by text message, and email if given)
                         </Label>
                     </div>
 

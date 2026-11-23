@@ -340,9 +340,10 @@ export const Contracts = () => {
     // ── onboard a developer ──────────────────────────────────────────────────
     const handleOnboard = async () => {
         if (dev.name.trim().length < 2) return toastError("Enter the person's name");
-        if (!dev.email.includes('@')) return toastError("Enter a valid email address");
+        if (dev.phone.replace(/\D/g, '').length < 10) return toastError("Enter their phone number (at least 10 digits)");
+        if (dev.email.trim() && !dev.email.includes('@')) return toastError("Enter a valid email address, or leave it blank");
         try {
-            const res = await onboardDeveloper({ name: dev.name.trim(), email: dev.email.trim(), phone: dev.phone.trim() || undefined }).unwrap();
+            const res = await onboardDeveloper({ name: dev.name.trim(), email: dev.email.trim() || undefined, phone: dev.phone.trim() }).unwrap();
             setOnboarded(res.data);
         } catch (e: any) {
             toastError(apiError(e, "Could not add the developer"));
@@ -942,10 +943,10 @@ export const Contracts = () => {
                             <div className="grid gap-4 py-2">
                                 <div className="grid gap-2"><Label htmlFor="d-name">Full name *</Label>
                                     <Input id="d-name" value={dev.name} onChange={(e) => setDev({ ...dev, name: e.target.value })} /></div>
-                                <div className="grid gap-2"><Label htmlFor="d-email">Email *</Label>
+                                <div className="grid gap-2"><Label htmlFor="d-phone">Phone number * (they sign in with it)</Label>
+                                    <Input id="d-phone" type="tel" value={dev.phone} onChange={(e) => setDev({ ...dev, phone: e.target.value })} /></div>
+                                <div className="grid gap-2"><Label htmlFor="d-email">Email (optional)</Label>
                                     <Input id="d-email" type="email" value={dev.email} onChange={(e) => setDev({ ...dev, email: e.target.value })} /></div>
-                                <div className="grid gap-2"><Label htmlFor="d-phone">Phone</Label>
-                                    <Input id="d-phone" value={dev.phone} onChange={(e) => setDev({ ...dev, phone: e.target.value })} /></div>
                             </div>
                             <DialogFooter>
                                 <Button variant="outline" onClick={closeOnboard}>Cancel</Button>
@@ -959,13 +960,13 @@ export const Contracts = () => {
                             <DialogHeader>
                                 <DialogTitle>{onboarded.name} has been added</DialogTitle>
                                 <DialogDescription>
-                                    {onboarded.emailSent
-                                        ? 'Their sign-in details were emailed to them.'
-                                        : 'The email could not be sent — give them these details yourself.'}
+                                    {onboarded.emailSent || onboarded.smsSent
+                                        ? `Their sign-in details were sent by ${[onboarded.smsSent && 'text message', onboarded.emailSent && 'email'].filter(Boolean).join(' and ')}.`
+                                        : 'The message could not be sent — give them these details yourself.'}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="rounded-md bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-sm space-y-1">
-                                <p>Email: <span className="font-mono font-semibold select-all">{onboarded.email}</span></p>
+                                <p>{onboarded.email ? 'Email' : 'Sign in with phone'}: <span className="font-mono font-semibold select-all">{onboarded.email || dev.phone}</span></p>
                                 <p>Temporary password: <span className="font-mono font-semibold select-all">{onboarded.tempPassword}</span></p>
                             </div>
                             <p className="text-xs text-slate-500">This password is shown only now. They should change it after signing in.</p>

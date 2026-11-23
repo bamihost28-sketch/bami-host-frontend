@@ -62,7 +62,7 @@ export interface UpdatePasswordResponse {
 
 export interface OnboardBusinessOwnerRequest {
   name: string;
-  email: string;
+  email?: string;
   phone: string;
   estateIds: string[];
   sendCredentials?: boolean;
@@ -159,8 +159,8 @@ export interface AuthResponse {
 // Manager Types
 export interface OnboardManagerRequest {
   name: string;
-  email: string;
-  phone?: string;
+  email?: string;
+  phone: string;
   position?: string;
   sendCredentials?: boolean;
 }

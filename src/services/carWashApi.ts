@@ -58,9 +58,9 @@ export interface CarWashStaffMember {
 
 export interface AssignStaffPayload {
   name: string;
-  email: string;
+  email?: string;
   role?: 'staff' | 'admin';
-  phone?: string;
+  phone: string;
   sendCredentials?: boolean;
 }
 

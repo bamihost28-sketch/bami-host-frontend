@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useOnboardBusinessOwnerMutation } from '@/services/authApi';
 import { useGetEstatesQuery } from '@/services/estatesApi';
 import { toast } from '@/components/ui/use-toast';
+import { phoneOk, emailOk, credentialsNote } from '@/lib/onboarding';
 import { UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -29,12 +30,12 @@ export const BusinessOwnerOnboarding = () => {
             toast({ title: 'Name is required', variant: 'destructive' });
             return;
         }
-        if (!email.trim()) {
-            toast({ title: 'Email is required', variant: 'destructive' });
+        if (!phoneOk(phone)) {
+            toast({ title: 'A phone number is required (at least 10 digits)', variant: 'destructive' });
             return;
         }
-        if (!phone.trim()) {
-            toast({ title: 'Phone is required', variant: 'destructive' });
+        if (email.trim() && !emailOk(email)) {
+            toast({ title: 'Enter a valid email address, or leave it blank', variant: 'destructive' });
             return;
         }
         if (selectedEstateIds.length === 0) {
@@ -45,7 +46,7 @@ export const BusinessOwnerOnboarding = () => {
         try {
             const result = await onboardBusinessOwner({
                 name: name.trim(),
-                email: email.trim(),
+                ...(email.trim() && { email: email.trim() }),
                 phone: phone.trim(),
                 estateIds: selectedEstateIds,
                 sendCredentials,
@@ -53,7 +54,7 @@ export const BusinessOwnerOnboarding = () => {
 
             toast({
                 title: 'Business owner onboarded successfully',
-                description: result.message || `Created account for ${result.data.name}`,
+                description: `Created account for ${result.data.name}. ${sendCredentials ? credentialsNote((result.data as any).credentials) : ''}`,
             });
 
             // Reset form
@@ -105,7 +106,7 @@ export const BusinessOwnerOnboarding = () => {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email *</Label>
+                            <Label htmlFor="email">Email (optional)</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -115,7 +116,7 @@ export const BusinessOwnerOnboarding = () => {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="phone">Phone *</Label>
+                            <Label htmlFor="phone">Phone number * (they sign in with it)</Label>
                             <Input
                                 id="phone"
                                 type="tel"
@@ -187,7 +188,7 @@ export const BusinessOwnerOnboarding = () => {
                             htmlFor="sendCredentials"
                             className="text-sm font-normal cursor-pointer"
                         >
-                            Send login credentials via email
+                            Send login credentials (by text message, and email if given)
                         </Label>
                     </div>
 

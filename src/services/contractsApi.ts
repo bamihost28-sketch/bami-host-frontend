@@ -156,9 +156,11 @@ export interface OnboardedDeveloper {
     id: string;
     name: string;
     email: string;
-    /** Shown once so it can be passed on if the email did not arrive. */
+    login?: 'email' | 'phone';
+    /** Shown once so it can be passed on if the message did not arrive. */
     tempPassword: string;
     emailSent: boolean;
+    smsSent?: boolean;
 }
 
 export const contractsApi = createApi({
@@ -218,7 +220,7 @@ export const contractsApi = createApi({
             query: () => '/api/contracts/developers',
             providesTags: ['Developer'],
         }),
-        onboardDeveloper: builder.mutation<{ success: boolean; data: OnboardedDeveloper }, { name: string; email: string; phone?: string }>({
+        onboardDeveloper: builder.mutation<{ success: boolean; data: OnboardedDeveloper }, { name: string; email?: string; phone: string }>({
             query: (body) => ({ url: '/api/contracts/developers', method: 'POST', body }),
             invalidatesTags: ['Developer'],
         }),

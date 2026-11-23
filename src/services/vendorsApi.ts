@@ -35,9 +35,9 @@ export interface Vendor {
 
 export interface OnboardVendorPayload {
     name: string;
-    email: string;
+    email?: string;
     managerId: string;
-    phone?: string;
+    phone: string;
     position?: string;
     businessTypeId?: string;
     sendCredentials?: boolean;
