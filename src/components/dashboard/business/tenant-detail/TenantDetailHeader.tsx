@@ -32,6 +32,9 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
   // Resend login credentials state
   const [resendOpen, setResendOpen] = useState(false);
   const tenantEmail = tenant?.email || overview?.email || tenant?.tenantEmail || '';
+  const tenantPhone = tenant?.tenantPhone || tenant?.whatsapp || tenant?.whatsappNumber || overview?.phone || '';
+  // set when a phone-only tenant's new temporary password is shown to the admin
+  const [resentPassword, setResentPassword] = useState<string | null>(null);
 
   // Suspend/reactivate account state — locks the login only, independent of
   // occupancy, lease, and billing. For a dispute/issue to resolve, not a move-out.
@@ -55,8 +58,9 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
     if (!tenantId) return;
     try {
       const res = await resendCredentials(tenantId).unwrap();
-      toast({ title: res?.message || `Login credentials sent to ${tenantEmail}` });
-      setResendOpen(false);
+      toast({ title: res?.message || `Login credentials sent to ${tenantEmail || tenantPhone}` });
+      if (res?.tempPassword) setResentPassword(res.tempPassword);   // phone-only tenant: show it too, in case the text is late
+      else setResendOpen(false);
     } catch (e: any) {
       toast({
         title: e?.data?.detail || 'Failed to resend credentials',
@@ -208,7 +212,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-email">Email</Label>
+                <Label htmlFor="edit-email">Email <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
                 <Input 
                   id="edit-email"
                   type="email" 
@@ -218,7 +222,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-phone">Phone / WhatsApp</Label>
+                <Label htmlFor="edit-phone">Phone / WhatsApp <span className="text-destructive">*</span></Label>
                 <Input 
                   id="edit-phone"
                   disabled={false}
@@ -414,7 +418,7 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
           </DialogContent>
         </Dialog>
 
-        <Dialog open={resendOpen} onOpenChange={setResendOpen}>
+        <Dialog open={resendOpen} onOpenChange={(open) => { setResendOpen(open); if (!open) setResentPassword(null); }}>
           <DialogTrigger asChild>
             <Button variant="outline" size="sm">Resend Login Details</Button>
           </DialogTrigger>
@@ -423,15 +427,25 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
               <DialogTitle>Resend login credentials</DialogTitle>
             </DialogHeader>
             <div className="py-2 text-sm space-y-3">
-              <p>
-                A new temporary password will be generated and emailed to this tenant's
-                current email address:
-              </p>
-              {tenantEmail ? (
-                <p className="font-medium break-all">{tenantEmail}</p>
+              {resentPassword ? (
+                <div className="space-y-2">
+                  <p>A new temporary password has been created{tenantPhone ? ` and sent by text message to ${tenantPhone}` : ''}. Keep it in case the message is late:</p>
+                  <p className="font-mono font-semibold text-base">{resentPassword}</p>
+                  <p className="text-[11px] text-muted-foreground">They sign in with their phone number and this password.</p>
+                </div>
+              ) : tenantEmail ? (
+                <>
+                  <p>A new temporary password will be generated and emailed to this tenant's current email address{tenantPhone ? ' (and sent by text message)' : ''}:</p>
+                  <p className="font-medium break-all">{tenantEmail}</p>
+                </>
+              ) : tenantPhone ? (
+                <>
+                  <p>This tenant has no email, so a new temporary password will be sent by text message to:</p>
+                  <p className="font-medium">{tenantPhone}</p>
+                </>
               ) : (
                 <p className="text-destructive">
-                  This tenant has no email address. Add one under “Edit Tenant” first.
+                  This tenant has no phone number or email address. Add a phone number under “Edit Tenant” first.
                 </p>
               )}
               <p className="text-[11px] text-muted-foreground">
@@ -440,12 +454,16 @@ export const TenantDetailHeader = ({ tenantId, tenant, overview, onStartTour, to
             </div>
             <div className="flex justify-end gap-2 mt-2">
               <Button variant="ghost" onClick={() => setResendOpen(false)}>Cancel</Button>
-              <Button
-                onClick={handleResendCredentials}
-                disabled={resendingCredentials || !tenantEmail}
-              >
-                {resendingCredentials ? 'Sending...' : 'Send credentials'}
-              </Button>
+              {resentPassword ? (
+                <Button onClick={() => { setResendOpen(false); setResentPassword(null); }}>Done</Button>
+              ) : (
+                <Button
+                  onClick={handleResendCredentials}
+                  disabled={resendingCredentials || (!tenantEmail && !tenantPhone)}
+                >
+                  {resendingCredentials ? 'Sending...' : 'Send credentials'}
+                </Button>
+              )}
             </div>
           </DialogContent>
         </Dialog>

@@ -87,6 +87,8 @@ export const EstateDetailPage = () => {
   const [tenantName, setTenantName] = useState('');
   const [tenantEmail, setTenantEmail] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
+  // shown after adding a tenant who has no email, so the sign-in details can be handed over
+  const [createdLogin, setCreatedLogin] = useState<{ name: string; phone: string; password: string; smsSent: boolean } | null>(null);
   const [tenantType, setTenantType] = useState<'new' | 'existing' | 'transfer'>('new');
   const [entryDate, setEntryDate] = useState('');
   const [durationMonths, setDurationMonths] = useState('');
@@ -157,17 +159,21 @@ export const EstateDetailPage = () => {
 
   const submitTenant = async () => {
     if (!estateId || !tenantName.trim() || !selectedUnitId) return;
+    if (tenantPhone.replace(/\D/g, '').length < 10) {
+      toast({ title: 'Phone number required', description: "Enter the tenant's phone number (at least 10 digits). Email is optional.", variant: 'destructive' });
+      return;
+    }
     const isExisting = tenantType !== 'new';
     try {
       const duration = Number(durationMonths);
       const rent_outstanding = Number(outstandingRent) > 0 ? Number(outstandingRent) : undefined;
       const sc_outstanding = Number(outstandingServiceCharge) > 0 ? Number(outstandingServiceCharge) : undefined;
-      await createTenant({
+      const created = await createTenant({
         estateId, body: {
           unitId: selectedUnitId,
           tenantName: tenantName.trim(),
           tenantEmail: tenantEmail || undefined,
-          tenantPhone: tenantPhone || undefined,
+          tenantPhone: tenantPhone.trim(),
           tenantType,
           entryDate: entryDate || undefined,
           durationMonths: Number.isFinite(duration) && duration > 0 ? duration : undefined,
@@ -177,6 +183,9 @@ export const EstateDetailPage = () => {
         }
       }).unwrap();
       toast({ title: 'Tenant added' });
+      if (created.data?.login === 'phone' && created.data.tempPassword) {
+        setCreatedLogin({ name: tenantName.trim(), phone: tenantPhone.trim(), password: created.data.tempPassword, smsSent: !!created.data.smsSent });
+      }
       setAddOpen(false);
       setSelectedUnitId(''); setTenantName(''); setTenantEmail(''); setTenantPhone('');
       setTenantType('new'); setEntryDate(''); setDurationMonths('');
@@ -391,6 +400,26 @@ export const EstateDetailPage = () => {
                 onChange={(e) => { setTenantSearch(e.target.value); setPage(1); }}
                 className="w-44 h-9"
               />
+              <Dialog open={!!createdLogin} onOpenChange={(open) => !open && setCreatedLogin(null)}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{createdLogin?.name} can now sign in</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3 text-sm">
+                    <p>
+                      {createdLogin?.smsSent
+                        ? 'We sent these details to the tenant by text message. Keep them in case it does not arrive.'
+                        : 'The text message could not be sent, so please give the tenant these details yourself.'}
+                    </p>
+                    <div className="rounded-md border p-3 space-y-1">
+                      <p>Sign in with phone number: <span className="font-mono font-semibold">{createdLogin?.phone}</span></p>
+                      <p>Temporary password: <span className="font-mono font-semibold">{createdLogin?.password}</span></p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Ask them to change the password after they first sign in. This password is shown only now.</p>
+                  </div>
+                  <div className="flex justify-end"><Button onClick={() => setCreatedLogin(null)}>Done</Button></div>
+                </DialogContent>
+              </Dialog>
               <Dialog open={addOpen} onOpenChange={setAddOpen}>
                 {canOps && (
                   <DialogTrigger asChild>
@@ -423,12 +452,13 @@ export const EstateDetailPage = () => {
                       <Input value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
-                      <Label>Tenant email</Label>
-                      <Input type="email" value={tenantEmail} onChange={(e) => setTenantEmail(e.target.value)} />
+                      <Label>Tenant phone <span className="text-destructive">*</span></Label>
+                      <Input type="tel" placeholder="08012345678" value={tenantPhone} onChange={(e) => setTenantPhone(e.target.value)} />
+                      <p className="text-xs text-muted-foreground">Required. The tenant signs in with this number and receives their login details by text message.</p>
                     </div>
                     <div className="grid gap-2">
-                      <Label>Tenant phone</Label>
-                      <Input type="tel" value={tenantPhone} onChange={(e) => setTenantPhone(e.target.value)} />
+                      <Label>Tenant email <span className="text-xs font-normal text-muted-foreground">(optional)</span></Label>
+                      <Input type="email" placeholder="Leave empty if the tenant has no email" value={tenantEmail} onChange={(e) => setTenantEmail(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
                       <Label>Tenant type</Label>

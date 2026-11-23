@@ -163,23 +163,17 @@ export const authApi = createApi({
     }),
     requestOtp: builder.mutation<AuthResponse, RequestOtpRequest>({
       query: (data) => ({
-        url: '/api/auth/forgotpassword-otp',
-        method: 'POST',
-        body: data,
-      }),
-    }),
-    verifyOtp: builder.mutation<AuthResponse, VerifyOtpRequest>({
-      query: (data) => ({
-        url: '/api/auth/verify-otp',
+        url: '/api/auth/forgot-password',
         method: 'POST',
         body: data,
       }),
     }),
     resetPasswordWithOtp: builder.mutation<AuthResponse, ResetPasswordOtpRequest>({
-      query: (data) => ({
-        url: '/api/auth/resetpassword-otp',
+      // the server calls the code "otp"; `email` may hold an email address or a phone number
+      query: ({ email, code, password }) => ({
+        url: '/api/auth/reset-password',
         method: 'POST',
-        body: data,
+        body: { email, otp: code, password },
       }),
       invalidatesTags: ['Auth'],
     }),
@@ -225,7 +219,6 @@ export const {
   useResendManagerCredentialsMutation,
   useResendVendorCredentialsMutation,
   useRequestOtpMutation,
-  useVerifyOtpMutation,
   useResetPasswordWithOtpMutation,
   useSignAgreementMutation,
   useDeleteAccountMutation

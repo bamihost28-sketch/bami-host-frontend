@@ -724,11 +724,20 @@ export interface PublicEstate {
   vacantUnits: number;
 }
 
+/** What the server returns after adding a tenant. A tenant with no email signs in with their phone number. */
+export interface CreateTenantResponse {
+  success: boolean;
+  message?: string;
+  data?: { id: string; tempPassword?: string; login?: 'email' | 'phone'; phone?: string; smsSent?: boolean };
+}
+
 export interface CreateTenantPayload {
   unitId: string;
   tenantName: string;
+  /** Optional: many people have no email. */
   tenantEmail?: string;
-  tenantPhone?: string;
+  /** Required: this is how the tenant signs in and is reached. */
+  tenantPhone: string;
   tenantType?: 'new' | 'existing' | 'transfer';
   entryDate?: string; // ISO YYYY-MM-DD (when tenant moves in)
   durationMonths?: number; // how many months until next rent is due
@@ -891,7 +900,7 @@ export const estatesApi = createApi({
       query: () => '/api/estates/overview/all',
       providesTags: [{ type: 'EstateList', id: 'LIST' }],
     }),
-    createEstateTenant: builder.mutation<Tenant, { estateId: string; body: CreateTenantPayload }>({
+    createEstateTenant: builder.mutation<CreateTenantResponse, { estateId: string; body: CreateTenantPayload }>({
       query: ({ estateId, body }) => ({ url: `/api/estates/${estateId}/tenants`, method: 'POST', body }),
       invalidatesTags: (result, error, { estateId }) => [
         { type: 'EstateTenants', id: estateId },
@@ -1043,7 +1052,7 @@ export const estatesApi = createApi({
         { type: 'TenantList', id: 'LIST' },
       ],
     }),
-    resendTenantCredentials: builder.mutation<{ success: boolean; message?: string }, string>({
+    resendTenantCredentials: builder.mutation<{ success: boolean; message?: string; channels?: string[]; tempPassword?: string }, string>({
       query: (tenantId) => ({ url: `/api/tenants/${tenantId}/resend-credentials`, method: 'POST' }),
     }),
     adjustTenantBalance: builder.mutation<

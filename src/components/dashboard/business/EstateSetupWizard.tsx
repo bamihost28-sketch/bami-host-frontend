@@ -159,6 +159,7 @@ export const EstateSetupWizard = ({ open, onOpenChange }: EstateSetupWizardProps
     entryDate: '', durationMonths: '12', tenantType: 'new' as const,
   });
   const [tenantDone, setTenantDone] = useState(false);
+  const [tenantLogin, setTenantLogin] = useState<{ phone: string; password: string; smsSent: boolean } | null>(null);
 
   // Mutations
   const [createEstate, { isLoading: creatingEstate }] = useCreateEstateMutation();
@@ -383,21 +384,28 @@ export const EstateSetupWizard = ({ open, onOpenChange }: EstateSetupWizardProps
       toast({ title: 'Unit and tenant name required', variant: 'destructive' });
       return;
     }
+    if (tenantForm.tenantPhone.replace(/\D/g, '').length < 10) {
+      toast({ title: 'Phone number required', description: "Enter the tenant's phone number (at least 10 digits). Email is optional.", variant: 'destructive' });
+      return;
+    }
     try {
-      await createTenant({
+      const created = await createTenant({
         estateId: createdEstateId,
         body: {
           unitId: tenantForm.unitId,
           tenantName: tenantForm.tenantName.trim(),
           tenantEmail: tenantForm.tenantEmail || undefined,
-          tenantPhone: tenantForm.tenantPhone || undefined,
+          tenantPhone: tenantForm.tenantPhone.trim(),
           entryDate: tenantForm.entryDate || undefined,
           durationMonths: Number(tenantForm.durationMonths) || 12,
           tenantType: tenantForm.tenantType,
         },
       }).unwrap();
       setTenantDone(true);
-      toast({ title: 'Tenant added', description: 'Welcome email and wallet created.' });
+      if (created.data?.login === 'phone' && created.data.tempPassword) {
+        setTenantLogin({ phone: tenantForm.tenantPhone.trim(), password: created.data.tempPassword, smsSent: !!created.data.smsSent });
+      }
+      toast({ title: 'Tenant added', description: created.data?.login === 'phone' ? 'Login details sent by text message.' : 'Welcome email and wallet created.' });
     } catch (e) {
       toast({ title: 'Failed to add tenant', description: (typeof (e as any)?.data?.detail === 'string' ? (e as any).data.detail : undefined), variant: 'destructive' });
     }
@@ -754,10 +762,19 @@ export const EstateSetupWizard = ({ open, onOpenChange }: EstateSetupWizardProps
 
   const renderTenantStep = () => (
     <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">Optionally add the first tenant now. A user account, welcome email, and wallet will be created automatically.</p>
+      <p className="text-sm text-muted-foreground">Optionally add the first tenant now. A user account and wallet are created automatically, and the login details are sent by text message (and by email if you enter one).</p>
       {tenantDone ? (
-        <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-          <CheckCircle2 className="h-4 w-4" /> Tenant added successfully.
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+            <CheckCircle2 className="h-4 w-4" /> Tenant added successfully.
+          </div>
+          {tenantLogin ? (
+            <div className="rounded-md border p-3 text-sm space-y-1">
+              <p className="text-muted-foreground">{tenantLogin.smsSent ? 'Login details were sent by text message. Keep them in case it does not arrive:' : 'The text message could not be sent, so give the tenant these details:'}</p>
+              <p>Phone: <span className="font-mono font-semibold">{tenantLogin.phone}</span></p>
+              <p>Temporary password: <span className="font-mono font-semibold">{tenantLogin.password}</span></p>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="space-y-4">
@@ -776,11 +793,11 @@ export const EstateSetupWizard = ({ open, onOpenChange }: EstateSetupWizardProps
               <Input placeholder="John Doe" value={tenantForm.tenantName} onChange={(e) => setTenantForm((f) => ({ ...f, tenantName: e.target.value }))} />
             </div>
             <div>
-              <p className="text-sm font-medium mb-1.5">Phone</p>
+              <p className="text-sm font-medium mb-1.5">Phone <span className="text-destructive">*</span></p>
               <Input placeholder="08012345678" value={tenantForm.tenantPhone} onChange={(e) => setTenantForm((f) => ({ ...f, tenantPhone: e.target.value }))} />
             </div>
             <div>
-              <p className="text-sm font-medium mb-1.5">Email</p>
+              <p className="text-sm font-medium mb-1.5">Email <span className="text-xs font-normal text-muted-foreground">(optional)</span></p>
               <Input type="email" placeholder="john@example.com" value={tenantForm.tenantEmail} onChange={(e) => setTenantForm((f) => ({ ...f, tenantEmail: e.target.value }))} />
             </div>
             <div>

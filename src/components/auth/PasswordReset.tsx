@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import {
   useRequestOtpMutation,
-  useVerifyOtpMutation,
   useResetPasswordWithOtpMutation
 } from "@/services/authApi";
 
@@ -38,41 +37,32 @@ export const ForgotPassword = ({ onBack }: PasswordResetProps) => {
   const [error, setError] = useState("");
 
   const [requestOtp, { isLoading: isRequesting }] = useRequestOtpMutation();
-  const [verifyOtp, { isLoading: isVerifying }] = useVerifyOtpMutation();
   const [resetPassword, { isLoading: isResetting }] = useResetPasswordWithOtpMutation();
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email) return setError("Please enter your email address");
+    if (!email.trim()) return setError("Please enter your email address or phone number");
 
     try {
-      const response = await requestOtp({ email }).unwrap();
+      const response = await requestOtp({ email: email.trim() }).unwrap();
       if (response.success) {
         setStep('verify');
       } else {
         setError(response.message || "Failed to send OTP");
       }
     } catch (err: any) {
-      setError(err.data?.message || "An error occurred. Please try again.");
+      setError(err.data?.detail || err.data?.message || "An error occurred. Please try again.");
     }
   };
 
+  // The server checks the code when the new password is saved, so this step only collects it.
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!otp || otp.length !== 6) return setError("Please enter a valid 6-digit OTP");
 
-    try {
-      const response = await verifyOtp({ email, code: otp }).unwrap();
-      if (response.success) {
-        setStep('reset');
-      } else {
-        setError(response.message || "Invalid OTP");
-      }
-    } catch (err: any) {
-      setError(err.data?.message || "An error occurred. Please try again.");
-    }
+    setStep('reset');
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -82,14 +72,15 @@ export const ForgotPassword = ({ onBack }: PasswordResetProps) => {
     if (newPassword.length < 8) return setError("Password must be at least 8 characters");
 
     try {
-      const response = await resetPassword({ email, code: otp, password: newPassword }).unwrap();
+      const response = await resetPassword({ email: email.trim(), code: otp, password: newPassword }).unwrap();
       if (response.success) {
         setStep('success');
       } else {
         setError(response.message || "Failed to reset password");
       }
     } catch (err: any) {
-      setError(err.data?.message || "An error occurred. Please try again.");
+      // a wrong or expired code is reported here, so send them back to re-enter it
+      setError(err.data?.detail || err.data?.message || "An error occurred. Please try again.");
     }
   };
 
@@ -129,8 +120,8 @@ export const ForgotPassword = ({ onBack }: PasswordResetProps) => {
               "Set New Password"}
         </CardTitle>
         <CardDescription>
-          {step === 'request' ? "Enter your email to receive a 6-digit verification code" :
-            step === 'verify' ? `Enter the 6-digit code sent to ${email}` :
+          {step === 'request' ? "Enter your email address or phone number. We'll send a 6-digit code to your email, or by text message if you use a phone number." :
+            step === 'verify' ? `Enter the 6-digit code we sent to ${email}` :
               "Choose a strong password for your account"}
         </CardDescription>
       </CardHeader>
@@ -138,13 +129,15 @@ export const ForgotPassword = ({ onBack }: PasswordResetProps) => {
         {step === 'request' && (
           <form onSubmit={handleRequestOtp} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email or Phone Number</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="name@example.com"
+                  type="text"
+                  inputMode="email"
+                  autoComplete="username"
+                  placeholder="name@example.com or 08012345678"
                   className="pl-10"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -160,7 +153,7 @@ export const ForgotPassword = ({ onBack }: PasswordResetProps) => {
             )}
             <div className="space-y-3 pt-2">
               <Button type="submit" className="w-full" disabled={isRequesting}>
-                {isRequesting ? "Sending OTP..." : "Send OTP Code"}
+                {isRequesting ? "Sending code..." : "Send Code"}
               </Button>
               <Button onClick={onBack} type="button" variant="ghost" className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -182,7 +175,6 @@ export const ForgotPassword = ({ onBack }: PasswordResetProps) => {
                 className="text-center text-2xl tracking-[0.5em] font-bold"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                disabled={isVerifying}
               />
             </div>
             {error && (
@@ -192,12 +184,12 @@ export const ForgotPassword = ({ onBack }: PasswordResetProps) => {
               </Alert>
             )}
             <div className="space-y-3 pt-2">
-              <Button type="submit" className="w-full" disabled={isVerifying}>
-                {isVerifying ? "Verifying..." : "Verify Code"}
+              <Button type="submit" className="w-full">
+                Continue
               </Button>
               <Button onClick={() => setStep('request')} type="button" variant="ghost" className="w-full">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Try another email
+                Use a different email or phone number
               </Button>
             </div>
           </form>
