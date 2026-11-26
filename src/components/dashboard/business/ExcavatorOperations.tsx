@@ -10,22 +10,27 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { EXCAVATOR_PROFILES, EXCAVATOR_SERVICES } from "@/data/excavatorData";
 import {
-  EXCAVATOR_BOOKINGS,
-  EXCAVATOR_LOGS,
-  EXCAVATOR_PROFILES,
-  EXCAVATOR_SERVICES,
-  type ExcavatorBooking,
-  type ExcavatorLog,
-} from "@/data/excavatorData";
+  addBooking as storeAddBooking,
+  addLog as storeAddLog,
+  cancelBooking,
+  openShiftFor,
+  SEEDED_LOG_IDS,
+  useEquipmentStore,
+  workedHours,
+} from "@/lib/equipmentStore";
+import {
+  availabilityWindows,
+  earliestBookableStart,
+  quoteBooking,
+  TURNAROUND_DAYS,
+  validateBooking,
+} from "@/lib/equipmentRules";
 
 const naira = (n: number) => `₦${Math.round(n).toLocaleString()}`;
 const DAY = 86_400_000;
 const toDate = (s: string) => new Date(`${s}T00:00:00`);
-const inclusiveDays = (start: string, end: string) =>
-  Math.round((toDate(end).getTime() - toDate(start).getTime()) / DAY) + 1;
-const overlaps = (aStart: string, aEnd: string, bStart: string, bEnd: string) =>
-  aStart <= bEnd && bStart <= aEnd;
 
 interface Props {
   assetId: string;
@@ -37,10 +42,10 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
   const { toast } = useToast();
   const profile = EXCAVATOR_PROFILES.find((p) => p.assetId === assetId);
 
-  const [bookings, setBookings] = useState<ExcavatorBooking[]>(
-    EXCAVATOR_BOOKINGS.filter((b) => b.assetId === assetId)
-  );
-  const [logs, setLogs] = useState<ExcavatorLog[]>(EXCAVATOR_LOGS.filter((l) => l.assetId === assetId));
+  const store = useEquipmentStore();
+  const bookings = store.bookings.filter((b) => b.assetId === assetId);
+  const logs = store.logs.filter((l) => l.assetId === assetId);
+  const openShift = openShiftFor(store, assetId);
   const services = EXCAVATOR_SERVICES.filter((s) => s.assetId === assetId);
 
   const [bookingForm, setBookingForm] = useState({ client: "", site: "", start: "", end: "", withOperator: true });
@@ -48,7 +53,7 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
 
   const totalLoggedHours = useMemo(() => logs.reduce((s, l) => s + l.hoursWorked, 0), [logs]);
   const loggedSinceBaseline = useMemo(
-    () => logs.filter((l) => !EXCAVATOR_LOGS.some((x) => x.id === l.id)).reduce((s, l) => s + l.hoursWorked, 0),
+    () => logs.filter((l) => !SEEDED_LOG_IDS.has(l.id)).reduce((s, l) => s + l.hoursWorked, 0),
     [logs]
   );
 
@@ -66,40 +71,21 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
 
   const insuranceDaysLeft = Math.round((toDate(profile.insuranceExpiry).getTime() - Date.now()) / DAY);
 
-  const quote = (() => {
-    const { start, end, withOperator } = bookingForm;
-    if (!start || !end || end < start) return null;
-    const days = inclusiveDays(start, end);
-    const machine = profile.dailyRate * days;
-    const operator = withOperator ? profile.operatorRate * days : 0;
-    return { days, machine, operator, mobilisation: profile.mobilisationFee, total: machine + operator + profile.mobilisationFee };
-  })();
+  const quote = quoteBooking(profile, bookingForm.start, bookingForm.end, bookingForm.withOperator);
+  const windows = availabilityWindows(bookings);
 
   const addBooking = () => {
     const { client, site, start, end, withOperator } = bookingForm;
-    if (!client || !site || !start || !end) {
-      toast({ title: "Fill in client, site and dates", variant: "destructive" });
+    if (!client || !site) {
+      toast({ title: "Fill in client and site", variant: "destructive" });
       return;
     }
-    if (end < start) {
-      toast({ title: "End date is before start date", variant: "destructive" });
+    const check = validateBooking(bookings, start, end);
+    if (check.ok === false) {
+      toast({ title: "Cannot book these dates", description: check.reason, variant: "destructive" });
       return;
     }
-    const clash = bookings.find(
-      (b) => b.status !== "cancelled" && b.status !== "completed" && overlaps(start, end, b.start, b.end)
-    );
-    if (clash) {
-      toast({
-        title: "Dates clash with an existing booking",
-        description: `${clash.client}, ${clash.start} to ${clash.end}`,
-        variant: "destructive",
-      });
-      return;
-    }
-    setBookings((prev) => [
-      ...prev,
-      { id: `bk_${Date.now()}`, assetId, client, site, start, end, withOperator, status: "confirmed" },
-    ]);
+    storeAddBooking({ assetId, client, customer: client, site, start, end, withOperator });
     setBookingForm({ client: "", site: "", start: "", end: "", withOperator: true });
     toast({ title: "Booking added", description: "Demo data only, not saved to the server." });
   };
@@ -116,10 +102,7 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
       toast({ title: "Hours worked cannot exceed 24 in a day", variant: "destructive" });
       return;
     }
-    setLogs((prev) => [
-      { id: `lg_${Date.now()}`, assetId, date, operator, site, hoursWorked: hours, fuelLitres: fuel },
-      ...prev,
-    ]);
+    storeAddLog({ assetId, date, operator, site, hoursWorked: hours, fuelLitres: fuel });
     setLogForm({ date: "", operator: "", site: "", hoursWorked: "", fuelLitres: "" });
     toast({ title: "Daily log added", description: "Hours meter updated. Demo data only." });
   };
@@ -151,6 +134,20 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
               <Stat label="Operator / day" value={naira(profile.operatorRate)} />
             </div>
             <Card>
+              <CardContent className="pt-6 text-sm">
+                <Row
+                  k="Operator today"
+                  v={
+                    !openShift ? "No shift started" :
+                    !openShift.checksDoneAt ? `${openShift.operator}: pre-start checks pending` :
+                    !openShift.startedAt ? `${openShift.operator}: checks done, not started` :
+                    openShift.breaks.some((b) => !b.end) ? `${openShift.operator}: on rest` :
+                    `${openShift.operator}: working (${workedHours(openShift).toFixed(1)} h)`
+                  }
+                />
+              </CardContent>
+            </Card>
+            <Card>
               <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
                 <Row k="Make / model" v={`${profile.make} ${profile.model}`} />
                 <Row k="Serial number" v={profile.serialNumber} />
@@ -178,8 +175,8 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><Label>Client</Label><Input value={bookingForm.client} onChange={(e) => setBookingForm((p) => ({ ...p, client: e.target.value }))} /></div>
                   <div><Label>Site</Label><Input value={bookingForm.site} onChange={(e) => setBookingForm((p) => ({ ...p, site: e.target.value }))} /></div>
-                  <div><Label>Start</Label><Input type="date" value={bookingForm.start} onChange={(e) => setBookingForm((p) => ({ ...p, start: e.target.value }))} /></div>
-                  <div><Label>End</Label><Input type="date" value={bookingForm.end} onChange={(e) => setBookingForm((p) => ({ ...p, end: e.target.value }))} /></div>
+                  <div><Label>Start</Label><Input type="date" min={earliestBookableStart()} value={bookingForm.start} onChange={(e) => setBookingForm((p) => ({ ...p, start: e.target.value }))} /></div>
+                  <div><Label>End</Label><Input type="date" min={bookingForm.start || earliestBookableStart()} value={bookingForm.end} onChange={(e) => setBookingForm((p) => ({ ...p, end: e.target.value }))} /></div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch checked={bookingForm.withOperator} onCheckedChange={(v) => setBookingForm((p) => ({ ...p, withOperator: v }))} />
@@ -197,9 +194,21 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
               </CardContent>
             </Card>
 
+            <Card>
+              <CardHeader><CardTitle className="text-base">Open dates</CardTitle></CardHeader>
+              <CardContent className="space-y-1 text-sm">
+                {windows.map((w) => (
+                  <div key={w.start}>{w.end ? `${w.start} to ${w.end}` : `From ${w.start} onward`}</div>
+                ))}
+                <p className="text-xs text-muted-foreground pt-1">
+                  Earliest start is tomorrow. Each booking keeps a {TURNAROUND_DAYS}-day break either side for delivery and servicing.
+                </p>
+              </CardContent>
+            </Card>
+
             <Table>
               <TableHeader>
-                <TableRow><TableHead>Client</TableHead><TableHead>Site</TableHead><TableHead>Dates</TableHead><TableHead>Status</TableHead></TableRow>
+                <TableRow><TableHead>Client</TableHead><TableHead>Site</TableHead><TableHead>Dates</TableHead><TableHead>Status</TableHead><TableHead /></TableRow>
               </TableHeader>
               <TableBody>
                 {[...bookings].sort((a, b) => b.start.localeCompare(a.start)).map((b) => (
@@ -208,6 +217,11 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
                     <TableCell>{b.site}</TableCell>
                     <TableCell>{b.start} → {b.end}</TableCell>
                     <TableCell><Badge variant={b.status === "active" ? "default" : "secondary"}>{b.status}</Badge></TableCell>
+                    <TableCell>
+                      {b.status === "confirmed" && (
+                        <Button variant="ghost" size="sm" onClick={() => cancelBooking(b.id)}>Cancel</Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

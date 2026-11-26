@@ -120,6 +120,18 @@ export const PERMISSIONS: Record<string, Permission> = {
     description: 'Full equipment rental management and scheduling',
     category: 'business'
   },
+  'book_equipment': {
+    id: 'book_equipment',
+    name: 'Book Equipment',
+    description: 'See available equipment and book it for the dates needed',
+    category: 'business'
+  },
+  'operate_equipment': {
+    id: 'operate_equipment',
+    name: 'Operate Equipment',
+    description: 'Pre-start checks, clock work and rest, and report the day',
+    category: 'operations'
+  },
   'view_car_wash': {
     id: 'view_car_wash',
     name: 'View Car Wash',
@@ -674,7 +686,20 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
       'manage_payment_plans',
       'track_projects',
       'make_payments',
-      'view_payment_history' // Only their own payment history
+      'view_payment_history', // Only their own payment history
+      'book_equipment'
+    ]
+  },
+
+  operator: {
+    id: 'operator',
+    name: 'Equipment Operator',
+    description: 'Runs rental equipment: pre-start checks, work and rest clocking',
+    priority: 22,
+    permissions: [
+      'view_overview',
+      'view_settings',
+      'operate_equipment'
     ]
   },
 
@@ -716,6 +741,13 @@ export const ROLE_CONFIGS: Record<string, RoleConfig> = {
 ['admin', 'manager', 'super_manager', 'vendor', 'super_vendor'].forEach((role) => {
   const cfg = ROLE_CONFIGS[role];
   if (cfg) cfg.permissions = [...cfg.permissions, 'view_contracts', 'manage_contracts'];
+});
+
+// Anyone who manages equipment can also try the customer booking and operator screens.
+Object.values(ROLE_CONFIGS).forEach((cfg) => {
+  if (cfg.permissions.includes('manage_equipment')) {
+    cfg.permissions = Array.from(new Set([...cfg.permissions, 'book_equipment', 'operate_equipment']));
+  }
 });
 
 // Utility functions
@@ -767,6 +799,8 @@ export const NAVIGATION_PERMISSIONS: Record<string, string[]> = {
   'filling-station': ['view_filling_station'],
   'car-wash': ['view_car_wash'],
   'equipment': ['view_equipment'],
+  'rent-equipment': ['book_equipment'],
+  'operator-shift': ['operate_equipment'],
   'personal-portfolios': ['view_personal_portfolios'],
   // Strategic Hiring Navigation
   'strategic-hiring-planner': ['view_strategic_hiring', 'view_hiring_triggers'],

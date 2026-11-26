@@ -22,6 +22,8 @@ import { TenantDetailPage } from '@/components/dashboard/business/TenantDetailPa
 import { FillingStationManagement } from '@/components/dashboard/business/FillingStationManagement';
 import { CarWashManagement } from '@/components/dashboard/business/CarWashManagement';
 import { EquipmentManagement } from '@/components/dashboard/business/EquipmentManagement';
+import { EquipmentRentals } from '@/components/dashboard/business/EquipmentRentals';
+import { OperatorShift } from '@/components/dashboard/business/OperatorShift';
 import { AccountingManagement } from '@/components/dashboard/business/AccountingManagement';
 import { CRMDashboard } from '@/components/dashboard/CRMDashboard';
 import { LibraryDashboard } from '@/components/dashboard/LibraryDashboardStub';
@@ -82,6 +84,8 @@ const DashboardRouter: React.FC = () => {
         return <TenantDashboard />;
       case 'user':
         return <TenantDashboard />;
+      case 'operator':
+        return <OperatorShift />;
       case 'customer':
         return <CustomerDashboard />;
       default:
@@ -102,6 +106,8 @@ const DashboardRouter: React.FC = () => {
     if (pathname.includes('estate')) return 'estate';
     if (pathname.includes('filling-station')) return 'filling-station';
     if (pathname.includes('car-wash')) return 'car-wash';
+    if (pathname.includes('rent-equipment')) return 'rent-equipment';
+    if (pathname.includes('operator-shift')) return 'operator-shift';
     if (pathname.includes('equipment')) return 'equipment';
     if (pathname.includes('personal-portfolios')) return 'personal-portfolios';
     if (pathname.includes('goals')) return 'goals';
@@ -372,6 +378,34 @@ const DashboardRouter: React.FC = () => {
           }
         />
 
+
+        {/* Rent equipment (customers) */}
+        <Route
+          path="/rent-equipment"
+          element={
+            <ProtectedRoute
+              element={<EquipmentRentals />}
+              requiredPermissions={['book_equipment']}
+              feature="Rent Equipment"
+              showUpgradePrompt={false}
+              viewName="rent-equipment"
+            />
+          }
+        />
+
+        {/* Operator shift */}
+        <Route
+          path="/operator-shift"
+          element={
+            <ProtectedRoute
+              element={<OperatorShift />}
+              requiredPermissions={['operate_equipment']}
+              feature="Operator Shift"
+              showUpgradePrompt={false}
+              viewName="operator-shift"
+            />
+          }
+        />
 
         {/* Personal Portfolios */}
         <Route

@@ -28,6 +28,8 @@ export interface ExcavatorBooking {
   end: string; // YYYY-MM-DD inclusive
   withOperator: boolean;
   status: 'confirmed' | 'active' | 'completed' | 'cancelled';
+  /** Customer name, for bookings made through the customer portal. */
+  customer?: string;
 }
 
 export interface ExcavatorLog {
@@ -89,7 +91,7 @@ export const EXCAVATOR_PROFILES: ExcavatorProfile[] = [
 ];
 
 export const EXCAVATOR_BOOKINGS: ExcavatorBooking[] = [
-  { id: 'bk_1', assetId: 'excavator_1', client: 'Construction Co.', site: 'Lekki Phase 2', start: '2026-11-02', end: '2026-11-20', withOperator: true, status: 'completed' },
+  { id: 'bk_1', assetId: 'excavator_1', client: 'Construction Co.', site: 'Lekki Phase 2', start: '2026-11-02', end: '2026-11-10', withOperator: true, status: 'completed' },
   { id: 'bk_2', assetId: 'excavator_1', client: 'Okafor Builders', site: 'Ikorodu Road', start: '2026-11-24', end: '2026-12-05', withOperator: true, status: 'active' },
 ];
 

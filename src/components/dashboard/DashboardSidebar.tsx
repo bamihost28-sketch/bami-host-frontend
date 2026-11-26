@@ -88,6 +88,8 @@ const sidebarItems: SidebarItem[] = [
   { id: "scale", label: "Scale \u00B7 7 Levels", icon: TrendingUp, category: "growth", requiredPermissions: ["view_autopilot"], isPremium: true, path: "/dashboard/scale" },
   { id: "filling-station", label: "Filling Station", icon: Building, category: "business", requiredPermissions: ["view_filling_station"], isPremium: true, path: "/dashboard/filling-station" },
   { id: "equipment", label: "Equipment Rental", icon: Building, category: "business", requiredPermissions: ["view_equipment"], isPremium: true, path: "/dashboard/equipment" },
+  { id: "rent-equipment", label: "Rent Equipment", icon: Building, category: "business", requiredPermissions: ["book_equipment"], path: "/dashboard/rent-equipment" },
+  { id: "operator-shift", label: "My Shift", icon: Building, category: "business", requiredPermissions: ["operate_equipment"], path: "/dashboard/operator-shift" },
   { id: "car-wash", label: "Car Wash", icon: Droplets, category: "business", requiredPermissions: ["view_car_wash"], isPremium: true, path: "/dashboard/car-wash" },
   { id: "personal-portfolios", label: "Personal Life", icon: Wallet, category: "financial", requiredPermissions: ["view_personal_portfolios"], isPremium: true, path: "/dashboard/personal-portfolios" },
   { id: "reports", label: "Reports", icon: FileText, category: "financial", requiredPermissions: ["view_reports"], isPremium: true, path: "/dashboard/reports" },
