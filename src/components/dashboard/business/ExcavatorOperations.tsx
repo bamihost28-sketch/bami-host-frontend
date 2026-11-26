@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
+import { ProofThumb } from "./ProofCapture";
+import { PRE_START_CHECKS } from "@/lib/equipmentRules";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { EXCAVATOR_PROFILES, EXCAVATOR_SERVICES } from "@/data/excavatorData";
@@ -46,6 +48,7 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
   const bookings = store.bookings.filter((b) => b.assetId === assetId);
   const logs = store.logs.filter((l) => l.assetId === assetId);
   const openShift = openShiftFor(store, assetId);
+  const shifts = store.shifts.filter((x) => x.assetId === assetId).sort((a, b) => b.id.localeCompare(a.id));
   const services = EXCAVATOR_SERVICES.filter((s) => s.assetId === assetId);
 
   const [bookingForm, setBookingForm] = useState({ client: "", site: "", start: "", end: "", withOperator: true });
@@ -123,6 +126,7 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="logs">Daily logs</TabsTrigger>
+            <TabsTrigger value="checks">Pre-start checks</TabsTrigger>
             <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           </TabsList>
 
@@ -258,6 +262,41 @@ export const ExcavatorOperations = ({ assetId, open, onOpenChange }: Props) => {
                 ))}
               </TableBody>
             </Table>
+          </TabsContent>
+
+          <TabsContent value="checks" className="space-y-4">
+            {shifts.length === 0 && <p className="text-sm text-muted-foreground">No operator shifts yet.</p>}
+            {shifts.map((sh) => (
+              <Card key={sh.id}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex flex-wrap items-center justify-between gap-2">
+                    <span>{sh.date} · {sh.operator}</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {sh.checksDoneAt ? `Checks confirmed ${new Date(sh.checksDoneAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Checks not confirmed"}
+                      {sh.startedAt ? ` · work started ${new Date(sh.startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {PRE_START_CHECKS.map((c) => {
+                    const p = sh.checks[c.key];
+                    return (
+                      <div key={c.key} className="space-y-1">
+                        <div className="text-sm font-medium">{c.label}</div>
+                        {p ? <ProofThumb proofId={p.id} className="w-full h-28 rounded object-cover border" /> : <div className="h-28 rounded border border-dashed grid place-items-center text-xs text-muted-foreground">No photo</div>}
+                        {p && (
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(p.capturedAt).toLocaleString()}
+                            {p.source === "upload" && <Badge variant="outline" className="ml-1">uploaded</Badge>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {sh.checkNotes && <p className="sm:col-span-3 text-sm">Note: {sh.checkNotes}</p>}
+                </CardContent>
+              </Card>
+            ))}
           </TabsContent>
 
           <TabsContent value="maintenance" className="space-y-4">

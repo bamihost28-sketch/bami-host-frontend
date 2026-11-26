@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,14 +16,18 @@ import {
   endRest,
   finishWork,
   openShiftFor,
-  setCheck,
+  attachProof,
+  clearProof,
   setCheckNotes,
   startRest,
   startWork,
   useEquipmentStore,
   workedHours,
 } from "@/lib/equipmentStore";
-import { PRE_START_CHECKS, today } from "@/lib/equipmentRules";
+import { PRE_START_CHECKS, today, type PreStartKey } from "@/lib/equipmentRules";
+import { saveProofBlob } from "@/lib/proofStorage";
+import type { ProofResult } from "@/lib/proofImage";
+import { ProofCapture, ProofThumb } from "./ProofCapture";
 import { PageHeader } from "@/components/dashboard/DashboardPrimitives";
 import { AlertTriangle, HardHat } from "lucide-react";
 
@@ -52,6 +55,7 @@ export const OperatorShift = () => {
   const profile = EXCAVATOR_PROFILES.find((p) => p.assetId === assetId);
   const shift = openShiftFor(store, assetId);
 
+  const [capturing, setCapturing] = useState<PreStartKey | null>(null);
   const [site, setSite] = useState("");
   const [fuel, setFuel] = useState("");
   const [, tick] = useState(0);
@@ -71,6 +75,24 @@ export const OperatorShift = () => {
       return;
     }
     beginShift(assetId, operatorName, where, todayISO);
+  };
+
+  const onProof = async (proof: ProofResult) => {
+    if (!shift || !capturing) return;
+    const id = `pf_${Date.now()}`;
+    const error = attachProof(shift.id, capturing, {
+      id,
+      capturedAt: proof.capturedAt,
+      source: proof.source,
+      hash: proof.hash,
+      dhash: proof.dhash,
+    });
+    if (error) {
+      toast({ title: "Photo not accepted", description: error, variant: "destructive" });
+      return;
+    }
+    await saveProofBlob(id, proof.blob);
+    setCapturing(null);
   };
 
   const finish = () => {
@@ -115,7 +137,7 @@ export const OperatorShift = () => {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Before you start work</AlertTitle>
           <AlertDescription>
-            Check the water, gauge the oil and walk around the machine. You can only start work once all three are done.
+            Check the water, gauge the oil and walk around the machine. Take a new photo of each, right now, as proof. You can only start work once all three photos are in.
           </AlertDescription>
         </Alert>
       )}
@@ -138,29 +160,41 @@ export const OperatorShift = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Pre-start checks</CardTitle>
-            <CardDescription>Tick each one once you have done it.</CardDescription>
+            <CardDescription>Do each check, then take a photo of it now. Old photos cannot be reused.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {PRE_START_CHECKS.map((c) => (
-              <label key={c.key} className="flex items-start gap-3 rounded border p-3 cursor-pointer">
-                <Checkbox
-                  checked={!!shift.checks[c.key]}
-                  onCheckedChange={(v) => setCheck(shift.id, c.key, v === true)}
-                  className="mt-0.5"
-                />
-                <span>
-                  <span className="font-medium">{c.label}</span>
-                  <span className="block text-sm text-muted-foreground">{c.hint}</span>
-                </span>
-              </label>
-            ))}
+            {PRE_START_CHECKS.map((c) => {
+              const proof = shift.checks[c.key];
+              return (
+                <div key={c.key} className="flex items-center justify-between gap-3 rounded border p-3">
+                  <div className="min-w-0">
+                    <div className="font-medium">{c.label}</div>
+                    <div className="text-sm text-muted-foreground">{c.hint}</div>
+                    {proof && (
+                      <div className="text-xs text-green-700 mt-1">
+                        Photo taken {fmtTime(proof.capturedAt)}{proof.source === "upload" ? " (uploaded)" : ""}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {proof && <ProofThumb proofId={proof.id} />}
+                    <Button size="sm" variant={proof ? "outline" : "default"} onClick={() => setCapturing(c.key)}>
+                      {proof ? "Retake" : "Take photo"}
+                    </Button>
+                    {proof && (
+                      <Button size="sm" variant="ghost" onClick={() => clearProof(shift.id, c.key)}>Remove</Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
             <div>
               <Label>Anything wrong? (optional)</Label>
               <Textarea rows={2} value={shift.checkNotes} onChange={(e) => setCheckNotes(shift.id, e.target.value)} />
             </div>
             {!shift.checksDoneAt ? (
               <Button className="w-full" disabled={!allTicked} onClick={() => confirmChecks(shift.id)}>
-                Confirm checks done
+                Confirm checks
               </Button>
             ) : (
               <Button className="w-full" onClick={() => startWork(shift.id)}>Start work</Button>
@@ -201,6 +235,19 @@ export const OperatorShift = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {shift && capturing && profile && (
+        <ProofCapture
+          open
+          title={`Photo: ${PRE_START_CHECKS.find((c) => c.key === capturing)?.label}`}
+          stampLines={[
+            `${profile.plateOrFleetNo} · ${PRE_START_CHECKS.find((c) => c.key === capturing)?.label}`,
+            `Operator: ${operatorName}`,
+          ]}
+          onClose={() => setCapturing(null)}
+          onCaptured={onProof}
+        />
       )}
 
       {todaysFinished.map((s) => (

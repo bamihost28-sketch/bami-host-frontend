@@ -6,6 +6,7 @@ import {
   type ExcavatorLog,
 } from "@/data/excavatorData";
 import { PRE_START_CHECKS, type PreStartKey } from "@/lib/equipmentRules";
+import { DHASH_DUPLICATE_DISTANCE, hamming, type ProofSource } from "@/lib/proofImage";
 
 // Shared demo state so the customer, operator and owner screens see the same bookings and shifts.
 // Kept in memory and mirrored to localStorage. Replace with an API slice when the backend exists.
@@ -15,13 +16,22 @@ export interface ShiftBreak {
   end?: string;
 }
 
+/** A fresh photo that backs one pre-start check. The image itself lives in IndexedDB under `id`. */
+export interface ShiftProof {
+  id: string;
+  capturedAt: string; // ISO
+  source: ProofSource;
+  hash: string;
+  dhash: string;
+}
+
 export interface Shift {
   id: string;
   assetId: string;
   operator: string;
   site: string;
   date: string; // YYYY-MM-DD
-  checks: Partial<Record<PreStartKey, boolean>>;
+  checks: Partial<Record<PreStartKey, ShiftProof>>;
   checkNotes: string;
   checksDoneAt?: string;
   startedAt?: string;
@@ -37,7 +47,7 @@ interface State {
   shifts: Shift[];
 }
 
-const KEY = "bh-equipment-demo-v1";
+const KEY = "bh-equipment-demo-v2"; // v2: checks hold photo proofs, not booleans
 
 const seed = (): State => ({
   bookings: EXCAVATOR_BOOKINGS.map((b) => ({ ...b })),
@@ -112,8 +122,40 @@ export const beginShift = (assetId: string, operator: string, site: string, date
   });
 };
 
-export const setCheck = (id: string, key: PreStartKey, value: boolean) =>
-  patchShift(id, (s) => (s.startedAt ? s : { ...s, checks: { ...s.checks, [key]: value }, checksDoneAt: undefined }));
+/** An earlier proof (any machine, any day, or another check today) that looks like the same picture. */
+const findDuplicateProof = (proof: ShiftProof, shiftId: string, key: PreStartKey): string | null => {
+  for (const sh of state.shifts) {
+    for (const c of PRE_START_CHECKS) {
+      if (sh.id === shiftId && c.key === key) continue; // the slot being replaced
+      const p = sh.checks[c.key];
+      if (!p) continue;
+      if (proof.hash && p.hash === proof.hash) return `This photo was already used on ${sh.date}.`;
+      // Look-alike check only for uploads: a live camera shot is fresh by construction, and an honest
+      // photo of the same dipstick from the same spot would otherwise be wrongly rejected.
+      if (proof.source === "upload" && hamming(proof.dhash, p.dhash) <= DHASH_DUPLICATE_DISTANCE) {
+        return `This looks like the photo already used on ${sh.date}. Take a new photo now.`;
+      }
+    }
+  }
+  return null;
+};
+
+/** Attach a fresh proof photo to a check. Returns an error message, or null when accepted. */
+export const attachProof = (id: string, key: PreStartKey, proof: ShiftProof): string | null => {
+  const shift = state.shifts.find((s) => s.id === id);
+  if (!shift || shift.startedAt) return "This shift is no longer open for checks.";
+  const dup = findDuplicateProof(proof, id, key);
+  if (dup) return dup;
+  patchShift(id, (s) => ({ ...s, checks: { ...s.checks, [key]: proof }, checksDoneAt: undefined }));
+  return null;
+};
+
+export const clearProof = (id: string, key: PreStartKey) =>
+  patchShift(id, (s) => {
+    if (s.startedAt) return s;
+    const { [key]: _removed, ...rest } = s.checks;
+    return { ...s, checks: rest, checksDoneAt: undefined };
+  });
 
 export const setCheckNotes = (id: string, notes: string) => patchShift(id, (s) => ({ ...s, checkNotes: notes }));
 
