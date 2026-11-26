@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BUSINESSES } from "@/data/consolidatedDemoData";
+import { ExcavatorOperations } from "./ExcavatorOperations";
 import { Truck, Settings, Calendar, TrendingUp, Wrench, DollarSign } from "lucide-react";
 
 export const EquipmentManagement = () => {
+  const [excavatorId, setExcavatorId] = useState<string | null>(null);
   const equipment = BUSINESSES.find(b => b.id === 'equipment');
   const assets = equipment?.assets || [];
 
@@ -176,7 +178,12 @@ export const EquipmentManagement = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => item.type === 'excavator' && setExcavatorId(item.id)}
+                >
                   {item.status === 'available' ? 'Book Now' : 'View Details'}
                 </Button>
                 <Button variant="outline" size="sm">
@@ -375,6 +382,13 @@ export const EquipmentManagement = () => {
           </Tabs>
         </CardContent>
       </Card>
+      {excavatorId && (
+        <ExcavatorOperations
+          assetId={excavatorId}
+          open
+          onOpenChange={(o) => !o && setExcavatorId(null)}
+        />
+      )}
     </div>
   );
 };
