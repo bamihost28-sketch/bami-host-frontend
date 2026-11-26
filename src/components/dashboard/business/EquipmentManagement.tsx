@@ -34,6 +34,8 @@ export const EquipmentManagement = () => {
       case 'tipper': return '🚛';
       case 'excavator': return '🚜';
       case 'self_loader': return '🏗️';
+      case 'pipeline_welder': return '🔥';
+      case 'sandblaster': return '💨';
       default: return '🚚';
     }
   };
@@ -48,7 +50,7 @@ export const EquipmentManagement = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Equipment Management</h1>
-          <p className="text-muted-foreground">Manage tipper, excavator & self-loader rentals</p>
+          <p className="text-muted-foreground">Manage tipper, excavator, self-loader, pipeline welding & sandblasting machine rentals</p>
         </div>
         <Button>Add Equipment</Button>
       </div>
@@ -118,7 +120,7 @@ export const EquipmentManagement = () => {
                   {item.status}
                 </Badge>
               </div>
-              <CardDescription className="capitalize">{item.type.replace('_', ' ')}</CardDescription>
+              <CardDescription className="capitalize">{item.type.replace(/_/g, ' ')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
