@@ -14,6 +14,14 @@ import {
 
 type Result = BulkPrepaymentResponse["data"];
 
+/** Count from the rows themselves: the server renames the keys of `counts` in transit
+ *  (will_change -> willChange), while each row's `status` value arrives unchanged. */
+const tally = (rows: Result["results"]) =>
+  rows.reduce<Partial<Record<PrepaymentRowStatus, number>>>((acc, r) => {
+    acc[r.status] = (acc[r.status] ?? 0) + 1;
+    return acc;
+  }, {});
+
 const LABEL: Record<PrepaymentRowStatus, string> = {
   will_change: "Will switch",
   changed: "Switched",
@@ -67,8 +75,9 @@ export function BulkPrepaidDialog({ open, onOpenChange }: { open: boolean; onOpe
   const apply = async () => {
     try {
       const res = (await run(request(false)).unwrap()).data;
-      const changed = res.counts.changed ?? 0;
-      const failed = res.counts.failed ?? 0;
+      const counts = tally(res.results);
+      const changed = counts.changed ?? 0;
+      const failed = counts.failed ?? 0;
       toast({
         title: `Prepaid ${enabled ? "turned on" : "turned off"} for ${changed} meter${changed === 1 ? "" : "s"}`,
         description: failed ? `${failed} could not be changed — check the list.` : undefined,
@@ -80,7 +89,7 @@ export function BulkPrepaidDialog({ open, onOpenChange }: { open: boolean; onOpe
     }
   };
 
-  const willChange = preview?.counts.will_change ?? 0;
+  const willChange = preview ? tally(preview.results).will_change ?? 0 : 0;
   const cutting = preview?.results.filter((r) => r.status === "will_change" && (r.balanceKwh ?? 0) <= 0).length ?? 0;
   const applied = preview && !preview.dryRun;
 
@@ -143,7 +152,7 @@ export function BulkPrepaidDialog({ open, onOpenChange }: { open: boolean; onOpe
             <div className="border rounded-lg overflow-hidden">
               <div className="px-3 py-2 text-sm font-medium bg-muted/40">
                 {applied ? "Result" : "Preview"} — {preview.total} meter{preview.total === 1 ? "" : "s"}:{" "}
-                {Object.entries(preview.counts).map(([k, n]) => `${n} ${LABEL[k as PrepaymentRowStatus].toLowerCase()}`).join(", ")}
+                {Object.entries(tally(preview.results)).map(([k, n]) => `${n} ${LABEL[k as PrepaymentRowStatus].toLowerCase()}`).join(", ")}
               </div>
               {!applied && cutting > 0 && (
                 <div className="px-3 py-2 text-sm bg-red-50 text-red-800 border-b">
